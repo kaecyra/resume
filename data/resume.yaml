@@ -1,245 +1,246 @@
 profile:
-    name: "Tim Gunter"
-    photo: "assets/headshot.jpg"
-    contact:
-        address: "REDACTED"
-        phone: "REDACTED"
-        email: "REDACTED"
+  name: "Tim Gunter"
+  photo: "assets/headshot-illustration.png"
+  contact:
+    address: "REDACTED"
+    phone: "REDACTED"
+    email: "REDACTED"
+    linkedin: "linkedin.com/in/guntertim"
 
 skills:
-    - id: strategy
-      name: "Strategy"
-      level: 5
+  - id: strategy
+    name: "Strategy"
+    level: 5
 
-    - id: culture
-      name: "Culture"
-      level: 5
+  - id: culture
+    name: "Culture"
+    level: 5
 
-    - id: operational_innovation
-      name: "Operational Innovation"
-      level: 4
+  - id: operational_innovation
+    name: "Operational Innovation"
+    level: 4
 
-    - id: customer_experience
-      name: "Customer Experience"
-      level: 4
+  - id: customer_experience
+    name: "Customer Experience"
+    level: 4
 
-    - id: executive_leadership
-      name: "Executive Leadership"
-      level: 5
+  - id: executive_leadership
+    name: "Executive Leadership"
+    level: 5
 
-    - id: communication
-      name: "Communication"
-      level: 4
+  - id: communication
+    name: "Communication"
+    level: 4
 
-    - id: software_engineering
-      name: "Software Engineering"
-      level: 4
+  - id: software_engineering
+    name: "Software Engineering"
+    level: 4
 
-    - id: solution_architecture
-      name: "Solution Architecture"
-      level: 5
+  - id: solution_architecture
+    name: "Solution Architecture"
+    level: 5
 
 employment:
-    - id: monks-vpe
-      title: "Vice President of Engineering"
-      company: ".Monks"
-      location: null
-      start_date: "2024-07"
-      end_date: null
-      description: |
-          Monks (formerly TheoremOne and Formula.Monks) tackles the most ambitious,
-          convoluted, and scariest software engineering challenges on behalf of large
-          organizations that aren't nimble enough to go it alone.
-      summary: |
-          Took stewardship of the Engineering group at Monks when my predecessor
-          resigned. The team was approximately 310 strong and participating in
-          some 30+ projects.
-      highlights:
-          - title: "Live Cloud Production Architecture"
-            description: |
-                Led the development of a reference architecture for our Live Cloud
-                Production offering, connecting with our industry partners, other
-                vendors, and potential clients to inform requirements. Validated
-                the technical options available and work-shopped solutions to the
-                roadblocks we encountered. Produced architecture diagrams with
-                traffic flows, provisioning guidance, points of scalability, etc.
+  - id: monks-vpe
+    title: "Vice President of Engineering"
+    company: ".Monks"
+    location: null
+    start_date: "2024-07"
+    end_date: null
+    description: |
+      Monks (formerly TheoremOne and Formula.Monks) tackles the most ambitious,
+      convoluted, and scariest software engineering challenges on behalf of large
+      organizations that aren't nimble enough to go it alone.
+    summary: |
+      Took stewardship of the Engineering group at Monks when my predecessor
+      resigned. The team was approximately 310 strong and participating in
+      some 30+ projects.
+    highlights:
+      - title: "Live Cloud Production Architecture"
+        description: |
+          Led the development of a reference architecture for our Live Cloud
+          Production offering, connecting with our industry partners, other
+          vendors, and potential clients to inform requirements. Validated
+          the technical options available and work-shopped solutions to the
+          roadblocks we encountered. Produced architecture diagrams with
+          traffic flows, provisioning guidance, points of scalability, etc.
 
-          - title: "Pre-Sales"
-            description: |
-                Partnered with the sales team to create a "SME" program that
-                allowed them to leverage our collective technical expertise to
-                build trust with prospects and improve lead close rates, driving
-                significant new revenue.
+      - title: "Pre-Sales"
+        description: |
+          Partnered with the sales team to create a "SME" program that
+          allowed them to leverage our collective technical expertise to
+          build trust with prospects and improve lead close rates, driving
+          significant new revenue.
 
-          - title: "Operationalized Project Staffing"
-            description: |
-                Worked with benched engineering and design resources to build an
-                internal staffing platform, replacing an existing system of
-                spreadsheets and whispers. Allowed staff to maintain their profile
-                of skills and domains of expertise, and operations teams to search
-                and "cast" these resources for upcoming projects.
+      - title: "Operationalized Project Staffing"
+        description: |
+          Worked with benched engineering and design resources to build an
+          internal staffing platform, replacing an existing system of
+          spreadsheets and whispers. Allowed staff to maintain their profile
+          of skills and domains of expertise, and operations teams to search
+          and "cast" these resources for upcoming projects.
 
-          - title: "Restructured Engineering Foundry"
-            description: |
-                Spearheaded the restructuring of the engineering department to align
-                with the company's new business model, optimizing team structure,
-                roles, and responsibilities to support evolving strategic goals.
+      - title: "Restructured Engineering Foundry"
+        description: |
+          Spearheaded the restructuring of the engineering department to align
+          with the company's new business model, optimizing team structure,
+          roles, and responsibilities to support evolving strategic goals.
 
-    - id: monks-doe
-      title: "Director of Engineering"
-      company: ".Monks"
-      location: null
-      start_date: "2022-02"
-      end_date: "2024-07"
-      description: null
-      summary: |
-          As the senior engineering leader for my account group:
-      highlights:
-          - description: |
-                Represented Monks in both on-site and virtual pre-sales situations,
-                effectively **establishing client confidence** in our exceptional
-                delivery capabilities.
+  - id: monks-doe
+    title: "Director of Engineering"
+    company: ".Monks"
+    location: null
+    start_date: "2022-02"
+    end_date: "2024-07"
+    description: null
+    summary: |
+      As the senior engineering leader for my account group:
+    highlights:
+      - description: |
+          Represented Monks in both on-site and virtual pre-sales situations,
+          effectively **establishing client confidence** in our exceptional
+          delivery capabilities.
 
-          - description: |
-                Orchestrated the planning and staffing of **high-performing delivery
-                teams** for new and ongoing client projects, ensuring seamless
-                execution and client satisfaction.
+      - description: |
+          Orchestrated the planning and staffing of **high-performing delivery
+          teams** for new and ongoing client projects, ensuring seamless
+          execution and client satisfaction.
 
-          - description: |
-                Led the **successful engineering execution** of multiple 8-figure,
-                multi-team engagements, overseeing staffing, client interaction,
-                performance management, and budgetary control.
+      - description: |
+          Led the **successful engineering execution** of multiple 8-figure,
+          multi-team engagements, overseeing staffing, client interaction,
+          performance management, and budgetary control.
 
-          - description: |
-                Played a pivotal role in the enhancement of internal engagement
-                management tools, continuously iterating on our tools to increase
-                our efficiency and improve our sight lines.
+      - description: |
+          Played a pivotal role in the enhancement of internal engagement
+          management tools, continuously iterating on our tools to increase
+          our efficiency and improve our sight lines.
 
-    - id: higher-logic
-      title: "Global Platform Leader"
-      company: "Higher Logic"
-      location: null
-      start_date: "2021-05"
-      end_date: "2022-01"
-      description: |
-          Joined Higher Logic via their acquisition of Vanilla Forums.
-      summary: |
-          Facilitated the smooth transition of systems, processes and tools from
-          Vanilla to Higher Logic, post acquisition, and helped educate and train
-          Higher Logic staff.
+  - id: higher-logic
+    title: "Global Platform Leader"
+    company: "Higher Logic"
+    location: null
+    start_date: "2021-05"
+    end_date: "2022-01"
+    description: |
+      Joined Higher Logic via their acquisition of Vanilla Forums.
+    summary: |
+      Facilitated the smooth transition of systems, processes and tools from
+      Vanilla to Higher Logic, post acquisition, and helped educate and train
+      Higher Logic staff.
 
-          Responsible for all 5 platforms, entirely transformed Higher Logic's
-          approach to DevOps and deployment with significantly more automation and
-          observability, massively increasing speed and reliability of deployments,
-          reducing human toil, and significantly cutting COGS.
-      highlights: []
+      Responsible for all 5 platforms, entirely transformed Higher Logic's
+      approach to DevOps and deployment with significantly more automation and
+      observability, massively increasing speed and reliability of deployments,
+      reducing human toil, and significantly cutting COGS.
+    highlights: []
 
-    - id: vanilla-coo
-      title: "Chief Operating Officer"
-      company: "Vanilla Forums"
-      location: "Montreal"
-      start_date: "2017-09"
-      end_date: "2021-05"
-      description: |
-          Vanilla delivered customized online community software targeted at
-          customer support and brand engagement sectors. Oversaw growth from
-          $0 ARR to $10M -- through two rounds of investment -- to its eventual
-          profitable acquisition by Higher Logic in 2021.
-      summary: null
-      highlights:
-          - description: |
-                Created **Infosec team** and supervised successful SOC2 audit
-                and accreditation.
+  - id: vanilla-coo
+    title: "Chief Operating Officer"
+    company: "Vanilla Forums"
+    location: "Montreal"
+    start_date: "2017-09"
+    end_date: "2021-05"
+    description: |
+      Vanilla delivered customized online community software targeted at
+      customer support and brand engagement sectors. Oversaw growth from
+      $0 ARR to $10M -- through two rounds of investment -- to its eventual
+      profitable acquisition by Higher Logic in 2021.
+    summary: null
+    highlights:
+      - description: |
+          Created **Infosec team** and supervised successful SOC2 audit
+          and accreditation.
 
-          - description: |
-                Spearheaded **expansion from 1 to 4 datacenters** (including EU).
+      - description: |
+          Spearheaded **expansion from 1 to 4 datacenters** (including EU).
 
-          - description: |
-                Guided Success team's transformation into Customer Experience
-                organization, and expansion from 2 members to 10.
+      - description: |
+          Guided Success team's transformation into Customer Experience
+          organization, and expansion from 2 members to 10.
 
-          - description: |
-                Created **HR team** and supported the deployment of ATS and
-                HRMS systems.
+      - description: |
+          Created **HR team** and supported the deployment of ATS and
+          HRMS systems.
 
-          - description: |
-                Protected and encouraged **company culture** in support of
-                employee satisfaction and long term human capital growth.
+      - description: |
+          Protected and encouraged **company culture** in support of
+          employee satisfaction and long term human capital growth.
 
-    - id: vanilla-vpo
-      title: "Vice President of Operations"
-      company: "Vanilla Forums"
-      location: "Montreal"
-      start_date: "2013-11"
-      end_date: "2017-09"
-      description: null
-      summary: |
-          Conceived, designed and implemented the SaaS hosting systems that
-          power Vanilla's offering.
+  - id: vanilla-vpo
+    title: "Vice President of Operations"
+    company: "Vanilla Forums"
+    location: "Montreal"
+    start_date: "2013-11"
+    end_date: "2017-09"
+    description: null
+    summary: |
+      Conceived, designed and implemented the SaaS hosting systems that
+      power Vanilla's offering.
 
-          Created and fulfilled Human Resources functions for the organization,
-          including creation of an employee handbook, hiring processes, employee
-          onboarding and offboarding, and the management of all policies related
-          to staff.
-      highlights:
-          - title: "Distributed architecture"
-            description: |
-                Fault tolerance and redundancy.
+      Created and fulfilled Human Resources functions for the organization,
+      including creation of an employee handbook, hiring processes, employee
+      onboarding and offboarding, and the management of all policies related
+      to staff.
+    highlights:
+      - title: "Distributed architecture"
+        description: |
+          Fault tolerance and redundancy.
 
-          - title: "IAC"
-            description: |
-                From the start, with proprietary agent-based provisioning
-                and monitoring.
+      - title: "IAC"
+        description: |
+          From the start, with proprietary agent-based provisioning
+          and monitoring.
 
-          - title: "Observability"
-            description: |
-                Single pane of glass with realtime system metrics.
+      - title: "Observability"
+        description: |
+          Single pane of glass with realtime system metrics.
 
-          - title: "Multi-cloud"
-            description: |
-                Multi-provider and multi-region support.
+      - title: "Multi-cloud"
+        description: |
+          Multi-provider and multi-region support.
 
-    - id: vanilla-doo
-      title: "Director of Operations"
-      company: "Vanilla Forums"
-      location: "Montreal"
-      start_date: "2012-07"
-      end_date: "2013-11"
-      description: null
-      summary: |
-          Moved hosting from public to private cloud in order to meet
-          **performance and reliability** goals of the business. Created tooling
-          and production code to enable the open source product to function as a
-          multi-tenant SaaS platform.
+  - id: vanilla-doo
+    title: "Director of Operations"
+    company: "Vanilla Forums"
+    location: "Montreal"
+    start_date: "2012-07"
+    end_date: "2013-11"
+    description: null
+    summary: |
+      Moved hosting from public to private cloud in order to meet
+      **performance and reliability** goals of the business. Created tooling
+      and production code to enable the open source product to function as a
+      multi-tenant SaaS platform.
 
-          Created **Customer Support** team and worked to establish its goals and
-          desired outcomes. Maintained this team through hiring, fostering cultural
-          changes, and training.
-      highlights: []
+      Created **Customer Support** team and worked to establish its goals and
+      desired outcomes. Maintained this team through hiring, fostering cultural
+      changes, and training.
+    highlights: []
 
 languages:
-    - id: english
-      name: "English"
-      proficiency: "Native speaker"
-      level: 5
+  - id: english
+    name: "English"
+    proficiency: "Native speaker"
+    level: 5
 
-    - id: engineer
-      name: "Engineer"
-      proficiency: "Native speaker"
-      level: 5
+  - id: engineer
+    name: "Engineer"
+    proficiency: "Native speaker"
+    level: 5
 
-    - id: french
-      name: "French"
-      proficiency: "A2"
-      level: 2
+  - id: french
+    name: "French"
+    proficiency: "A2"
+    level: 2
 
 courses:
-    - id: csm
-      title: "Certified Scrum Master (CSM)"
-      institution: "Scrum Alliance"
-      date: "2019-09"
+  - id: csm
+    title: "Certified Scrum Master (CSM)"
+    institution: "Scrum Alliance"
+    date: "2019-09"
 
-    - id: cspo
-      title: "Certified Scrum Product Owner (CSPO)"
-      institution: "Scrum Alliance"
-      date: "2019-12"
+  - id: cspo
+    title: "Certified Scrum Product Owner (CSPO)"
+    institution: "Scrum Alliance"
+    date: "2019-12"
