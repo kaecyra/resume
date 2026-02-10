@@ -48,6 +48,7 @@ logs/
 htmlcov/
 .pytest_cache/
 .tox/
+coverage/
 
 # Alembic
 *.db
