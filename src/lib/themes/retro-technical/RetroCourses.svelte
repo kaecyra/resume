@@ -2,7 +2,7 @@
   import type { Course } from "$lib/types.js";
   import { format_date } from "$lib/format.js";
 
-  let { courses }: { courses: Course[] } = $props();
+  let { courses, section }: { courses: Course[]; section: string } = $props();
 </script>
 
 <style>
@@ -13,7 +13,7 @@
 
 <section class="bg-[#1a2744] p-5">
   <div class="mb-1">
-    <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b9bb5]">Section 4.2</span>
+    <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b9bb5]">Section {section}</span>
     <h2 class="mt-1 text-base font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
       Training Modules
     </h2>

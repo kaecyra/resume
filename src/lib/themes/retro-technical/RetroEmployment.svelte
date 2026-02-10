@@ -3,7 +3,7 @@
 
   import RetroEmploymentEntry from "./RetroEmploymentEntry.svelte";
 
-  let { employment }: { employment: Employment[] } = $props();
+  let { employment, section }: { employment: Employment[]; section: string } = $props();
 </script>
 
 <style>
@@ -15,7 +15,7 @@
 <section>
   <div class="mb-4">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
-      <span class="italic">[chp. 2]</span>
+      <span class="italic">[chp. {section}]</span>
     </span>
     <h2 class="mt-1 text-xl font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
       Operational Log

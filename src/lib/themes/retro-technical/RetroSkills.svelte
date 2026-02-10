@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Skill } from "$lib/types.js";
 
-  let { skills }: { skills: Skill[] } = $props();
+  let { skills, section }: { skills: Skill[]; section: string } = $props();
 
   const MAX_LEVEL = 5;
   const GAUGE_RADIUS = 34;
@@ -60,7 +60,7 @@
 <section>
   <div class="mb-4">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
-      <span class="italic">[chp. 3]</span>
+      <span class="italic">[chp. {section}]</span>
     </span>
     <h2 class="mt-1 text-xl font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
       Capability Matrix

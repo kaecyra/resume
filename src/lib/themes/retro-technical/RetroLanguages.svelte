@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Language } from "$lib/types.js";
 
-  let { languages }: { languages: Language[] } = $props();
+  let { languages, section }: { languages: Language[]; section: string } = $props();
 </script>
 
 <style>
@@ -12,7 +12,7 @@
 
 <section class="bg-[#1a2744] p-5">
   <div class="mb-1">
-    <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b9bb5]">Section 4.1</span>
+    <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b9bb5]">Section {section}</span>
     <h2 class="mt-1 text-base font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
       Communication Protocols
     </h2>

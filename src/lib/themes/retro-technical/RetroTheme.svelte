@@ -41,7 +41,7 @@
             <div
               class="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-double border-[#e87a2e] bg-[#243555]"
             >
-              <span class="retro-heading text-lg text-[#e87a2e]">{initials}</span>
+              <span class="retro-heading pl-0.5 text-lg text-[#e87a2e]">{initials}</span>
             </div>
             <div>
               <span class="font-bold text-[#f0e6d6]">{resume.profile.name}</span>
@@ -65,26 +65,33 @@
       <span class="text-xs uppercase tracking-[0.25em] text-[#8b9bb5]">
         1984 Technical Service Manual Supplement
       </span>
-
+      {#if resume.profile.contact.linkedin}
+        <a
+          href="https://{resume.profile.contact.linkedin}"
+          class="text-xs tracking-wide text-[#f0e6d6] hover:text-white"
+        >
+          {resume.profile.contact.linkedin}
+        </a>
+      {/if}
     </div>
 
     <!-- Summary - full width -->
     <div class="bg-[#faf9f7] p-6">
-      <RetroSummary summary={resume.summary} />
+      <RetroSummary summary={resume.summary} section="1" />
     </div>
 
     <!-- Bottom row: skills left, languages+courses right -->
     <div class="grid grid-cols-[60%_1fr] gap-6 border-t-2 border-[#c96620] p-6 print:grid-cols-[60%_1fr]">
-      <RetroSkills skills={resume.skills} />
+      <RetroSkills skills={resume.skills} section="2" />
       <div class="flex flex-col gap-4">
-        <RetroLanguages languages={resume.languages} />
-        <RetroCourses courses={resume.courses} />
+        <RetroLanguages languages={resume.languages} section="2.1" />
+        <RetroCourses courses={resume.courses} section="2.2" />
       </div>
     </div>
 
     <!-- Employment section: full width -->
     <div class="border-t-2 border-[#c96620] p-6">
-      <RetroEmployment employment={resume.employment} />
+      <RetroEmployment employment={resume.employment} section="3" />
     </div>
 
     <!-- Footer -->

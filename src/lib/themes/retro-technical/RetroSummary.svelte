@@ -1,7 +1,7 @@
 <script lang="ts">
   import { format_bold } from "$lib/format.js";
 
-  let { summary }: { summary: string } = $props();
+  let { summary, section }: { summary: string; section: string } = $props();
 
   const paragraphs = $derived(summary.split("\n\n").filter((p) => p.trim()));
 </script>
@@ -15,7 +15,7 @@
 <section>
   <div class="mb-4">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
-      <span class="italic">[chp. 1]</span>
+      <span class="italic">[chp. {section}]</span>
     </span>
     <h2 class="mt-1 text-xl font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
       Systen Capacity
