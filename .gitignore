@@ -19,6 +19,10 @@ dist/
 .npm
 *.tsbuildinfo
 
+# SvelteKit
+.svelte-kit/
+build/
+
 # Environment files
 .env
 .env.local
