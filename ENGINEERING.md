@@ -93,3 +93,15 @@
       - _release/_: These branches are used to prepare for a new production release. They allow for last-minute dotting of i’s and crossing t’s. Use the prefix release/. For example, release/v1.0.1.
       - _docs/_: These branches are used to write, update, or fix documentation eg. the README.md file. For instance, docs/api-endpoints.
     - Branch names (after the prefix) should start with the issue number, and then contain a 1-to-3 word descriptive name, lowercase, with hyphens betwen them. For example, 27-fix-avatar-size.
+
+## Documentation
+
+15. **README maintenance**:
+    - Update README.md when changes affect:
+      - Project setup or prerequisites
+      - Available npm scripts
+      - Tech stack (major version bumps or new tools)
+      - Project structure (new top-level directories or key files)
+      - Data model or variant system behavior
+    - Keep the tech stack section current with package.json
+    - No update needed for internal refactors, patch versions, or minor feature work
