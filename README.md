@@ -53,6 +53,7 @@ src/
 scripts/
   generate-pdf.ts         # Puppeteer-based PDF generation
   deploy.sh               # Manual deploy script
+  setup-repo.sh           # Repository secrets/variables setup
 Dockerfile                # Multi-stage Docker build
 nginx.conf                # Container nginx configuration
 docker-compose.yml        # Docker Compose for local dev and production
@@ -73,6 +74,26 @@ Push to `main` triggers automatic deployment: build Docker image, push to GitHub
 ```
 Internet -> Ingress nginx (SSL, routing) -> Docker container (nginx:stable-alpine, port 3000:80)
 ```
+
+### First-Time Setup
+
+**Prerequisites:** GitHub CLI (`gh`), Docker
+
+The setup script configures all GitHub secrets and variables required by the deploy workflow:
+
+```sh
+./scripts/setup-repo.sh
+```
+
+The script prompts for each value with descriptions. For a dry run that populates placeholders without real credentials:
+
+```sh
+./scripts/setup-repo.sh --placeholder
+```
+
+To configure manually instead, see [Required GitHub Secrets](#required-github-secrets) and [Enabling Deployment](#enabling-deployment) below.
+
+**Verification:** After setup, push to `main` and check the Actions tab for a successful deploy run.
 
 ### Local Docker Build
 
