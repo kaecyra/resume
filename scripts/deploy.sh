@@ -18,13 +18,10 @@ done
 
 IMAGE="ghcr.io/kaecyra/resume:latest"
 
-echo "Building Docker image..."
-docker compose build
-
 echo "Logging in to GHCR..."
 echo "${GHCR_PAT}" | docker login ghcr.io -u kaecyra --password-stdin
 
-echo "Pushing image to GHCR..."
-docker push "${IMAGE}"
+echo "Building and pushing Docker image (linux/amd64)..."
+docker buildx build --platform linux/amd64 -t "${IMAGE}" --push .
 
 echo "Image pushed. Watchtower on the VM will detect and deploy the update."
