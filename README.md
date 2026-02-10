@@ -55,6 +55,7 @@ scripts/
   deploy.sh               # Manual deploy script (build and push to GHCR)
   setup-repo.sh           # Repository variables setup
   setup-host.sh           # Host VM provisioning script
+VERSION                   # CalVer version (YYYY.MM.DD)
 Dockerfile                # Multi-stage Docker build
 nginx.conf                # Container nginx configuration
 docker-compose.yml        # Docker Compose for local dev and production
