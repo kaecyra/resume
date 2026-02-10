@@ -57,6 +57,5 @@ coverage/
 # Alembic
 *.db
 
-# Iterating
-/screens/
-/assets/
+# Claude
+tasks/
