@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import yaml from "js-yaml";
@@ -6,6 +6,14 @@ import yaml from "js-yaml";
 import type { ResumeData, VariantManifest, ResolvedResume } from "./types.js";
 
 const DATA_DIR = resolve("data");
+
+const VARIANTS_DIR = resolve(DATA_DIR, "variants");
+
+export function list_variants(): string[] {
+  return readdirSync(VARIANTS_DIR)
+    .filter((f) => f.endsWith(".yaml"))
+    .map((f) => f.replace(/\.yaml$/, ""));
+}
 
 export function load_resume_data(): ResumeData {
   const raw = readFileSync(resolve(DATA_DIR, "resume.yaml"), "utf-8");
