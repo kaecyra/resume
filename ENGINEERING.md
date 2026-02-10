@@ -84,6 +84,7 @@
     - If you're starting a new issue and arent on an issue branch, create it
     - Frequent merges back to a stable `main` branch
     - Keep branches short-lived
+    - Delete working branches after merges, and delete the local branch as well
 
 14. **Branch prefixes and naming**:
     - The following prefixes are acceptable, based on the type of issue.
