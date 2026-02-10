@@ -35,6 +35,7 @@ export function resolve_resume(data: ResumeData, variant: VariantManifest): Reso
     .filter((c): c is NonNullable<typeof c> => c !== undefined);
 
   return {
+    theme: variant.theme,
     profile: data.profile,
     title: variant.title,
     summary: variant.summary,

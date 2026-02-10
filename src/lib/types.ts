@@ -56,6 +56,7 @@ export interface ResumeData {
 }
 
 export interface VariantManifest {
+  theme: string;
   title: string;
   summary: string;
   skills: string[];
@@ -65,6 +66,7 @@ export interface VariantManifest {
 }
 
 export interface ResolvedResume {
+  theme: string;
   profile: Profile;
   title: string;
   summary: string;
