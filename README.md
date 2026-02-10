@@ -52,8 +52,9 @@ src/
   routes/                 # SvelteKit pages
 scripts/
   generate-pdf.ts         # Puppeteer-based PDF generation
-  deploy.sh               # Manual deploy script
-  setup-repo.sh           # Repository secrets/variables setup
+  deploy.sh               # Manual deploy script (build and push to GHCR)
+  setup-repo.sh           # Repository variables setup
+  setup-host.sh           # Host VM provisioning script
 Dockerfile                # Multi-stage Docker build
 nginx.conf                # Container nginx configuration
 docker-compose.yml        # Docker Compose for local dev and production
@@ -69,31 +70,54 @@ GitHub Actions runs on pull requests to `main`, executing type checking, tests, 
 
 ## Deployment
 
-Push to `main` triggers automatic deployment: build Docker image, push to GitHub Container Registry (GHCR), deploy to VM via SSH.
+The site uses a pull-based deployment model. Pushing to `main` triggers GitHub Actions to build and push the Docker image to GHCR. On the VM, Watchtower polls GHCR for new images and automatically pulls and recreates the container.
 
 ```
-Internet -> Ingress nginx (SSL, routing) -> Docker container (nginx:stable-alpine, port 3000:80)
+Push to main -> GitHub Actions builds and pushes to GHCR
+Watchtower (on VM) polls GHCR -> detects new image -> pulls and recreates container
+Internet -> Cloudflare -> Proxy server -> VM:3000 -> Container
 ```
+
+There is a ~5 minute delay between push and deploy (Watchtower poll interval).
+
+### Host Setup
+
+The host VM is provisioned using `setup-host.sh`, which configures Docker, the firewall, Watchtower, and basic security hardening.
+
+**Prerequisites:** Fresh Ubuntu VM with sudo access
+
+```sh
+scp scripts/setup-host.sh user@192.168.8.44:~/
+ssh user@192.168.8.44 'sudo bash ~/setup-host.sh'
+```
+
+The script configures:
+- System package updates
+- UFW firewall (OpenSSH + port 3000)
+- Docker CE with log rotation
+- GHCR authentication for pulling images
+- Docker Compose stack (resume container + Watchtower)
+- Unattended security upgrades and fail2ban
 
 ### First-Time Setup
 
 **Prerequisites:** GitHub CLI (`gh`), Docker
 
-The setup script configures all GitHub secrets and variables required by the deploy workflow:
+The setup script configures the GitHub variable required by the deploy workflow:
 
 ```sh
 ./scripts/setup-repo.sh
 ```
 
-The script prompts for each value with descriptions. For a dry run that populates placeholders without real credentials:
+For a dry run that populates defaults:
 
 ```sh
 ./scripts/setup-repo.sh --placeholder
 ```
 
-To configure manually instead, see [Required GitHub Secrets](#required-github-secrets) and [Enabling Deployment](#enabling-deployment) below.
+The only GitHub configuration needed is the `DEPLOY_ENABLED` variable. The deploy workflow uses the automatic `GITHUB_TOKEN` for GHCR push, and GHCR credentials on the VM are configured by `setup-host.sh`.
 
-**Verification:** After setup, push to `main` and check the Actions tab for a successful deploy run.
+**Verification:** After setup, push to `main` and check the Actions tab for a successful build-and-push run.
 
 ### Local Docker Build
 
@@ -101,41 +125,38 @@ To configure manually instead, see [Required GitHub Secrets](#required-github-se
 docker compose up --build
 ```
 
-Site available at `http://localhost:3000`.
+Site available at `http://localhost:3000`. The Watchtower service is excluded from local builds via Docker Compose profiles.
 
 ### Manual Deploy
 
-For deploying without pushing to `main` (first-time setup, hotfix, troubleshooting):
+For deploying without pushing to `main` (hotfix, troubleshooting):
 
 ```sh
-export SSH_HOST=your-vm-host
-export SSH_USER=your-ssh-user
 export GHCR_PAT=your-github-pat
 ./scripts/deploy.sh
 ```
+
+This builds and pushes the image to GHCR. Watchtower on the VM detects the new image and updates automatically.
 
 ### Enabling Deployment
 
 Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secrets and variables > Actions > Variables). Set it to `true` to enable the deploy workflow, or `false` to skip it. The workflow will still trigger on push to `main` but all jobs will be skipped when disabled.
 
-### Required GitHub Secrets
+### Required GitHub Configuration
 
-| Secret | Purpose |
-|---|---|
-| `SSH_HOST` | VM hostname/IP |
-| `SSH_USER` | SSH username |
-| `SSH_KEY` | SSH private key (PEM) |
-| `GHCR_PAT` | GitHub PAT with `read:packages` for VM-side docker login |
+| Type | Name | Purpose |
+|---|---|---|
+| Variable | `DEPLOY_ENABLED` | Enable/disable the deploy workflow (`true`/`false`) |
 
-`GITHUB_TOKEN` is automatic and used for CI-side GHCR push.
+`GITHUB_TOKEN` is automatic and used for GHCR push. No additional secrets are required in GitHub.
 
 ### Ingress Configuration
 
-The VM runs an existing nginx ingress proxy for SSL termination. Example config to route traffic to the resume container:
+The network proxy server (separate from the VM) handles SSL termination and routes traffic to the VM. Example nginx config for the proxy:
 
 ```nginx
 location / {
-    proxy_pass http://127.0.0.1:3000;
+    proxy_pass http://192.168.8.44:3000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
