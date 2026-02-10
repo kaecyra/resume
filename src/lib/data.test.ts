@@ -39,6 +39,7 @@ describe("load_variant", () => {
   it("loads and parses the default variant", () => {
     const variant = load_variant("default");
 
+    expect(variant.theme).toBe("classic");
     expect(variant.title).toBeDefined();
     expect(variant.summary).toBeDefined();
     expect(variant.skills).toBeInstanceOf(Array);
@@ -54,6 +55,7 @@ describe("resolve_resume", () => {
     const variant = load_variant("default");
     const resolved = resolve_resume(data, variant);
 
+    expect(resolved.theme).toBe(variant.theme);
     expect(resolved.profile.name).toBe("Tim Gunter");
     expect(resolved.title).toBe(variant.title);
     expect(resolved.summary).toBe(variant.summary);
@@ -80,6 +82,7 @@ describe("resolve_resume", () => {
   it("skips unknown ids without error", () => {
     const data = load_resume_data();
     const variant: Parameters<typeof resolve_resume>[1] = {
+      theme: "classic",
       title: "Test",
       summary: "Test summary",
       skills: ["nonexistent", "strategy"],
