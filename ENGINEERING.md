@@ -95,9 +95,17 @@
       - _docs/_: These branches are used to write, update, or fix documentation eg. the README.md file. For instance, docs/api-endpoints.
     - Branch names (after the prefix) should start with the issue number, and then contain a 1-to-3 word descriptive name, lowercase, with hyphens betwen them. For example, 27-fix-avatar-size.
 
+## Versioning
+
+15. **CalVer scheme**: This project uses calendar versioning in `YYYY.MM.DD` format, stored in the `VERSION` file at the repo root.
+    - Bump the version when merging meaningful changes (content updates, features, fixes)
+    - Use a `.N` suffix for multiple releases on the same day (e.g. `2026.02.10.1`)
+    - No version bump needed for internal refactors, CI changes, or documentation-only updates
+    - The VERSION file is the single source of truth -- build tooling reads it to tag images and embed in output
+
 ## Documentation
 
-15. **README maintenance**:
+16. **README maintenance**:
     - Update README.md when changes affect:
       - Project setup or prerequisites
       - Available npm scripts
