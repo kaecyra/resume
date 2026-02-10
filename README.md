@@ -12,6 +12,7 @@ Online, responsive, interactive resume with flatfile-based data-driven content a
 | Testing | Vitest + Testing Library |
 | PDF Export | Puppeteer |
 | Build Tool | Vite |
+| Container | Docker + nginx:stable-alpine |
 
 ## Getting Started
 
@@ -51,6 +52,10 @@ src/
   routes/                 # SvelteKit pages
 scripts/
   generate-pdf.ts         # Puppeteer-based PDF generation
+  deploy.sh               # Manual deploy script
+Dockerfile                # Multi-stage Docker build
+nginx.conf                # Container nginx configuration
+docker-compose.yml        # Docker Compose for local dev and production
 ```
 
 ## Data Model
@@ -60,6 +65,62 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 ## CI
 
 GitHub Actions runs on pull requests to `main`, executing type checking, tests, and a production build in sequence. See [ENGINEERING.md](./ENGINEERING.md) for full coding standards and CI requirements.
+
+## Deployment
+
+Push to `main` triggers automatic deployment: build Docker image, push to GitHub Container Registry (GHCR), deploy to VM via SSH.
+
+```
+Internet -> Ingress nginx (SSL, routing) -> Docker container (nginx:stable-alpine, port 3000:80)
+```
+
+### Local Docker Build
+
+```sh
+docker compose up --build
+```
+
+Site available at `http://localhost:3000`.
+
+### Manual Deploy
+
+For deploying without pushing to `main` (first-time setup, hotfix, troubleshooting):
+
+```sh
+export SSH_HOST=your-vm-host
+export SSH_USER=your-ssh-user
+export GHCR_PAT=your-github-pat
+./scripts/deploy.sh
+```
+
+### Enabling Deployment
+
+Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secrets and variables > Actions > Variables). Set it to `true` to enable the deploy workflow, or `false` to skip it. The workflow will still trigger on push to `main` but all jobs will be skipped when disabled.
+
+### Required GitHub Secrets
+
+| Secret | Purpose |
+|---|---|
+| `SSH_HOST` | VM hostname/IP |
+| `SSH_USER` | SSH username |
+| `SSH_KEY` | SSH private key (PEM) |
+| `GHCR_PAT` | GitHub PAT with `read:packages` for VM-side docker login |
+
+`GITHUB_TOKEN` is automatic and used for CI-side GHCR push.
+
+### Ingress Configuration
+
+The VM runs an existing nginx ingress proxy for SSL termination. Example config to route traffic to the resume container:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
 
 ## Project Documentation
 

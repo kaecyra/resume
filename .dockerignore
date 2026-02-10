@@ -1,0 +1,12 @@
+node_modules
+.svelte-kit
+build
+coverage
+.git
+.github
+.claude
+tasks
+*.log
+.DS_Store
+.env
+.env.*
