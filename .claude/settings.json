@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh pr:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(.venv/bin/*)",
+      "Bash(source:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(uv:*)",
+      "Bash(pytest:*)",
+      "Bash(alembic:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(file:*)",
+      "Bash(mkdir:*)",
+      "Bash(ps:*)",
+      "Bash(pgrep:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(chmod:*)",
+      "WebSearch"
+    ]
+  }
+}
