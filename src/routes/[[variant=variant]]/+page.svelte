@@ -10,6 +10,7 @@
 
 <svelte:head>
   <title>{data.resume.profile.name} - {data.resume.title}</title>
+  <meta name="version" content={__APP_VERSION__} />
 </svelte:head>
 
 <Theme resume={data.resume} />
