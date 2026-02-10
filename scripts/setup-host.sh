@@ -87,11 +87,11 @@ echo ""
 echo "--- Firewall (UFW) ---"
 apt-get install -y ufw
 
-ufw allow OpenSSH
-ufw allow 3000/tcp
+ufw allow from 192.168.0.0/16 to any app OpenSSH
+ufw allow from 192.168.0.0/16 to any port 3000 proto tcp
 ufw --force enable
 
-echo "Firewall configured: OpenSSH and port 3000/tcp allowed."
+echo "Firewall configured: OpenSSH and port 3000/tcp allowed (LAN only)."
 echo ""
 
 # -- Docker installation -------------------------------------------------------
