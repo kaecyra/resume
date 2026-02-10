@@ -11,6 +11,11 @@ describe("get_theme", () => {
     expect(theme).toBeDefined();
   });
 
+  it("returns a component for retro-technical", () => {
+    const theme = get_theme("retro-technical");
+    expect(theme).toBeDefined();
+  });
+
   it("throws for unknown theme name", () => {
     expect(() => get_theme("nonexistent")).toThrow('Unknown theme: "nonexistent"');
   });
@@ -23,6 +28,10 @@ describe("get_theme_favicon", () => {
 
   it("returns undefined for product-manual (no override)", () => {
     expect(get_theme_favicon("product-manual")).toBeUndefined();
+  });
+
+  it("returns undefined for retro-technical (no override)", () => {
+    expect(get_theme_favicon("retro-technical")).toBeUndefined();
   });
 
   it("throws for unknown theme name", () => {

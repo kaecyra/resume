@@ -1,44 +1,44 @@
-theme: "product-manual"
+theme: "retro-technical"
 
 title: "Chief Technology Officer"
 
 summary: |
-    Seasoned technology leader and systems-thinking CTO with a deep background in
-    software architecture and operations. I've led engineering organizations of
-    approximately 300 people, delivered multi-team eight-figure engagements, and
-    scaled a SaaS business from $0 to $10M ARR that culminated in acquisition.
+  Seasoned technology leader and systems-thinking CTO with a deep background in
+  software architecture and operations. I've led engineering organizations of
+  approximately 300 people, delivered multi-team eight-figure engagements, and
+  scaled a SaaS business from $0 to $10M ARR that culminated in acquisition.
 
-    I combine strategic vision with hands-on technical ownership and a product-led
-    mindset--driving automation, observability, multi-cloud resilience, customer
-    obsession and people-first cultures that increase delivery velocity while
-    reducing operational cost and human toil.
+  I combine strategic vision with hands-on technical ownership and a product-led
+  mindset--driving automation, observability, multi-cloud resilience, customer
+  obsession and people-first cultures that increase delivery velocity while
+  reducing operational cost and human toil.
 
-    I am a force of nature when surrounded by other leaders with a shared vision
-    and focused on a goal I believe in.
+  **I am a force of nature** when surrounded by other leaders with a shared vision
+  and focused on a goal I believe in.
 
 skills:
-    - strategy
-    - culture
-    - operational_innovation
-    - customer_experience
-    - executive_leadership
-    - communication
-    - software_engineering
-    - solution_architecture
+  - strategy
+  - culture
+  - operational_innovation
+  - customer_experience
+  - executive_leadership
+  - communication
+  - software_engineering
+  - solution_architecture
 
 employment:
-    - monks-vpe
-    - monks-doe
-    - higher-logic
-    - vanilla-coo
-    - vanilla-vpo
-    - vanilla-doo
+  - monks-vpe
+  - monks-doe
+  - higher-logic
+  - vanilla-coo
+  - vanilla-vpo
+  - vanilla-doo
 
 languages:
-    - english
-    - engineer
-    - french
+  - english
+  - engineer
+  - french
 
 courses:
-    - csm
-    - cspo
+  - csm
+  - cspo

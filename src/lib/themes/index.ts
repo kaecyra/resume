@@ -3,6 +3,7 @@ import type { ResolvedResume } from "$lib/types.js";
 
 import ClassicTheme from "./classic/ClassicTheme.svelte";
 import ManualTheme from "./product-manual/ManualTheme.svelte";
+import RetroTheme from "./retro-technical/RetroTheme.svelte";
 
 interface ThemeProps {
   resume: ResolvedResume;
@@ -16,6 +17,7 @@ interface ThemeEntry {
 const THEMES: Record<string, ThemeEntry> = {
   classic: { component: ClassicTheme },
   "product-manual": { component: ManualTheme },
+  "retro-technical": { component: RetroTheme },
 };
 
 function resolve_theme(name: string): ThemeEntry {
