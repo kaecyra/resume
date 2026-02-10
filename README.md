@@ -93,6 +93,10 @@ export GHCR_PAT=your-github-pat
 ./scripts/deploy.sh
 ```
 
+### Enabling Deployment
+
+Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secrets and variables > Actions > Variables). Set it to `true` to enable the deploy workflow, or `false` to skip it. The workflow will still trigger on push to `main` but all jobs will be skipped when disabled.
+
 ### Required GitHub Secrets
 
 | Secret | Purpose |
