@@ -8,15 +8,28 @@ interface ThemeProps {
   resume: ResolvedResume;
 }
 
-const THEMES: Record<string, Component<ThemeProps>> = {
-  classic: ClassicTheme,
-  "product-manual": ManualTheme,
+interface ThemeEntry {
+  component: Component<ThemeProps>;
+  favicon?: string;
+}
+
+const THEMES: Record<string, ThemeEntry> = {
+  classic: { component: ClassicTheme },
+  "product-manual": { component: ManualTheme },
 };
 
-export function get_theme(name: string): Component<ThemeProps> {
-  const theme = THEMES[name];
-  if (!theme) {
+function resolve_theme(name: string): ThemeEntry {
+  const entry = THEMES[name];
+  if (!entry) {
     throw new Error(`Unknown theme: "${name}"`);
   }
-  return theme;
+  return entry;
+}
+
+export function get_theme(name: string): Component<ThemeProps> {
+  return resolve_theme(name).component;
+}
+
+export function get_theme_favicon(name: string): string | undefined {
+  return resolve_theme(name).favicon;
 }
