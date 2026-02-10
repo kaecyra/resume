@@ -1,0 +1,7 @@
+services:
+  resume:
+    build: .
+    image: ghcr.io/kaecyra/resume:latest
+    ports:
+      - "3000:80"
+    restart: unless-stopped
