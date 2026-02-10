@@ -1,5 +1,10 @@
 FROM node:24-alpine AS build
 
+# Chromium for Puppeteer PDF generation
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -7,6 +12,9 @@ RUN npm ci
 
 COPY . .
 RUN npm run build
+
+# Generate PDFs: start preview server, run Puppeteer, stop server
+RUN (npm run preview &) && sleep 2 && npm run generate-pdf
 
 FROM nginx:stable-alpine
 

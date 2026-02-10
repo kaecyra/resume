@@ -7,7 +7,10 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
 
 async function generate_pdf(): Promise<void> {
   const variants = list_variants();
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
 
   try {
     for (const variant of variants) {
