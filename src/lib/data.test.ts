@@ -1,4 +1,13 @@
-import { load_resume_data, load_variant, resolve_resume } from "./data.js";
+import { list_variants, load_resume_data, load_variant, resolve_resume } from "./data.js";
+
+describe("list_variants", () => {
+  it("returns an array containing 'default'", () => {
+    const variants = list_variants();
+
+    expect(variants).toBeInstanceOf(Array);
+    expect(variants).toContain("default");
+  });
+});
 
 describe("load_resume_data", () => {
   it("loads and parses resume.yaml", () => {
@@ -36,6 +45,10 @@ describe("load_resume_data", () => {
 });
 
 describe("load_variant", () => {
+  it("throws for nonexistent variant names", () => {
+    expect(() => load_variant("nonexistent")).toThrow();
+  });
+
   it("loads and parses the default variant", () => {
     const variant = load_variant("default");
 
