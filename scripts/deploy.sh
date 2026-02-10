@@ -16,12 +16,21 @@ for var in "${REQUIRED_VARS[@]}"; do
     fi
 done
 
-IMAGE="ghcr.io/kaecyra/resume:latest"
+IMAGE="ghcr.io/kaecyra/resume"
+
+if [[ ! -f VERSION ]]; then
+    echo "Error: VERSION file not found. Run from the repository root." >&2
+    exit 1
+fi
+VERSION=$(cat VERSION)
 
 echo "Logging in to GHCR..."
 echo "${GHCR_PAT}" | docker login ghcr.io -u kaecyra --password-stdin
 
-echo "Building and pushing Docker image (linux/amd64)..."
-docker buildx build --platform linux/amd64 -t "${IMAGE}" --push .
+echo "Building and pushing Docker image (linux/amd64) version ${VERSION}..."
+docker buildx build --platform linux/amd64 \
+    -t "${IMAGE}:latest" \
+    -t "${IMAGE}:${VERSION}" \
+    --push .
 
 echo "Image pushed. Watchtower on the VM will detect and deploy the update."
