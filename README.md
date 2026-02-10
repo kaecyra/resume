@@ -1,6 +1,6 @@
 # Resume
 
-Online, responsive, interactive resume with flatfile-based data-driven content and the ability to export digital copies in PDF format.
+Online, responsive, interactive resume with flatfile-based data-driven content and the ability to export portable copies in PDF format.
 
 ## Tech Stack
 
