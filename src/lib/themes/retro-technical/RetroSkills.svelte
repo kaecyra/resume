@@ -97,7 +97,7 @@
     <div class="mt-1 h-0.5 w-16 bg-[#e87a2e]"></div>
   </div>
 
-  <div class="grid grid-cols-4 gap-4 print:break-inside-avoid">
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-4 print:break-inside-avoid">
     {#each skills as skill}
       <div class="flex flex-col items-center">
         <svg viewBox="0 0 120 58" class="w-full max-w-30">

@@ -15,8 +15,8 @@
   }
 </style>
 
-<div class="mb-4 bg-[#1a2744] p-5 print:break-inside-avoid">
-  <div class="flex items-start justify-between gap-4">
+<div class="mb-4 bg-[#1a2744] p-4 md:p-5 print:p-5 print:break-inside-avoid">
+  <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
     <div class="min-w-0">
       <div class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
         <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#8b9bb5]">
@@ -48,7 +48,7 @@
         {/if}
       </div>
     </div>
-    <div class="shrink-0 text-right">
+    <div class="shrink-0 text-left md:text-right">
       <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#8b9bb5]">Period</span>
       <p class="text-base text-[#8b9bb5]">{date_range}</p>
     </div>
