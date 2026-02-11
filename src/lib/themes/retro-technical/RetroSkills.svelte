@@ -129,14 +129,7 @@
 
   <!-- Exploded isometric parts diagram -->
   <div class="mt-2">
-    <div class="flex items-center justify-between">
-      <span class="text-[9px] font-bold uppercase tracking-[0.15em] text-[#a07850]">
-        Fig. {section}.1 — Portable Cassette Recorder, Exploded View
-      </span>
-      <span class="text-[9px] uppercase tracking-wider text-[#a07850]">
-        Ref: TSM-84-{section}
-      </span>
-    </div>
+    
     <svg viewBox="0 35 500 190" class="w-full">
       <!-- explosion axis -->
       <line x1="282" y1="58" x2="282" y2="222" stroke="#c96620" stroke-width="0.3" stroke-dasharray="3 2" opacity="0.2" />

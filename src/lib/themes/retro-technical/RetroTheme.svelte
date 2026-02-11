@@ -24,15 +24,21 @@
   }
 </style>
 
+<svelte:head>
+  <style>
+    body { background-color: #faf9f7; }
+  </style>
+</svelte:head>
+
 <div
-  class="min-h-screen bg-[#faf9f7] py-10 print:min-h-0 print:py-0"
+  class="min-h-screen py-10 print:min-h-0 print:py-0"
   style="--retro-heading-font: 'Rajdhani', sans-serif; --retro-body-font: 'IBM Plex Sans', system-ui, sans-serif; font-family: var(--retro-body-font);"
 >
   <div
     class="mx-auto max-w-5xl border-2 border-[#c96620] bg-[#f5e6c8] shadow-xl print:max-w-none print:border-none print:shadow-none print:bg-[#f5e6c8]"
   >
     <!-- Title bar -->
-    <div class="flex items-center gap-6 bg-[#1a2744] px-8 py-5">
+    <div class="relative flex items-center gap-6 bg-[#1a2744] px-8 py-5">
       <div class="min-w-0 flex-1">
         <h1 class="retro-heading text-lg uppercase tracking-[0.15em] text-[#e87a2e]">
           Technical Specifications Manual:
@@ -44,9 +50,19 @@
               <span class="retro-heading pl-0.5 text-lg text-[#e87a2e]">{initials}</span>
             </div>
             <div>
-              <span class="font-bold text-[#f0e6d6]">{resume.profile.name}</span>
-              <span class="mx-2 text-[#8b9bb5]">|</span>
-              <span class="text-[#f0e6d6]">{resume.title}</span>
+              <div>
+                <span class="font-bold text-[#f0e6d6]">{resume.profile.name}</span>
+                <span class="mx-2 text-[#8b9bb5]">|</span>
+                <span class="text-[#f0e6d6]">{resume.title}</span>
+              </div>
+              {#if resume.profile.contact.linkedin}
+                <a
+                  href="https://{resume.profile.contact.linkedin}"
+                  class="block text-xs normal-case tracking-wide text-[#8b9bb5] hover:text-white"
+                >
+                  {resume.profile.contact.linkedin}
+                </a>
+              {/if}
             </div>
           </div>
         </h1>
@@ -56,23 +72,15 @@
       <img
         src="/{resume.profile.photo}"
         alt={resume.profile.name}
-        class="h-28 w-28 shrink-0 border-2 border-[#e87a2e] object-cover"
+        class="absolute right-8 top-8 z-10 h-52 w-52 border-2 border-[#e87a2e] object-cover"
       />
     </div>
 
     <!-- Subtitle bar -->
-    <div class="flex items-center justify-between border-b-2 border-[#c96620] bg-[#243555] px-8 py-2">
+    <div class="border-b-2 border-[#c96620] bg-[#243555] px-8 py-2">
       <span class="text-xs uppercase tracking-[0.25em] text-[#8b9bb5]">
         1984 Technical Service Manual Supplement
       </span>
-      {#if resume.profile.contact.linkedin}
-        <a
-          href="https://{resume.profile.contact.linkedin}"
-          class="text-xs tracking-wide text-[#f0e6d6] hover:text-white"
-        >
-          {resume.profile.contact.linkedin}
-        </a>
-      {/if}
     </div>
 
     <!-- Summary - full width -->
