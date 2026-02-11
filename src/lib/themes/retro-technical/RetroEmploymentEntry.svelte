@@ -55,7 +55,7 @@
   </div>
 
   {#if entry.description}
-    <p class="mt-3 border-t border-[#243555] pt-3 text-xs italic leading-relaxed text-[#8b9bb5]">
+    <p class="my-3 border-t border-[#243555] py-3 text-base italic leading-relaxed text-[#8b9bb5]">
       {entry.description.trim()}
     </p>
   {/if}
