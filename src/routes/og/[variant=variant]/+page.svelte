@@ -64,21 +64,23 @@
   }
 
   .name {
-    font-size: 52px;
+    font-size: 80px;
     font-weight: 700;
-    margin: 0 0 20px 0;
+    margin: 0 0 24px 0;
     line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   .divider {
-    width: 80px;
-    height: 4px;
-    margin-bottom: 20px;
+    width: 120px;
+    height: 6px;
+    margin-bottom: 24px;
     border-radius: 2px;
   }
 
   .title {
-    font-size: 30px;
+    font-size: 44px;
     font-weight: 500;
     margin: 0;
     line-height: 1.2;
