@@ -42,3 +42,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             PUBLIC_BASE_URL=${{ vars.PUBLIC_BASE_URL }}
+            PUBLIC_UMAMI_URL=${{ vars.PUBLIC_UMAMI_URL }}
+            PUBLIC_UMAMI_WEBSITE_ID=${{ vars.PUBLIC_UMAMI_WEBSITE_ID }}

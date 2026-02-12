@@ -20,6 +20,7 @@ Online, responsive, interactive resume with flatfile-based data-driven content a
 | Testing | Vitest + Testing Library |
 | PDF Export | Puppeteer |
 | Build Tool | Vite |
+| Analytics | Umami (self-hosted, cookie-free) |
 | Container | Docker + nginx:stable-alpine |
 
 ## Getting Started
@@ -87,7 +88,9 @@ The site uses a pull-based deployment model. Pushing to `main` triggers GitHub A
 ```
 Push to main -> GitHub Actions builds and pushes to GHCR
 Watchtower (on VM) polls GHCR -> detects new image -> pulls and recreates container
-Internet -> Cloudflare -> Proxy server -> VM:3000 -> Container
+Internet -> Cloudflare -> Proxy server -> VM:3000 -> Resume (nginx, static site)
+                                          VM:3001 -> Umami (analytics dashboard + collection)
+                                          umami_db -> Postgres (analytics data, Docker volume)
 ```
 
 There is a ~5 minute delay between push and deploy (Watchtower poll interval).
@@ -99,16 +102,17 @@ The host VM is provisioned using `setup-host.sh`, which configures Docker, the f
 **Prerequisites:** Fresh Ubuntu VM with sudo access
 
 ```sh
-scp scripts/setup-host.sh user@192.168.8.44:~/
-ssh user@192.168.8.44 'sudo bash ~/setup-host.sh'
+scp scripts/setup-host.sh user@<vm-ip>:~/
+ssh user@<vm-ip> 'sudo bash ~/setup-host.sh'
 ```
 
 The script configures:
 - System package updates
-- UFW firewall (OpenSSH + port 3000)
+- UFW firewall (OpenSSH + ports 3000, 3001)
 - Docker CE with log rotation
+- Umami credentials (auto-generated, written to `/opt/resume/.env`)
 - GHCR authentication for pulling images
-- Docker Compose stack (resume container + Watchtower)
+- Docker Compose stack (resume + Umami + Watchtower)
 - Unattended security upgrades and fail2ban
 
 ### First-Time Setup
@@ -147,6 +151,8 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 | Secret | `GHCR_PAT` | GitHub PAT with `read:packages` and `write:packages` scope for GHCR push |
 | Variable | `DEPLOY_ENABLED` | Enable/disable the deploy workflow (`true`/`false`) |
 | Variable | `PUBLIC_BASE_URL` | Absolute base URL for OG meta tags (no trailing slash) |
+| Variable | `PUBLIC_UMAMI_URL` | Umami instance URL (e.g. `https://analytics.example.com`) |
+| Variable | `PUBLIC_UMAMI_WEBSITE_ID` | Website ID from Umami dashboard |
 
 ### Ingress Configuration
 
@@ -154,13 +160,48 @@ The network proxy server (separate from the VM) handles SSL termination and rout
 
 ```nginx
 location / {
-    proxy_pass http://192.168.8.44:3000;
+    proxy_pass http://<vm-ip>:3000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
+
+## Analytics
+
+The site uses [Umami](https://umami.is/) for privacy-respecting, cookie-free analytics. Umami is self-hosted alongside the resume container — no data leaves your infrastructure.
+
+The tracking script is conditionally injected at build time: when both `PUBLIC_UMAMI_URL` and `PUBLIC_UMAMI_WEBSITE_ID` are set, a `<script>` tag is added to the page head. When either is unset (local dev, CI), no tracking code is rendered.
+
+### First-Time Umami Setup
+
+Umami is provisioned automatically by `setup-host.sh`. After the stack is running:
+
+1. Open `http://<host>:3001` and log in with the default credentials (`admin` / `umami`)
+2. **Change the default password immediately**
+3. Add a website in the Umami dashboard and copy the Website ID
+4. Set `PUBLIC_UMAMI_URL` and `PUBLIC_UMAMI_WEBSITE_ID` as GitHub Actions variables
+5. Push to `main` (or rebuild manually) to bake the tracking script into the static site
+
+### Ingress for Umami
+
+Add a reverse proxy rule for the Umami instance alongside the resume site:
+
+```nginx
+# Umami analytics
+location / {
+    proxy_pass http://<vm-ip>:3001;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+### Chicken-and-Egg: Website ID
+
+Umami must be running before you can create a website and obtain its ID. On first deploy, set only `PUBLIC_UMAMI_URL` — the tracking script won't render since both values are required. Once Umami is up, create the website, copy the ID, set `PUBLIC_UMAMI_WEBSITE_ID`, and rebuild.
 
 ## Project Documentation
 

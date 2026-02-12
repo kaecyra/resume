@@ -7,8 +7,8 @@ set -euo pipefail
 # automatic image updates from GHCR.
 #
 # Usage:
-#   scp scripts/setup-host.sh user@192.168.8.44:~/
-#   ssh user@192.168.8.44 'sudo bash ~/setup-host.sh'
+#   scp scripts/setup-host.sh user@<vm-ip>:~/
+#   ssh user@<vm-ip> 'sudo bash ~/setup-host.sh'
 #
 # Prerequisites:
 #   - Fresh Ubuntu VM
@@ -89,9 +89,10 @@ apt-get install -y ufw
 
 ufw allow from 192.168.0.0/16 to any app OpenSSH
 ufw allow from 192.168.0.0/16 to any port 3000 proto tcp
+ufw allow from 192.168.0.0/16 to any port 3001 proto tcp
 ufw --force enable
 
-echo "Firewall configured: OpenSSH and port 3000/tcp allowed (LAN only)."
+echo "Firewall configured: OpenSSH, port 3000/tcp, and port 3001/tcp allowed (LAN only)."
 echo ""
 
 # -- Docker installation -------------------------------------------------------
@@ -178,43 +179,73 @@ chown "$DEPLOY_USER:$DEPLOY_USER" /opt/resume
 echo "Created /opt/resume (owned by $DEPLOY_USER)."
 echo ""
 
+# -- Umami credentials ---------------------------------------------------------
+
+echo "--- Umami credentials ---"
+ENV_FILE="/opt/resume/.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+    echo "$ENV_FILE already exists, skipping credential generation."
+else
+    POSTGRES_PASSWORD=$(openssl rand -base64 32)
+    UMAMI_APP_SECRET=$(openssl rand -base64 32)
+
+    cat > "$ENV_FILE" <<ENVEOF
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+UMAMI_APP_SECRET=${UMAMI_APP_SECRET}
+ENVEOF
+
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$ENV_FILE"
+    chmod 600 "$ENV_FILE"
+    echo "Generated credentials and wrote to $ENV_FILE."
+fi
+echo ""
+
 # -- GHCR authentication -------------------------------------------------------
 
 echo "--- GHCR authentication ---"
-echo "A GitHub Personal Access Token (PAT) with read:packages scope is required"
-echo "for pulling container images from GHCR."
-echo "Create one at: https://github.com/settings/tokens"
-echo ""
-
-read -rsp "GHCR PAT: " GHCR_PAT
-echo ""
-
-if [[ -z "$GHCR_PAT" ]]; then
-    echo "Error: GHCR PAT cannot be empty." >&2
-    exit 1
-fi
-
-echo "$GHCR_PAT" | sudo -u "$DEPLOY_USER" docker login ghcr.io -u kaecyra --password-stdin
-
-# Copy docker credentials to a fixed path for Watchtower
-DOCKER_CONFIG_SRC="/home/$DEPLOY_USER/.docker/config.json"
 DOCKER_CONFIG_DST="/opt/resume/.docker-config.json"
 
-if [[ -f "$DOCKER_CONFIG_SRC" ]]; then
-    cp "$DOCKER_CONFIG_SRC" "$DOCKER_CONFIG_DST"
-    chown "$DEPLOY_USER:$DEPLOY_USER" "$DOCKER_CONFIG_DST"
-    chmod 600 "$DOCKER_CONFIG_DST"
-    echo "Docker credentials copied to $DOCKER_CONFIG_DST."
+if [[ -f "$DOCKER_CONFIG_DST" ]]; then
+    echo "GHCR credentials already configured ($DOCKER_CONFIG_DST exists), skipping."
 else
-    echo "Warning: expected docker config at $DOCKER_CONFIG_SRC not found." >&2
-    echo "Watchtower may not be able to pull private images." >&2
+    echo "A GitHub Personal Access Token (PAT) with read:packages scope is required"
+    echo "for pulling container images from GHCR."
+    echo "Create one at: https://github.com/settings/tokens"
+    echo ""
+
+    read -rsp "GHCR PAT: " GHCR_PAT
+    echo ""
+
+    if [[ -z "$GHCR_PAT" ]]; then
+        echo "Error: GHCR PAT cannot be empty." >&2
+        exit 1
+    fi
+
+    echo "$GHCR_PAT" | sudo -u "$DEPLOY_USER" docker login ghcr.io -u kaecyra --password-stdin
+
+    # Copy docker credentials to a fixed path for Watchtower
+    DOCKER_CONFIG_SRC="/home/$DEPLOY_USER/.docker/config.json"
+
+    if [[ -f "$DOCKER_CONFIG_SRC" ]]; then
+        cp "$DOCKER_CONFIG_SRC" "$DOCKER_CONFIG_DST"
+        chown "$DEPLOY_USER:$DEPLOY_USER" "$DOCKER_CONFIG_DST"
+        chmod 600 "$DOCKER_CONFIG_DST"
+        echo "Docker credentials copied to $DOCKER_CONFIG_DST."
+    else
+        echo "Warning: expected docker config at $DOCKER_CONFIG_SRC not found." >&2
+        echo "Watchtower may not be able to pull private images." >&2
+    fi
 fi
 echo ""
 
 # -- Deploy docker-compose.yml ------------------------------------------------
 
 echo "--- Docker Compose stack ---"
-cat > /opt/resume/docker-compose.yml <<'COMPOSE'
+COMPOSE_FILE="/opt/resume/docker-compose.yml"
+COMPOSE_TMP=$(mktemp)
+
+cat > "$COMPOSE_TMP" <<'COMPOSE'
 services:
   resume:
     image: ghcr.io/kaecyra/resume:latest
@@ -230,6 +261,35 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.scope=resume"
 
+  umami_db:
+    image: postgres:17-alpine
+    volumes:
+      - umami_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  umami:
+    image: ghcr.io/umami-software/umami:3.0.3
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD:?}@umami_db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?}
+      TRACKER_SCRIPT_NAME: insights
+    depends_on:
+      umami_db:
+        condition: service_healthy
+    restart: unless-stopped
+
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
     volumes:
@@ -242,10 +302,23 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.scope=resume"
     restart: unless-stopped
+
+volumes:
+  umami_data:
 COMPOSE
 
-chown "$DEPLOY_USER:$DEPLOY_USER" /opt/resume/docker-compose.yml
-echo "Wrote /opt/resume/docker-compose.yml."
+if [[ -f "$COMPOSE_FILE" ]] && cmp -s "$COMPOSE_TMP" "$COMPOSE_FILE"; then
+    echo "docker-compose.yml is already up to date."
+    rm "$COMPOSE_TMP"
+else
+    if [[ -f "$COMPOSE_FILE" ]]; then
+        echo "Updating docker-compose.yml (contents changed)."
+    else
+        echo "Writing docker-compose.yml."
+    fi
+    mv "$COMPOSE_TMP" "$COMPOSE_FILE"
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$COMPOSE_FILE"
+fi
 
 echo "Starting container stack..."
 sudo -u "$DEPLOY_USER" docker compose -f /opt/resume/docker-compose.yml up -d
@@ -272,21 +345,28 @@ echo "========================================="
 echo ""
 echo "What was configured:"
 echo "  - System packages updated"
-echo "  - UFW firewall enabled (OpenSSH + port 3000)"
+echo "  - UFW firewall enabled (OpenSSH + ports 3000, 3001)"
 echo "  - Docker installed and enabled"
 echo "  - Docker log rotation configured (10MB, 3 files)"
 echo "  - $DEPLOY_USER added to docker group"
 echo "  - /opt/resume created"
+echo "  - Umami credentials generated (/opt/resume/.env)"
 echo "  - GHCR authentication configured"
-echo "  - Docker Compose stack started (resume + Watchtower)"
+echo "  - Docker Compose stack started (resume + Umami + Watchtower)"
 echo "  - Unattended security upgrades enabled"
 echo "  - fail2ban installed and enabled"
 echo ""
 echo "Next steps:"
-echo "  1. Verify the container is running:"
+echo "  1. Verify all containers are running:"
 echo "     docker ps"
-echo "  2. Configure the proxy server to route traffic to this VM:3000"
-echo "  3. Push to main to trigger the first automated deploy"
-echo "  4. Watchtower polls GHCR every 5 minutes for new images"
+echo "  2. Configure the proxy server to route traffic:"
+echo "     - Resume:  VM:3000"
+echo "     - Umami:   VM:3001"
+echo "  3. Log in to Umami at http://<host>:3001 (default: admin/umami)"
+echo "     - Change the default password immediately"
+echo "     - Add a website and copy the Website ID"
+echo "  4. Set PUBLIC_UMAMI_URL and PUBLIC_UMAMI_WEBSITE_ID in GitHub Actions variables"
+echo "  5. Push to main to trigger the first automated deploy"
+echo "  6. Watchtower polls GHCR every 5 minutes for new resume images"
 echo ""
 echo "Note: log out and back in for docker group changes to take effect."

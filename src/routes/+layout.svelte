@@ -1,8 +1,21 @@
-<script>
+<script lang="ts">
   import "../app.css";
 
-  let { children } = $props();
+  import type { LayoutData } from "./$types";
+  import type { Snippet } from "svelte";
+
+  let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
+
+<svelte:head>
+  {#if data.umami_url && data.umami_website_id}
+    <script
+      defer
+      src="{data.umami_url}/insights.js"
+      data-website-id={data.umami_website_id}
+    ></script>
+  {/if}
+</svelte:head>
 
 {@render children()}
 
