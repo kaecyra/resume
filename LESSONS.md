@@ -40,3 +40,16 @@ The project manager can then decide. The key is giving them the choice rather th
 **Why it matters:** Builds break for any developer or CI environment that doesn't have the var set, even if it's only needed in production.
 
 **Correct behavior:** For optional env vars, use dynamic imports with fallbacks: `const base_url = env.PUBLIC_BASE_URL ?? "";`. Prefer computing derived values (like OG meta tag content) in `+page.server.ts` and passing them as data, rather than importing env vars in Svelte components.
+
+## 2026-02-11: Always branch before committing issue work
+
+**What happened:** Implemented a planned palette refactor and field deployments feature (tied to #61) but committed directly to `main` instead of creating a feature branch first. By the time the user asked to PR, the commits were already on main and couldn't be branched retroactively.
+
+**The rule:** Before making the first commit for any task tied to an issue (or that should be), create a feature branch per ENGINEERING.md conventions (`feature/{issue-number}-short-name`). This applies even when the work starts from an approved plan — the plan approval doesn't change the branching requirement.
+
+**Why it matters:** Direct-to-main commits bypass the PR review workflow, lose the issue linkage, and can't be undone cleanly. The user expects trunk-based development with short-lived feature branches and PRs.
+
+**Correct behavior:** At the start of implementation, before any edits:
+1. Check if you're on `main`
+2. If the work relates to an issue, create a branch: `git checkout -b feature/{issue}-{description}`
+3. Commit and push the branch, then open a PR linking the issue
