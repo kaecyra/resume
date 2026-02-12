@@ -46,6 +46,7 @@ npm install
 | `npm run test:coverage` | Run tests with coverage report |
 | `npm run generate-og` | Generate Open Graph images for all variants |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
+| `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
 | `npm run prepare` | Sync SvelteKit types |
 
 ## Project Structure
@@ -65,6 +66,7 @@ src/
 scripts/
   generate-og-images.ts   # Puppeteer-based OG image generation
   generate-pdf.ts         # Puppeteer-based PDF generation
+  linkedin-export.ts      # LinkedIn copy/paste text exporter
   deploy.sh               # Manual deploy script (build and push to GHCR)
   setup-host.sh           # Host VM provisioning script
 VERSION                   # CalVer version (YYYY.MM.DD)
