@@ -1,6 +1,6 @@
 # Resume
 
-![Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkaecyra%2Fresume%2Fmain%2FVERSION&search=%5E.*%24&label=version)
+![Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkaecyra%2Fresume%2Fmain%2FVERSION&search=%5B%5Cd.%5D%2B&label=version)
 ![CI](https://github.com/kaecyra/resume/actions/workflows/ci.yml/badge.svg?branch=main)
 ![Node](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)
@@ -78,7 +78,7 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 
 ## CI
 
-GitHub Actions runs on pull requests to `main`, executing type checking, tests, and a production build in sequence. See [ENGINEERING.md](./ENGINEERING.md) for full coding standards and CI requirements.
+GitHub Actions runs on pushes and pull requests to `main`, executing type checking, tests, and a production build in sequence. See [ENGINEERING.md](./ENGINEERING.md) for full coding standards and CI requirements.
 
 ## Deployment
 
