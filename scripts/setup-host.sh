@@ -284,7 +284,6 @@ services:
     environment:
       DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD:?}@umami_db:5432/umami
       APP_SECRET: ${UMAMI_APP_SECRET:?}
-      TRACKER_SCRIPT_NAME: insights
     depends_on:
       umami_db:
         condition: service_healthy
