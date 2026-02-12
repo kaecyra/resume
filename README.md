@@ -1,6 +1,14 @@
 # Resume
 
+![Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkaecyra%2Fresume%2Fmain%2FVERSION&search=%5E.*%24&label=version)
+![CI](https://github.com/kaecyra/resume/actions/workflows/ci.yml/badge.svg?branch=main)
+![Node](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/github/license/kaecyra/resume)
+
 Online, responsive, interactive resume with flatfile-based data-driven content and the ability to export portable copies in PDF format.
+
+**Live site:** [resume.timgunter.ca/cto-a](https://resume.timgunter.ca/cto-a)
 
 ## Tech Stack
 
@@ -35,6 +43,7 @@ npm install
 | `npm test` | Run tests once |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
+| `npm run generate-og` | Generate Open Graph images for all variants |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
 | `npm run prepare` | Sync SvelteKit types |
 
@@ -44,6 +53,8 @@ npm install
 data/
   resume.yaml             # All resume content
   variants/               # Variant manifests for tailored output
+    cto-a.yaml
+    cto-b.yaml
     default.yaml
 src/
   lib/
@@ -51,9 +62,9 @@ src/
     types.ts              # TypeScript type definitions
   routes/                 # SvelteKit pages
 scripts/
+  generate-og-images.ts   # Puppeteer-based OG image generation
   generate-pdf.ts         # Puppeteer-based PDF generation
   deploy.sh               # Manual deploy script (build and push to GHCR)
-  setup-repo.sh           # Repository variables setup
   setup-host.sh           # Host VM provisioning script
 VERSION                   # CalVer version (YYYY.MM.DD)
 Dockerfile                # Multi-stage Docker build
@@ -102,21 +113,7 @@ The script configures:
 
 ### First-Time Setup
 
-**Prerequisites:** GitHub CLI (`gh`), Docker
-
-The setup script configures the GitHub variable required by the deploy workflow:
-
-```sh
-./scripts/setup-repo.sh
-```
-
-For a dry run that populates defaults:
-
-```sh
-./scripts/setup-repo.sh --placeholder
-```
-
-The only GitHub configuration needed is the `DEPLOY_ENABLED` variable. The deploy workflow uses the automatic `GITHUB_TOKEN` for GHCR push, and GHCR credentials on the VM are configured by `setup-host.sh`.
+The only GitHub configuration needed is the `DEPLOY_ENABLED` repository variable (see [Enabling Deployment](#enabling-deployment)). The deploy workflow uses the automatic `GITHUB_TOKEN` for GHCR push, and GHCR credentials on the VM are configured by `setup-host.sh`.
 
 **Verification:** After setup, push to `main` and check the Actions tab for a successful build-and-push run.
 
@@ -147,9 +144,9 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 
 | Type | Name | Purpose |
 |---|---|---|
+| Secret | `GHCR_PAT` | GitHub PAT with `read:packages` and `write:packages` scope for GHCR push |
 | Variable | `DEPLOY_ENABLED` | Enable/disable the deploy workflow (`true`/`false`) |
-
-`GITHUB_TOKEN` is automatic and used for GHCR push. No additional secrets are required in GitHub.
+| Variable | `PUBLIC_BASE_URL` | Absolute base URL for OG meta tags (no trailing slash) |
 
 ### Ingress Configuration
 
