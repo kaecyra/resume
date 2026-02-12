@@ -102,8 +102,8 @@ The host VM is provisioned using `setup-host.sh`, which configures Docker, the f
 **Prerequisites:** Fresh Ubuntu VM with sudo access
 
 ```sh
-scp scripts/setup-host.sh user@192.168.8.44:~/
-ssh user@192.168.8.44 'sudo bash ~/setup-host.sh'
+scp scripts/setup-host.sh user@<vm-ip>:~/
+ssh user@<vm-ip> 'sudo bash ~/setup-host.sh'
 ```
 
 The script configures:
@@ -160,7 +160,7 @@ The network proxy server (separate from the VM) handles SSL termination and rout
 
 ```nginx
 location / {
-    proxy_pass http://192.168.8.44:3000;
+    proxy_pass http://<vm-ip>:3000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -191,7 +191,7 @@ Add a reverse proxy rule for the Umami instance alongside the resume site:
 ```nginx
 # Umami analytics
 location / {
-    proxy_pass http://192.168.8.44:3001;
+    proxy_pass http://<vm-ip>:3001;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

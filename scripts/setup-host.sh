@@ -7,8 +7,8 @@ set -euo pipefail
 # automatic image updates from GHCR.
 #
 # Usage:
-#   scp scripts/setup-host.sh user@192.168.8.44:~/
-#   ssh user@192.168.8.44 'sudo bash ~/setup-host.sh'
+#   scp scripts/setup-host.sh user@<vm-ip>:~/
+#   ssh user@<vm-ip> 'sudo bash ~/setup-host.sh'
 #
 # Prerequisites:
 #   - Fresh Ubuntu VM
