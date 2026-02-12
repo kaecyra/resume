@@ -29,6 +29,9 @@ echo "${GHCR_PAT}" | docker login ghcr.io -u kaecyra --password-stdin
 
 echo "Building and pushing Docker image (linux/amd64) version ${VERSION}..."
 docker buildx build --platform linux/amd64 \
+    --build-arg PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}" \
+    --build-arg PUBLIC_UMAMI_URL="${PUBLIC_UMAMI_URL:-}" \
+    --build-arg PUBLIC_UMAMI_WEBSITE_ID="${PUBLIC_UMAMI_WEBSITE_ID:-}" \
     -t "${IMAGE}:latest" \
     -t "${IMAGE}:${VERSION}" \
     --push .

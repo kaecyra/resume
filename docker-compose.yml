@@ -4,6 +4,8 @@ services:
       context: .
       args:
         PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+        PUBLIC_UMAMI_URL: ${PUBLIC_UMAMI_URL:-}
+        PUBLIC_UMAMI_WEBSITE_ID: ${PUBLIC_UMAMI_WEBSITE_ID:-}
     image: ghcr.io/kaecyra/resume:latest
     ports:
       - "3000:80"
@@ -16,6 +18,37 @@ services:
       start_period: 10s
     labels:
       - "com.centurylinklabs.watchtower.scope=resume"
+
+  umami_db:
+    image: postgres:17-alpine
+    profiles: ["production"]
+    volumes:
+      - umami_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  umami:
+    image: ghcr.io/umami-software/umami:3.0.3
+    profiles: ["production"]
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD:?}@umami_db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?}
+      TRACKER_SCRIPT_NAME: insights
+    depends_on:
+      umami_db:
+        condition: service_healthy
+    restart: unless-stopped
 
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
@@ -30,3 +63,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.scope=resume"
     restart: unless-stopped
+
+volumes:
+  umami_data:
