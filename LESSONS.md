@@ -63,3 +63,13 @@ The project manager can then decide. The key is giving them the choice rather th
 **Why it matters:** Fabricated issue numbers create false linkage, confuse traceability, and erode trust. The branch naming convention from ENGINEERING.md uses issue numbers to link work to tracked issues — using a fake number defeats the purpose.
 
 **Correct behavior:** If no issue exists, either suggest creating one first, or use a branch name without a number.
+
+## 2026-02-11: Include VERSION bump in PRs, not after
+
+**What happened:** Merged two PRs (a bug fix and a content revision) without bumping the VERSION file. Had to create a separate follow-up PR just for the version bump.
+
+**The rule:** When a PR warrants a version bump per ENGINEERING.md (content updates, features, fixes, serious layout changes), include the VERSION bump in the same PR. The version tag must travel with the build artifact.
+
+**Why it matters:** The deploy workflow reads VERSION to tag Docker images. If the version bump is a separate commit after the merge, the build artifact from the original PR gets tagged with the old version.
+
+**Correct behavior:** Before opening a PR, check if the changes warrant a version bump. If so, update VERSION as part of the branch.
