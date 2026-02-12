@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { format_markdown } from "$lib/format.js";
+
   let { summary }: { summary: string } = $props();
 
   const paragraphs = $derived(summary.split("\n\n").filter((p) => p.trim()));
@@ -9,6 +11,6 @@
     Summary
   </h2>
   {#each paragraphs as paragraph}
-    <p class="mt-2 text-sm leading-relaxed text-gray-700">{paragraph.trim()}</p>
+    <p class="mt-2 text-sm leading-relaxed text-gray-700">{@html format_markdown(paragraph.trim())}</p>
   {/each}
 </section>

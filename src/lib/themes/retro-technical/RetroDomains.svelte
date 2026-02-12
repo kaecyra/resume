@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Domain } from "$lib/types.js";
+  import { format_markdown } from "$lib/format.js";
 
   let { domains, section }: { domains: Domain[]; section: string } = $props();
 </script>
@@ -28,7 +29,7 @@
           {domain.title}
         </h3>
         <p class="mt-1 text-sm leading-relaxed text-[#1a2744]">
-          {domain.description.trim()}
+          {@html format_markdown(domain.description.trim())}
         </p>
       </div>
     {/each}
