@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Employment } from "$lib/types.js";
-  import { format_bold, format_date_range } from "$lib/format.js";
+  import { format_markdown, format_date_range } from "$lib/format.js";
 
   let { entry, index }: { entry: Employment; index: number } = $props();
 
@@ -57,12 +57,12 @@
 
   {#if entry.description}
     <p class="my-3 border-t border-[#243555] py-3 text-base italic leading-relaxed text-[#8b9bb5] print:break-inside-avoid">
-      {entry.description.trim()}
+      {@html format_markdown(entry.description.trim())}
     </p>
   {/if}
 
   {#if entry.summary}
-    <p class="mt-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">{entry.summary.trim()}</p>
+    <p class="mt-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">{@html format_markdown(entry.summary.trim())}</p>
   {/if}
 
   {#if entry.highlights.length > 0}
@@ -76,7 +76,7 @@
             {#if highlight.title}
               <span class="font-semibold uppercase text-[#8b9bb5]" style="font-family: var(--retro-heading-font);">{highlight.title}:</span>
             {/if}
-            {@html format_bold(highlight.description.trim())}
+            {@html format_markdown(highlight.description.trim())}
           </span>
         </li>
       {/each}

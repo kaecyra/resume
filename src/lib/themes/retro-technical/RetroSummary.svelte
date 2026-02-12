@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { format_bold } from "$lib/format.js";
+  import { format_markdown } from "$lib/format.js";
 
   let { summary, section, tagline }: { summary: string; section: string; tagline?: string } = $props();
 
@@ -24,12 +24,12 @@
   </div>
 
   {#each paragraphs as paragraph}
-    <p class="mt-2 first:mt-0 text-base leading-relaxed text-[#1a2744]">{@html format_bold(paragraph.trim())}</p>
+    <p class="mt-2 first:mt-0 text-base leading-relaxed text-[#1a2744]">{@html format_markdown(paragraph.trim())}</p>
   {/each}
 
   {#if tagline}
     <div class="mt-4 border-t border-[#c96620]/30 pt-3">
-      <p class="text-base leading-relaxed text-[#1a2744]/80">{@html format_bold(tagline.trim())}</p>
+      <p class="text-base leading-relaxed text-[#1a2744]/80">{@html format_markdown(tagline.trim())}</p>
     </div>
   {/if}
 </section>

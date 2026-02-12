@@ -1,10 +1,12 @@
+import { marked } from "marked";
+
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-export function format_bold(text: string): string {
-  return text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+export function format_markdown(text: string): string {
+  return marked.parseInline(text) as string;
 }
 
 export function format_date(date_str: string): string {
