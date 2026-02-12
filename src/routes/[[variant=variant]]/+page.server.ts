@@ -1,6 +1,8 @@
 import { error } from "@sveltejs/kit";
+import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant, resolve_resume } from "$lib/data.js";
+import { strip_markdown } from "$lib/format.js";
 
 import type { EntryGenerator, PageServerLoad } from "./$types";
 
@@ -27,5 +29,14 @@ export const load: PageServerLoad = ({ params }) => {
   const data = load_resume_data();
   const resume = resolve_resume(data, variant);
 
-  return { resume };
+  const base_url = env.PUBLIC_BASE_URL ?? "";
+  const og_title = `${resume.profile.name} - ${resume.title}`;
+  const og_description = strip_markdown(resume.tagline ?? resume.summary).slice(0, 200);
+  const og_image = `${base_url}/og/${variant_name}.png`;
+  const og_url = variant_name === "default" ? base_url : `${base_url}/${variant_name}`;
+
+  return {
+    resume,
+    og: { title: og_title, description: og_description, image: og_image, url: og_url },
+  };
 };

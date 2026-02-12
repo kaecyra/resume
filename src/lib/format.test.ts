@@ -1,4 +1,4 @@
-import { format_markdown, format_date, format_date_range } from "./format.js";
+import { format_markdown, format_date, format_date_range, strip_markdown } from "./format.js";
 
 describe("format_markdown", () => {
   it("converts **text** to <strong>text</strong>", () => {
@@ -57,5 +57,43 @@ describe("format_date_range", () => {
 
   it("uses Present when end is null", () => {
     expect(format_date_range("2024-07", null)).toBe("Jul 2024 - Present");
+  });
+});
+
+describe("strip_markdown", () => {
+  it("strips **bold** markers", () => {
+    expect(strip_markdown("Led **high-performing teams** to success")).toBe(
+      "Led high-performing teams to success"
+    );
+  });
+
+  it("strips *italic* markers", () => {
+    expect(strip_markdown("This is *italic* text")).toBe("This is italic text");
+  });
+
+  it("strips [text](url) links to text only", () => {
+    expect(strip_markdown("Visit [example](https://example.com) now")).toBe(
+      "Visit example now"
+    );
+  });
+
+  it("strips `code` backticks", () => {
+    expect(strip_markdown("Use `format_markdown` here")).toBe(
+      "Use format_markdown here"
+    );
+  });
+
+  it("collapses whitespace and trims", () => {
+    expect(strip_markdown("  too   many    spaces  ")).toBe("too many spaces");
+  });
+
+  it("handles multiple markdown types together", () => {
+    expect(strip_markdown("**Bold** and *italic* with [link](http://x.com) and `code`")).toBe(
+      "Bold and italic with link and code"
+    );
+  });
+
+  it("returns plain text unchanged", () => {
+    expect(strip_markdown("plain text")).toBe("plain text");
   });
 });

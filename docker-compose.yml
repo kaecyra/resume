@@ -1,6 +1,9 @@
 services:
   resume:
-    build: .
+    build:
+      context: .
+      args:
+        PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     image: ghcr.io/kaecyra/resume:latest
     ports:
       - "3000:80"

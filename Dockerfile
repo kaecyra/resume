@@ -11,10 +11,14 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+ARG PUBLIC_BASE_URL=""
+ENV PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
+
 RUN npm run build
 
-# Generate PDFs: start preview server, run Puppeteer, stop server
-RUN (npm run preview &) && sleep 2 && npm run generate-pdf
+# Generate OG images and PDFs: start preview server, run Puppeteer, stop server
+RUN (npm run preview &) && sleep 2 && npm run generate-og && npm run generate-pdf
 
 FROM nginx:stable-alpine
 

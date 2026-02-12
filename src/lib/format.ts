@@ -20,3 +20,13 @@ export function format_date_range(start: string, end: string | null): string {
   const end_formatted = end ? format_date(end) : "Present";
   return `${start_formatted} - ${end_formatted}`;
 }
+
+export function strip_markdown(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // [text](url) -> text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")        // **bold** -> bold
+    .replace(/\*([^*]+)\*/g, "$1")             // *italic* -> italic
+    .replace(/`([^`]+)`/g, "$1")               // `code` -> code
+    .replace(/\s+/g, " ")                      // collapse whitespace
+    .trim();
+}
