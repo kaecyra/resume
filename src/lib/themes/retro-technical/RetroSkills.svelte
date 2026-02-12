@@ -87,7 +87,7 @@
 </style>
 
 <section>
-  <div class="mb-4">
+  <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
       <span class="italic">[chp. {section}]</span>
     </span>
@@ -128,7 +128,7 @@
   </div>
 
   <!-- Exploded isometric parts diagram -->
-  <div class="mt-2">
+  <div class="mt-2 print:break-inside-avoid">
     
     <svg viewBox="0 35 500 190" class="w-full">
       <!-- explosion axis -->

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { format_bold } from "$lib/format.js";
 
-  let { summary, section }: { summary: string; section: string } = $props();
+  let { summary, section, tagline }: { summary: string; section: string; tagline?: string } = $props();
 
   const paragraphs = $derived(summary.split("\n\n").filter((p) => p.trim()));
 </script>
@@ -12,8 +12,8 @@
   }
 </style>
 
-<section>
-  <div class="mb-4">
+<section class="print:break-inside-avoid">
+  <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
       <span class="italic">[chp. {section}]</span>
     </span>
@@ -26,4 +26,10 @@
   {#each paragraphs as paragraph}
     <p class="mt-2 first:mt-0 text-base leading-relaxed text-[#1a2744]">{@html format_bold(paragraph.trim())}</p>
   {/each}
+
+  {#if tagline}
+    <div class="mt-4 border-t border-[#c96620]/30 pt-3">
+      <p class="text-base leading-relaxed text-[#1a2744]/80">{@html format_bold(tagline.trim())}</p>
+    </div>
+  {/if}
 </section>

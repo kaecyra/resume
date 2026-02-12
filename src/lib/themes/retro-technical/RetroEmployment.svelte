@@ -13,7 +13,7 @@
 </style>
 
 <section>
-  <div class="mb-4">
+  <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
       <span class="italic">[chp. {section}]</span>
     </span>

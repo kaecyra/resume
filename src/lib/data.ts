@@ -38,6 +38,10 @@ export function resolve_resume(data: ResumeData, variant: VariantManifest): Reso
     .map((id) => data.languages.find((l) => l.id === id))
     .filter((l): l is NonNullable<typeof l> => l !== undefined);
 
+  const domains = (variant.domains ?? [])
+    .map((id) => data.domains.find((d) => d.id === id))
+    .filter((d): d is NonNullable<typeof d> => d !== undefined);
+
   const courses = variant.courses
     .map((id) => data.courses.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => c !== undefined);
@@ -47,7 +51,9 @@ export function resolve_resume(data: ResumeData, variant: VariantManifest): Reso
     profile: data.profile,
     title: variant.title,
     summary: variant.summary,
+    tagline: variant.tagline,
     skills,
+    domains,
     employment,
     languages,
     courses,

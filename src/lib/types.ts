@@ -1,5 +1,5 @@
 export interface Contact {
-  address: string;
+  location: string;
   phone: string;
   email: string;
   linkedin?: string;
@@ -48,9 +48,16 @@ export interface Course {
   date: string;
 }
 
+export interface Domain {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface ResumeData {
   profile: Profile;
   skills: Skill[];
+  domains: Domain[];
   employment: Employment[];
   languages: Language[];
   courses: Course[];
@@ -60,7 +67,9 @@ export interface VariantManifest {
   theme: string;
   title: string;
   summary: string;
+  tagline?: string;
   skills: string[];
+  domains?: string[];
   employment: string[];
   languages: string[];
   courses: string[];
@@ -71,7 +80,9 @@ export interface ResolvedResume {
   profile: Profile;
   title: string;
   summary: string;
+  tagline?: string;
   skills: Skill[];
+  domains: Domain[];
   employment: Employment[];
   languages: Language[];
   courses: Course[];
