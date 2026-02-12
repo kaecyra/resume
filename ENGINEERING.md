@@ -81,7 +81,7 @@
 
 13. **Trunk-based development**:
     - Small, frequent, encapsulated branches
-    - If you're starting a new issue and arent on an issue branch, create it
+    - Create the feature branch **before** making any commits — never commit issue work directly to `main`
     - Frequent merges back to a stable `main` branch
     - Keep branches short-lived
     - Delete working branches after merges, and delete the local branch as well
@@ -94,11 +94,13 @@
       - _release/_: These branches are used to prepare for a new production release. They allow for last-minute dotting of i’s and crossing t’s. Use the prefix release/. For example, release/v1.0.1.
       - _docs/_: These branches are used to write, update, or fix documentation eg. the README.md file. For instance, docs/api-endpoints.
     - Branch names (after the prefix) should start with the issue number, and then contain a 1-to-3 word descriptive name, lowercase, with hyphens betwen them. For example, 27-fix-avatar-size.
+    - Only use an issue number in the branch name if a real issue exists. If there's no tracked issue, omit the number (e.g. `fix/tsconfig-include-override`).
 
 ## Versioning
 
 15. **CalVer scheme**: This project uses calendar versioning in `YYYY.MM.DD` format, stored in the `VERSION` file at the repo root.
     - Bump the version when merging meaningful changes (content updates, features, serious layout changes, fixes)
+    - Include the VERSION bump in the same PR as the change — never as a separate follow-up
     - Use a `.N` suffix for multiple releases on the same day (e.g. `2026.02.10.1`)
     - No version bump needed for internal refactors, CI changes, or documentation-only updates
     - The VERSION file is the single source of truth -- build tooling reads it to tag images and embed in output
