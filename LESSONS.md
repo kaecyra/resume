@@ -53,3 +53,13 @@ The project manager can then decide. The key is giving them the choice rather th
 1. Check if you're on `main`
 2. If the work relates to an issue, create a branch: `git checkout -b feature/{issue}-{description}`
 3. Commit and push the branch, then open a PR linking the issue
+
+## 2026-02-11: Never fabricate issue numbers in branch names
+
+**What happened:** When asked to create a fix branch, I invented issue number `65` for the branch name `fix/65-tsconfig-include-override` even though no such issue existed.
+
+**The rule:** Branch names should only include an issue number if a real issue exists. If there's no issue, omit the number entirely (e.g. `fix/tsconfig-include-override`). Never guess or invent an issue number.
+
+**Why it matters:** Fabricated issue numbers create false linkage, confuse traceability, and erode trust. The branch naming convention from ENGINEERING.md uses issue numbers to link work to tracked issues — using a fake number defeats the purpose.
+
+**Correct behavior:** If no issue exists, either suggest creating one first, or use a branch name without a number.
