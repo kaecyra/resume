@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "generate-og": "tsx scripts/generate-og-images.ts",
     "generate-pdf": "tsx scripts/generate-pdf.ts"
   },
   "devDependencies": {
