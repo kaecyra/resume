@@ -37,7 +37,7 @@
     <div class="mt-5 grid grid-cols-3 gap-x-6 gap-y-2 border-t border-stone-300 pt-4">
       <div class="border-b border-stone-300 pb-1.5">
         <span class="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-400">Loc</span>
-        <p class="mt-0.5 text-xs text-stone-700">{profile.contact.address}</p>
+        <p class="mt-0.5 text-xs text-stone-700">{profile.contact.location}</p>
       </div>
       <div class="border-b border-stone-300 pb-1.5">
         <span class="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-400">Aph</span>

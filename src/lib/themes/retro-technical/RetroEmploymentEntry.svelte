@@ -13,6 +13,7 @@
   h3 {
     font-family: var(--retro-heading-font);
   }
+
 </style>
 
 <div class="mb-4 bg-[#1a2744] p-4 md:p-5 print:p-5 print:[box-decoration-break:clone]">
@@ -67,11 +68,13 @@
   {#if entry.highlights.length > 0}
     <ul class="mt-3 space-y-1.5 border-t border-dashed border-[#243555] pt-3">
       {#each entry.highlights as highlight}
-        <li class="flex items-start gap-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">
-          <span class="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rotate-45 bg-[#e87a2e]"></span>
+        <li class="flex gap-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">
+          <span class="flex h-[1lh] shrink-0 items-center">
+            <span class="inline-block h-1.5 w-1.5 rotate-45 bg-[#e87a2e]"></span>
+          </span>
           <span>
             {#if highlight.title}
-              <span class="font-bold uppercase text-[#8b9bb5]">{highlight.title}:</span>
+              <span class="font-semibold uppercase text-[#8b9bb5]" style="font-family: var(--retro-heading-font);">{highlight.title}:</span>
             {/if}
             {@html format_bold(highlight.description.trim())}
           </span>

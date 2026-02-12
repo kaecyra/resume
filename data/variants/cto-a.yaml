@@ -1,0 +1,47 @@
+theme: "retro-technical"
+
+title: "Chief Technology Officer"
+
+summary: |
+  High-integrity technical leader and operator who builds the systems—technical and organizational—that make high-performance 
+  delivery inevitable. Expert in unit economics and radical transparency, specializing in de-risking technical debt and 
+  aligning architecture with the P&L to ensure velocity translates to margin. Proven track record of productizing innovation 
+  and stabilizing engineering organizations through extreme volatility.
+
+tagline: |
+  **I provide the technical leadership required to scale without the bullshit.** I'm a force of nature when aligned with a 
+  shared vision and a goal worth achieving.
+
+domains:
+  - organizational-cultural-engineering
+  - infrastructure-fiscal-sovereignty
+  - product-led-strategy
+  - systemic-modernization
+  - narrative-translation
+
+skills:
+  - strategy
+  - culture
+  - operational_innovation
+  - customer_experience
+  - executive_leadership
+  - communication
+  - software_engineering
+  - solution_architecture
+
+employment:
+  - monks-vpe
+  - monks-doe
+  - higher-logic
+  - vanilla-coo
+  - vanilla-vpo
+  - vanilla-doo
+
+languages:
+  - english
+  - engineer
+  - french
+
+courses:
+  - csm
+  - cspo

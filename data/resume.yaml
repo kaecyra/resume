@@ -2,7 +2,7 @@ profile:
   name: "Tim Gunter"
   photo: "assets/headshot-illustration.png"
   contact:
-    address: "REDACTED"
+    location: "Montreal, QC"
     phone: "REDACTED"
     email: "REDACTED"
     linkedin: "linkedin.com/in/guntertim"
@@ -39,6 +39,28 @@ skills:
   - id: solution_architecture
     name: "Solution Architecture"
     level: 5
+
+domains:
+  - id: organizational-cultural-engineering
+    title: "Organizational & Cultural Engineering"
+    description: |
+      Built high-trust, high-autonomy engineering cultures in high-volatility environments. Leveraged radical transparency and data-driven alignment to bolster talent retention during corporate restructuring and acquisitions.
+  - id: infrastructure-fiscal-sovereignty
+    title: "Infrastructure & Fiscal Sovereignty"
+    description: |
+      Expert in cloud architecture, data sovereignty and cloud repatriation, hardware-level optimization, and cost containment. Specialized in reclaiming fiscal leverage from public cloud providers by maximizing hardware utilization and implementing comprehensive IaC/automation.
+  - id: product-led-strategy
+    title: "Product-Led Technical Strategy"
+    description: |
+      Proven track record of identifying and productizing repeatable technical assets within service-based P&Ls. Experienced in navigating the "Build vs. Buy" landscape to ensure technical investment aligns with long-term business value.
+  - id: systemic-modernization
+    title: "Systemic Modernization"
+    description: |
+      Refactored legacy "artisanal" manual environments into versioned, automated, and horizontally scalable architectures. Expert at identifying and neutralizing "single-point-of-failure" technical debt that threatens business continuity.
+  - id: narrative-translation
+    title: "Narrative & Technical Translation"
+    description: |
+      Skilled at distilling complex architectural diagrams and technical risks into succinct, actionable insights for non-technical stakeholders, board members, and clients.
 
 employment:
   - id: monks-vpe

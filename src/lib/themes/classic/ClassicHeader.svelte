@@ -10,6 +10,6 @@
   <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
     <span>{profile.contact.email}</span>
     <span>{profile.contact.phone}</span>
-    <span>{profile.contact.address}</span>
+    <span>{profile.contact.location}</span>
   </div>
 </header>

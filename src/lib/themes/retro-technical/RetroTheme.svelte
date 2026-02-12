@@ -2,7 +2,7 @@
   import type { ResolvedResume } from "$lib/types.js";
 
   import RetroSummary from "./RetroSummary.svelte";
-  import RetroSkills from "./RetroSkills.svelte";
+  import RetroDomains from "./RetroDomains.svelte";
   import RetroEmployment from "./RetroEmployment.svelte";
   import RetroLanguages from "./RetroLanguages.svelte";
   import RetroCourses from "./RetroCourses.svelte";
@@ -85,12 +85,12 @@
 
     <!-- Summary - full width -->
     <div class="bg-[#faf9f7] p-4 md:p-6 print:p-6">
-      <RetroSummary summary={resume.summary} section="1" />
+      <RetroSummary summary={resume.summary} section="1" tagline={resume.tagline} />
     </div>
 
     <!-- Bottom row: skills left, languages+courses right -->
     <div class="grid grid-cols-1 gap-6 border-t-2 border-[#c96620] p-4 md:grid-cols-[60%_1fr] md:p-6 print:grid-cols-[60%_1fr] print:p-6">
-      <RetroSkills skills={resume.skills} section="2" />
+      <RetroDomains domains={resume.domains} section="2" />
       <div class="flex flex-col gap-4">
         <RetroLanguages languages={resume.languages} section="2.1" />
         <RetroCourses courses={resume.courses} section="2.2" />
@@ -110,7 +110,7 @@
         <span class="hidden text-[#e87a2e] md:inline">|</span>
         <span class="text-[#f0e6d6]">{resume.profile.contact.email}</span>
         <span class="hidden text-[#e87a2e] md:inline">|</span>
-        <span class="text-[#f0e6d6]">{resume.profile.contact.address}</span>
+        <span class="text-[#f0e6d6]">{resume.profile.contact.location}</span>
       </div>
     </div>
   </div>

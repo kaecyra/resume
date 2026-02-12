@@ -10,7 +10,7 @@
   }
 </style>
 
-<section class="bg-[#1a2744] p-5">
+<section class="bg-[#1a2744] p-5 print:break-inside-avoid">
   <div class="mb-1">
     <span class="text-[11px] uppercase tracking-[0.2em] text-[#8b9bb5]">Section 1.1</span>
     <h2 class="mt-1 text-base font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
@@ -32,7 +32,7 @@
     <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#8b9bb5]">
       Location
     </span>
-    <span class="text-base text-[#8b9bb5]">{profile.contact.address}</span>
+    <span class="text-base text-[#8b9bb5]">{profile.contact.location}</span>
 
     <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#8b9bb5]">
       Signal
