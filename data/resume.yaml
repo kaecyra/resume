@@ -106,43 +106,42 @@ employment:
     start_date: "2024-07"
     end_date: null
     description: |
-      Monks (formerly TheoremOne and Formula.Monks) tackles the most ambitious,
-      convoluted, and scariest software engineering challenges on behalf of large
-      organizations that aren't nimble enough to go it alone.
+      Monks (formerly TheoremOne and Formula.Monks) tackles ambitious, convoluted, 
+      and scary software engineering challenges on behalf of large organizations that 
+      aren't nimble enough to go it alone.
     summary: |
-      Took stewardship of the Engineering group at Monks when my predecessor
-      resigned. The team was approximately 310 strong and participating in
-      some 30+ projects.
+      Stepped into global leadership during a period of extreme organizational volatility 
+      following a predecessor’s exit. Tasked with stabilizing a 310-person engineering org 
+      and 30+ concurrent projects while pivoting toward an AI-native service model. Reduced 
+      turnover through radical transparency and data-driven resource management.
     highlights:
-      - title: "Live Cloud Production Architecture"
+      - title: "Resource Arbitrage & Product Innovation"
         description: |
-          Led the development of a reference architecture for our Live Cloud
-          Production offering, connecting with our industry partners, other
-          vendors, and potential clients to inform requirements. Validated
-          the technical options available and work-shopped solutions to the
-          roadblocks we encountered. Produced architecture diagrams with
-          traffic flows, provisioning guidance, points of scalability, etc.
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, by leveraging "bench" engineering resources and
+          securing non-traditional Capex funding. Validated the architecture
+          via a live CES 2026 Foundry demo and an invited session at NVIDIA
+          GTC 2026.
 
-      - title: "Pre-Sales"
+      - title: "Fiscal Discipline & Staffing Automation"
         description: |
-          Partnered with the sales team to create a "SME" program that
-          allowed them to leverage our collective technical expertise to
-          build trust with prospects and improve lead close rates, driving
-          significant new revenue.
+          Engineered a data-driven staffing and margin calculator to replace
+          "spreadsheets and whispers." Automated the generation of finance-ready
+          "justification snippets," forcing architectural and budgetary alignment
+          between Sales and Delivery.
 
-      - title: "Operationalized Project Staffing"
+      - title: "Organizational Stabilization"
         description: |
-          Worked with benched engineering and design resources to build an
-          internal staffing platform, replacing an existing system of
-          spreadsheets and whispers. Allowed staff to maintain their profile
-          of skills and domains of expertise, and operations teams to search
-          and "cast" these resources for upcoming projects.
+          Assumed leadership of a 310-person engineering org during extreme
+          corporate volatility. Maintained 90%+ retention of critical SMEs
+          through radical transparency and the deployment of a searchable
+          "Skillbased" talent database.
 
-      - title: "Restructured Engineering Foundry"
+      - title: "Revenue-Focused SME Program"
         description: |
-          Spearheaded the restructuring of the engineering department to align
-          with the company's new business model, optimizing team structure,
-          roles, and responsibilities to support evolving strategic goals.
+          Operationalized a pre-sales Subject Matter Expert (SME) program,
+          enabling the sales team to leverage deep technical authority to
+          compress sales cycles and secure high-complexity Enterprise deals.
 
   - id: monks-doe
     title: "Director of Engineering"
@@ -152,27 +151,32 @@ employment:
     end_date: "2024-07"
     description: null
     summary: |
-      As the senior engineering leader for my account group:
+      Exercised senior technical authority over a major account group, overseeing 
+      the engineering execution of high-complexity, multi-team engagements.
     highlights:
-      - description: |
-          Represented Monks in both on-site and virtual pre-sales situations,
-          effectively **establishing client confidence** in our exceptional
-          delivery capabilities.
+      - title: "High-Stakes Delivery"
+        description: |
+          Led the successful execution of multiple 8-figure, multi-team
+          projects. Managed end-to-end delivery including technical staffing,
+          performance management, and strict budgetary control.
 
-      - description: |
-          Orchestrated the planning and staffing of **high-performing delivery
-          teams** for new and ongoing client projects, ensuring seamless
-          execution and client satisfaction.
+      - title: "Trust-Based Pre-Sales"
+        description: |
+          Established immediate client confidence in high-pressure pre-sales
+          environments, translating Monks' technical capabilities into
+          defensible delivery roadmaps for Enterprise prospects.
 
-      - description: |
-          Led the **successful engineering execution** of multiple 8-figure,
-          multi-team engagements, overseeing staffing, client interaction,
-          performance management, and budgetary control.
+      - title: "Engagement Orchestration"
+        description: |
+          Structured and staffed high-performing delivery teams for ongoing
+          client projects, ensuring seamless technical continuity and alignment
+          with long-term business objectives.
 
-      - description: |
-          Played a pivotal role in the enhancement of internal engagement
-          management tools, continuously iterating on our tools to increase
-          our efficiency and improve our sight lines.
+      - title: "Operational Tooling"
+        description: |
+          Iterated on internal engagement management tools to increase
+          reporting accuracy and improve project sightlines, enabling more
+          proactive risk mitigation.
 
   - id: higher-logic
     title: "Global Platform Leader"
@@ -183,15 +187,30 @@ employment:
     description: |
       Joined Higher Logic via their acquisition of Vanilla Forums.
     summary: |
-      Facilitated the smooth transition of systems, processes and tools from
-      Vanilla to Higher Logic, post acquisition, and helped educate and train
-      Higher Logic staff.
+      Post-acquisition platform lead responsible for the integration of Vanilla Forums
+      into the Higher Logic ecosystem. Audited legacy infrastructure and enforced modern
+      DevOps standards across five global platforms to reduce operational risk and optimize COGS.
+    highlights:
+      - title: "Modernization of Legacy Debt"
+        description: |
+          Spearheaded the transition of a legacy Windows/.NET stack from
+          "artisanal" manual deployments to a versioned, automated blue/green
+          pipeline. Massively increased deployment frequency while reducing
+          human toil and COGS.
 
-      Responsible for all 5 platforms, entirely transformed Higher Logic's
-      approach to DevOps and deployment with significantly more automation and
-      observability, massively increasing speed and reliability of deployments,
-      reducing human toil, and significantly cutting COGS.
-    highlights: []
+      - title: "Architecture De-risking"
+        description: |
+          Initiated the refactoring of a vertically-scaled, 768GB
+          single-point-of-failure database architecture into a horizontally
+          scalable model, regaining technical sovereignty and reducing cloud
+          provider lock-in (AWS).
+
+      - title: "Cultural Export"
+        description: |
+          Served as the technical bridge during the Vanilla acquisition,
+          training legacy staff on modern IaC, observability, and automated
+          deployment paradigms to standardize high-performance engineering
+          across five global platforms.
 
   - id: vanilla-coo
     title: "Chief Operating Officer"
@@ -200,30 +219,32 @@ employment:
     start_date: "2017-09"
     end_date: "2021-05"
     description: |
-      Vanilla delivered customized online community software targeted at
-      customer support and brand engagement sectors. Oversaw growth from
-      $0 ARR to $10M -- through two rounds of investment -- to its eventual
-      profitable acquisition by Higher Logic in 2021.
-    summary: null
+      Vanilla delivers customized online community software targeted at
+      customer support and brand engagement sectors.
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR. Architected 
+      the cross-functional organizational infrastructure (HR, InfoSec, CX, and Engineering) 
+      required to sustain high growth, eventually leading the organization through 
+      a successful, profitable acquisition by Higher Logic.
     highlights:
-      - description: |
-          Created **Infosec team** and supervised successful SOC2 audit
-          and accreditation.
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the "Human Stack" required for a profitable
+          acquisition, scaling the engineering, CX, and Infosec teams from
+          inception through successful exit.
 
-      - description: |
-          Spearheaded **expansion from 1 to 4 datacenters** (including EU).
+      - title: "Security as a Sales Lever"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, moving security from a "cost center" to a competitive
+          advantage that unlocked the Fortune 500 market.
 
-      - description: |
-          Guided Success team's transformation into Customer Experience
-          organization, and expansion from 2 members to 10.
-
-      - description: |
-          Created **HR team** and supported the deployment of ATS and
-          HRMS systems.
-
-      - description: |
-          Protected and encouraged **company culture** in support of
-          employee satisfaction and long term human capital growth.
+      - title: "Infrastructure Sovereignty"
+        description: |
+          Scaled the global footprint from one to four data centers (including
+          EU expansion). Leveraged a private-cloud-first strategy to maintain
+          higher total utilization and lower overhead than industry standard
+          public cloud alternatives.
 
   - id: vanilla-vpo
     title: "Vice President of Operations"
@@ -233,30 +254,22 @@ employment:
     end_date: "2017-09"
     description: null
     summary: |
-      Conceived, designed and implemented the SaaS hosting systems that
-      power Vanilla's offering.
-
-      Created and fulfilled Human Resources functions for the organization,
-      including creation of an employee handbook, hiring processes, employee
-      onboarding and offboarding, and the management of all policies related
-      to staff.
+      Designed and built the foundational multi-tenant SaaS architecture from 
+      the ground up. Executed a strategic move from public to private cloud to 
+      reclaim performance margins and reliability, establishing the technical 
+      sovereignty that defined Vanilla's market competitiveness.
     highlights:
-      - title: "Distributed architecture"
+      - title: "SaaS Foundation Engineering"
         description: |
-          Fault tolerance and redundancy.
+          Conceived, designed, and implemented the multi-tenant SaaS hosting
+          architecture that powered Vanilla's core offering.
 
-      - title: "IAC"
+      - title: "IaC & Observability"
         description: |
-          From the start, with proprietary agent-based provisioning
-          and monitoring.
-
-      - title: "Observability"
-        description: |
-          Single pane of glass with realtime system metrics.
-
-      - title: "Multi-cloud"
-        description: |
-          Multi-provider and multi-region support.
+          Developed a proprietary agent-based provisioning and monitoring
+          system, establishing a "single pane of glass" observability culture
+          that enabled high-availability across multi-provider and multi-region
+          deployments.
 
   - id: vanilla-doo
     title: "Director of Operations"
@@ -266,15 +279,26 @@ employment:
     end_date: "2013-11"
     description: null
     summary: |
-      Moved hosting from public to private cloud in order to meet
-      **performance and reliability** goals of the business. Created tooling
-      and production code to enable the open source product to function as a
-      multi-tenant SaaS platform.
+      Tasked with transitioning the core open-source product into a multi-tenant 
+      SaaS platform while overcoming the performance and reliability limitations 
+      of public cloud infrastructure.
+    highlights:
+      - title: "Cloud Repatriation"
+        description: |
+          Executed the strategic migration from public to private cloud
+          infrastructure to reclaim performance margins and reliability.
 
-      Created **Customer Support** team and worked to establish its goals and
-      desired outcomes. Maintained this team through hiring, fostering cultural
-      changes, and training.
-    highlights: []
+      - title: "SaaS Engineering"
+        description: |
+          Engineered the custom production code and tooling required to
+          transform a single-instance open-source codebase into a high-scale,
+          multi-tenant SaaS platform.
+
+      - title: "Support Org Foundation"
+        description: |
+          Established the initial Customer Support team; defined service level
+          objectives (SLOs), hiring criteria, and cultural standards to align
+          technical support with business growth.
 
 languages:
   - id: english
