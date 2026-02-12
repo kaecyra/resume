@@ -43,7 +43,7 @@
               </span>
               <div>
                 <span class="font-bold text-retro-navy">{item.title}</span>
-                <span class="text-retro-navy/70"> — {item.venue}</span>
+                <span class="text-retro-navy/70"> — </span>{#if item.venue.startsWith("http")}<a href={item.venue} target="_blank" rel="noopener noreferrer" class="text-retro-navy/70 underline hover:text-retro-accent">{item.venue}</a>{:else}<span class="text-retro-navy/70">{item.venue}</span>{/if}
                 {#if item.date}
                   <span class="ml-1 text-sm text-retro-tan">({format_date(item.date)})</span>
                 {/if}
