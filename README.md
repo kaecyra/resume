@@ -151,7 +151,6 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 | Secret | `GHCR_PAT` | GitHub PAT with `read:packages` and `write:packages` scope for GHCR push |
 | Variable | `DEPLOY_ENABLED` | Enable/disable the deploy workflow (`true`/`false`) |
 | Variable | `PUBLIC_BASE_URL` | Absolute base URL for OG meta tags (no trailing slash) |
-| Variable | `PUBLIC_UMAMI_URL` | Umami instance URL (e.g. `https://analytics.example.com`) |
 | Variable | `PUBLIC_UMAMI_WEBSITE_ID` | Website ID from Umami dashboard |
 
 ### Ingress Configuration
@@ -172,7 +171,7 @@ location / {
 
 The site uses [Umami](https://umami.is/) for privacy-respecting, cookie-free analytics. Umami is self-hosted alongside the resume container — no data leaves your infrastructure.
 
-The tracking script is conditionally injected at build time: when both `PUBLIC_UMAMI_URL` and `PUBLIC_UMAMI_WEBSITE_ID` are set, a `<script>` tag is added to the page head. When either is unset (local dev, CI), no tracking code is rendered.
+The tracking script is conditionally injected at build time when `PUBLIC_UMAMI_WEBSITE_ID` is set. Analytics requests (`/insights.js` and `/api/send`) are proxied through the resume container's nginx to the Umami container on the same Docker network, avoiding cross-origin issues. When the variable is unset (local dev, CI), no tracking code is rendered.
 
 ### First-Time Umami Setup
 
@@ -181,15 +180,15 @@ Umami is provisioned automatically by `setup-host.sh`. After the stack is runnin
 1. Open `http://<host>:3001` and log in with the default credentials (`admin` / `umami`)
 2. **Change the default password immediately**
 3. Add a website in the Umami dashboard and copy the Website ID
-4. Set `PUBLIC_UMAMI_URL` and `PUBLIC_UMAMI_WEBSITE_ID` as GitHub Actions variables
+4. Set `PUBLIC_UMAMI_WEBSITE_ID` as a GitHub Actions variable
 5. Push to `main` (or rebuild manually) to bake the tracking script into the static site
 
-### Ingress for Umami
+### Ingress for Umami Dashboard
 
-Add a reverse proxy rule for the Umami instance alongside the resume site:
+The Umami dashboard (port 3001) needs its own reverse proxy rule for admin access. Tracking data collection is proxied through the resume container's nginx and does not require a separate ingress rule.
 
 ```nginx
-# Umami analytics
+# Umami dashboard (admin access only)
 location / {
     proxy_pass http://<vm-ip>:3001;
     proxy_set_header Host $host;
@@ -201,7 +200,7 @@ location / {
 
 ### Chicken-and-Egg: Website ID
 
-Umami must be running before you can create a website and obtain its ID. On first deploy, set only `PUBLIC_UMAMI_URL` — the tracking script won't render since both values are required. Once Umami is up, create the website, copy the ID, set `PUBLIC_UMAMI_WEBSITE_ID`, and rebuild.
+Umami must be running before you can create a website and obtain its ID. On first deploy, leave `PUBLIC_UMAMI_WEBSITE_ID` unset — the tracking script won't render. Once Umami is up, create the website, copy the ID, set the variable, and rebuild.
 
 ## Project Documentation
 

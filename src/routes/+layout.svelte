@@ -8,10 +8,10 @@
 </script>
 
 <svelte:head>
-  {#if data.umami_url && data.umami_website_id}
+  {#if data.umami_website_id}
     <script
       defer
-      src="{data.umami_url}/insights.js"
+      src="/insights.js"
       data-website-id={data.umami_website_id}
     ></script>
   {/if}

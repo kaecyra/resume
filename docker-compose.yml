@@ -4,7 +4,6 @@ services:
       context: .
       args:
         PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
-        PUBLIC_UMAMI_URL: ${PUBLIC_UMAMI_URL:-}
         PUBLIC_UMAMI_WEBSITE_ID: ${PUBLIC_UMAMI_WEBSITE_ID:-}
     image: ghcr.io/kaecyra/resume:latest
     ports:
