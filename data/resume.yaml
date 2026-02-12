@@ -89,7 +89,7 @@ field_deployments:
   - id: vanilla-oss
     category: "Open Source"
     title: "Infrastructure & Community Platforms"
-    venue: "Open Source Ecosystem"
+    venue: "https://github.com/vanilla"
     date: null
     description: |
       Active contributor to the open-source community, with a focus on high-traffic
@@ -97,6 +97,14 @@ field_deployments:
       as a core contributor to the Vanilla Forums ecosystem, ensuring the security,
       extensibility, and performance of a platform powering thousands of global
       communities.
+
+  - id: resume-engine
+    category: "Open Source"
+    title: "Resume Engine"
+    venue: "https://github.com/kaecyra/resume"
+    date: "2026-02"
+    description: |
+      Architected a schema-driven resume deployment platform to demonstrate Chat Oriented Programming (CHOP). This project serves as a live experiment with code quality and systematic prompt engineering when leveraging LLMs with a clear technical vision. The system establishes total data sovereignty and showcases the ability to orchestrate AI for responsible and painless delivery.
 
 employment:
   - id: monks-vpe

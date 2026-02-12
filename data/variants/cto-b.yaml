@@ -28,6 +28,7 @@ field_deployments:
   - gtc-2026
   - ces-2026
   - vanilla-oss
+  - resume-engine
 
 skills:
   - strategy
