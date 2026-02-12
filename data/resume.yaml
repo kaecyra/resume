@@ -62,6 +62,42 @@ domains:
     description: |
       Skilled at distilling complex architectural diagrams and technical risks into succinct, actionable insights for non-technical stakeholders, board members, and clients.
 
+field_deployments:
+  - id: gtc-2026
+    category: "Speaking Engagement"
+    title: "LiveVision: Real-time AI Video Processing and Ingest at the Edge"
+    venue: "NVIDIA GTC 2026"
+    date: "2026-03"
+    description: |
+      Invited to present at the premier global AI conference on the architecture
+      of LiveVision. Detailed the engineering requirements for near real-time AI
+      video understanding, focusing on edge-broadcast pipelines and the
+      orchestration of high-concurrency model inference.
+
+  - id: ces-2026
+    category: "Tradeshow Demo"
+    title: 'LiveVision "Pragmatic AI" Foundry Demo'
+    venue: "CES 2026"
+    date: "2026-01"
+    description: |
+      Conceived and executed a live, on-prem technical demo for the CES Foundry,
+      showcasing a fully operational computer vision pipeline. Successfully secured
+      Capex for DGX Spark/Lenovo Neo infrastructure and managed a high-velocity
+      delivery team to prove the economic and operational viability of AI-native
+      media workflows to global C-suite stakeholders.
+
+  - id: vanilla-oss
+    category: "Open Source"
+    title: "Infrastructure & Community Platforms"
+    venue: "Open Source Ecosystem"
+    date: null
+    description: |
+      Active contributor to the open-source community, with a focus on high-traffic
+      infrastructure and community-scale software architecture. Historically served
+      as a core contributor to the Vanilla Forums ecosystem, ensuring the security,
+      extensibility, and performance of a platform powering thousands of global
+      communities.
+
 employment:
   - id: monks-vpe
     title: "Vice President of Engineering"

@@ -54,10 +54,20 @@ export interface Domain {
   description: string;
 }
 
+export interface FieldDeployment {
+  id: string;
+  category: string;
+  title: string;
+  venue: string;
+  date: string | null;
+  description: string;
+}
+
 export interface ResumeData {
   profile: Profile;
   skills: Skill[];
   domains: Domain[];
+  field_deployments: FieldDeployment[];
   employment: Employment[];
   languages: Language[];
   courses: Course[];
@@ -70,6 +80,7 @@ export interface VariantManifest {
   tagline?: string;
   skills: string[];
   domains?: string[];
+  field_deployments?: string[];
   employment: string[];
   languages: string[];
   courses: string[];
@@ -83,6 +94,7 @@ export interface ResolvedResume {
   tagline?: string;
   skills: Skill[];
   domains: Domain[];
+  field_deployments: FieldDeployment[];
   employment: Employment[];
   languages: Language[];
   courses: Course[];

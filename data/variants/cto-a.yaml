@@ -19,6 +19,11 @@ domains:
   - systemic-modernization
   - narrative-translation
 
+field_deployments:
+  - gtc-2026
+  - ces-2026
+  - vanilla-oss
+
 skills:
   - strategy
   - culture

@@ -98,7 +98,7 @@
 ## Versioning
 
 15. **CalVer scheme**: This project uses calendar versioning in `YYYY.MM.DD` format, stored in the `VERSION` file at the repo root.
-    - Bump the version when merging meaningful changes (content updates, features, fixes)
+    - Bump the version when merging meaningful changes (content updates, features, serious layout changes, fixes)
     - Use a `.N` suffix for multiple releases on the same day (e.g. `2026.02.10.1`)
     - No version bump needed for internal refactors, CI changes, or documentation-only updates
     - The VERSION file is the single source of truth -- build tooling reads it to tag images and embed in output
