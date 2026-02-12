@@ -15,8 +15,8 @@
   }
 </style>
 
-<div class="mb-4 bg-[#1a2744] p-4 md:p-5 print:p-5 print:break-inside-avoid">
-  <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
+<div class="mb-4 bg-[#1a2744] p-4 md:p-5 print:p-5 print:[box-decoration-break:clone]">
+  <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4 print:break-inside-avoid">
     <div class="min-w-0">
       <div class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
         <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#8b9bb5]">
@@ -55,19 +55,19 @@
   </div>
 
   {#if entry.description}
-    <p class="my-3 border-t border-[#243555] py-3 text-base italic leading-relaxed text-[#8b9bb5]">
+    <p class="my-3 border-t border-[#243555] py-3 text-base italic leading-relaxed text-[#8b9bb5] print:break-inside-avoid">
       {entry.description.trim()}
     </p>
   {/if}
 
   {#if entry.summary}
-    <p class="mt-2 text-base leading-relaxed text-[#f0e6d6]">{entry.summary.trim()}</p>
+    <p class="mt-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">{entry.summary.trim()}</p>
   {/if}
 
   {#if entry.highlights.length > 0}
     <ul class="mt-3 space-y-1.5 border-t border-dashed border-[#243555] pt-3">
       {#each entry.highlights as highlight}
-        <li class="flex items-start gap-2 text-base leading-relaxed text-[#f0e6d6]">
+        <li class="flex items-start gap-2 text-base leading-relaxed text-[#f0e6d6] print:break-inside-avoid">
           <span class="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rotate-45 bg-[#e87a2e]"></span>
           <span>
             {#if highlight.title}
