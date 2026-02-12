@@ -75,3 +75,4 @@ Generally, since you work primarily from Github issues, you'll usually have an I
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+- **Verify Against Live Sources**: Never trust training data for version numbers, action versions, or runtime versions. Always check the live source of truth (npm, GitHub releases, official docs) before writing versions into config files.
