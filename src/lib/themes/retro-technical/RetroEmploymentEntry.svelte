@@ -17,7 +17,7 @@
 </style>
 
 <div class="mt-6">
-  <div class="-mx-4 md:-mx-6 print:-mx-6 bg-retro-navy px-4 py-4 md:px-6 md:py-5 print:px-6 print:py-5 print:break-inside-avoid">
+  <div class="-mx-4 md:-mx-6 print:-mx-6 bg-retro-navy-deep px-4 py-4 md:px-6 md:py-5 print:px-6 print:py-5 print:break-inside-avoid">
     <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
       <div class="min-w-0">
         <div class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
