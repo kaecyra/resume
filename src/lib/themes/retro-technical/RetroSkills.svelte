@@ -88,13 +88,13 @@
 
 <section>
   <div class="mb-4 print:break-after-avoid">
-    <span class="text-[11px] uppercase tracking-[0.2em] text-[#a07850]">
+    <span class="text-[11px] uppercase tracking-[0.2em] text-retro-tan">
       <span class="italic">[chp. {section}]</span>
     </span>
-    <h2 class="mt-1 text-xl font-semibold uppercase tracking-[0.15em] text-[#e87a2e]">
+    <h2 class="mt-1 text-xl font-semibold uppercase tracking-[0.15em] text-retro-accent">
       Capability Matrix
     </h2>
-    <div class="mt-1 h-0.5 w-16 bg-[#e87a2e]"></div>
+    <div class="mt-1 h-0.5 w-16 bg-retro-accent"></div>
   </div>
 
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-4 print:break-inside-avoid">
@@ -119,7 +119,7 @@
           />
         </svg>
         <span
-          class="mt-1 text-center text-[11px] font-bold uppercase leading-tight tracking-wider text-[#1a2744]"
+          class="mt-1 text-center text-[11px] font-bold uppercase leading-tight tracking-wider text-retro-navy"
         >
           {skill.name}
         </span>

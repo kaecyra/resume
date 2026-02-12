@@ -2,6 +2,19 @@
 
 @import "tailwindcss";
 
+@theme {
+  --color-retro-navy: #1a2744;
+  --color-retro-navy-light: #243555;
+  --color-retro-accent: #e87a2e;
+  --color-retro-accent-dark: #c96620;
+  --color-retro-muted: #8b9bb5;
+  --color-retro-cream: #f0e6d6;
+  --color-retro-parchment: #f5e6c8;
+  --color-retro-paper: #faf9f7;
+  --color-retro-tan: #a07850;
+  --color-retro-active: #2a9d8f;
+}
+
 @media print {
   * {
     print-color-adjust: exact;
