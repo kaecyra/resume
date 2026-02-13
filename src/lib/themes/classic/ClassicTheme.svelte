@@ -11,7 +11,7 @@
   let { resume }: { resume: ResolvedResume } = $props();
 </script>
 
-<div class="mx-auto max-w-4xl p-8 text-gray-800 print:max-w-none print:p-0">
+<div class="mx-auto max-w-4xl p-8 text-gray-800 print:max-w-none print:px-12 print:py-8">
   <ClassicHeader profile={resume.profile} title={resume.title} />
   <ClassicSummary summary={resume.summary} />
   <ClassicSkills skills={resume.skills} />
