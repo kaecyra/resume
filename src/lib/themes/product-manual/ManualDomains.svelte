@@ -7,7 +7,7 @@
 
 <section class="mb-6">
   <div class="mb-3 border-b border-stone-300 pb-1">
-    <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+    <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-stone-600">
       Operational Parameters:
     </h2>
   </div>
@@ -17,8 +17,8 @@
         <div class="border-t border-dashed border-stone-300"></div>
       {/if}
       <div class="print:break-inside-avoid">
-        <h3 class="text-[11px] font-bold uppercase text-stone-800">{domain.title}</h3>
-        <p class="mt-1 text-xs leading-relaxed text-stone-700">
+        <h3 class="text-sm font-bold uppercase text-stone-800">{domain.title}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-stone-700">
           {@html format_markdown(domain.description.trim())}
         </p>
       </div>
