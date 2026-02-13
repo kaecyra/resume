@@ -7,7 +7,7 @@
 
 <section class="mb-6">
   <div class="mb-3 border-b border-stone-300 pb-1">
-    <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+    <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-stone-600">
       Certifications:
     </h2>
   </div>
@@ -15,10 +15,10 @@
     {#each courses as course}
       <div class="border-b border-dotted border-stone-300 pb-1">
         <div class="flex items-baseline justify-between">
-          <span class="text-xs text-stone-700">{course.title}</span>
-          <span class="shrink-0 text-[10px] text-stone-400">{format_date(course.date)}</span>
+          <span class="text-sm text-stone-700">{course.title}</span>
+          <span class="shrink-0 text-xs text-stone-500">{format_date(course.date)}</span>
         </div>
-        <span class="text-[10px] uppercase tracking-wider text-stone-400">
+        <span class="text-xs uppercase tracking-wider text-stone-500">
           {course.institution}
         </span>
       </div>

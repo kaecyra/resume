@@ -8,7 +8,7 @@
 
 <section class="mb-6">
   <div class="mb-4 border-b border-stone-300 pb-1">
-    <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+    <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-stone-600">
       Project Files
     </h2>
   </div>
