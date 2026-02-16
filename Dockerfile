@@ -19,6 +19,9 @@ ENV PUBLIC_UMAMI_WEBSITE_ID=${PUBLIC_UMAMI_WEBSITE_ID}
 
 RUN npm run build
 
+# Generate icons (no server needed)
+RUN npm run generate-icons
+
 # Generate OG images and PDFs: start preview server, run Puppeteer, stop server
 RUN (npm run preview &) && sleep 2 && npm run generate-og && npm run generate-pdf
 

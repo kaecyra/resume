@@ -21,16 +21,24 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={data.og.title} />
-  <meta property="og:url" content={data.og.url} />
+  {#if data.og.url}
+    <meta property="og:url" content={data.og.url} />
+    <link rel="canonical" href={data.og.url} />
+  {/if}
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.og.title} />
   <meta name="twitter:description" content={data.og.description} />
   <meta name="twitter:image" content={data.og.image} />
 
+  <meta name="theme-color" content={data.theme_color} />
+
   {#if theme_favicon}
     <link rel="icon" type="image/svg+xml" href={theme_favicon} />
   {/if}
+
+  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
+  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
 </svelte:head>
 
 <Theme resume={data.resume} />
