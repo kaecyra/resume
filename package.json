@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "generate-og": "tsx scripts/generate-og-images.ts",
     "generate-pdf": "tsx scripts/generate-pdf.ts",
-    "linkedin": "tsx scripts/linkedin-export.ts"
+    "linkedin": "tsx scripts/linkedin-export.ts",
+    "generate-icons": "tsx scripts/generate-apple-touch-icon.ts"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
