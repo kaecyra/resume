@@ -39,6 +39,10 @@ export const load: PageServerLoad = ({ params }) => {
     ? (variant_name === "default" ? base_url : `${base_url}/${variant_name}`)
     : null;
 
+  if (resume.online_callout && og_url) {
+    resume.online_url = og_url;
+  }
+
   const person_jsonld = build_person_jsonld(resume.profile, resume.title, og_url);
   const webpage_jsonld = build_webpage_jsonld(og_title, og_description, og_url);
   const palette = get_theme_palette(resume.theme);
