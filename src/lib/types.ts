@@ -78,6 +78,7 @@ export interface VariantManifest {
   title: string;
   summary: string;
   tagline?: string;
+  online_callout?: string;
   skills: string[];
   domains?: string[];
   field_deployments?: string[];
@@ -92,6 +93,8 @@ export interface ResolvedResume {
   title: string;
   summary: string;
   tagline?: string;
+  online_callout?: string;
+  online_url?: string;
   skills: Skill[];
   domains: Domain[];
   field_deployments: FieldDeployment[];

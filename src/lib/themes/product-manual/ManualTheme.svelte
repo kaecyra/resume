@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ResolvedResume } from "$lib/types.js";
 
+  import OnlineCallout from "$lib/components/OnlineCallout.svelte";
   import ManualHeader from "./ManualHeader.svelte";
   import ManualSummary from "./ManualSummary.svelte";
   import ManualDomains from "./ManualDomains.svelte";
@@ -25,6 +26,9 @@
     <ManualHeader profile={resume.profile} title={resume.title} />
     <div class="px-8 pb-8">
       <ManualSummary summary={resume.summary} tagline={resume.tagline} />
+      {#if resume.online_callout && resume.online_url}
+        <OnlineCallout url={resume.online_url} text={resume.online_callout} />
+      {/if}
       <ManualSkills skills={resume.skills} />
       {#if resume.domains.length > 0}
         <div class="grid grid-cols-2 gap-8 print:grid-cols-2">

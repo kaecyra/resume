@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ResolvedResume } from "$lib/types.js";
 
+  import OnlineCallout from "$lib/components/OnlineCallout.svelte";
   import RetroSummary from "./RetroSummary.svelte";
   import RetroDomains from "./RetroDomains.svelte";
   import RetroFieldDeployments from "./RetroFieldDeployments.svelte";
@@ -73,7 +74,7 @@
       <img
         src="/{resume.profile.photo}"
         alt={resume.profile.name}
-        class="mx-auto mt-4 h-52 w-52 border-2 border-retro-accent object-cover md:absolute md:right-8 md:top-8 md:z-10 md:mt-0 md:mx-0 print:absolute print:right-8 print:top-8 print:z-10 print:mx-0"
+        class="mx-auto mt-4 h-52 w-52 border-2 border-retro-accent object-cover md:absolute md:right-8 md:top-8 md:z-10 md:mt-0 md:mx-0 print:absolute print:right-8 print:top-8 print:z-10 print:mx-0 print:h-40 print:w-40"
       />
     </div>
 
@@ -88,6 +89,12 @@
     <div class="bg-retro-paper p-4 md:p-6 print:p-6">
       <RetroSummary summary={resume.summary} section="1" tagline={resume.tagline} />
     </div>
+
+    {#if resume.online_callout && resume.online_url}
+      <div class="px-4 md:px-6 print:px-6">
+        <OnlineCallout url={resume.online_url} text={resume.online_callout} />
+      </div>
+    {/if}
 
     <!-- Bottom row: skills left, languages+courses right -->
     <div class="grid grid-cols-1 gap-6 border-t-2 border-retro-accent-dark p-4 md:grid-cols-[60%_1fr] md:p-6 print:grid-cols-[60%_1fr] print:p-6">

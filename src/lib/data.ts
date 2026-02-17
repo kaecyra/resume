@@ -56,6 +56,7 @@ export function resolve_resume(data: ResumeData, variant: VariantManifest): Reso
     title: variant.title,
     summary: variant.summary,
     tagline: variant.tagline,
+    online_callout: variant.online_callout,
     skills,
     domains,
     field_deployments,
