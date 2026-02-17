@@ -1,4 +1,13 @@
-import { list_variants, load_resume_data, load_variant, resolve_resume } from "./data.js";
+import {
+  list_variants,
+  load_resume_data,
+  load_variant,
+  resolve_resume,
+  list_sub_variants,
+  load_sub_variant,
+  resolve_sub_variant,
+  load_and_resolve_sub_variant,
+} from "./data.js";
 
 describe("list_variants", () => {
   it("returns an array containing 'default'", () => {
@@ -107,5 +116,94 @@ describe("resolve_resume", () => {
     const resolved = resolve_resume(data, variant);
     expect(resolved.skills).toHaveLength(1);
     expect(resolved.skills[0].id).toBe("strategy");
+  });
+});
+
+describe("list_sub_variants", () => {
+  it("returns sub-variants with parent and slug", () => {
+    const entries = list_sub_variants();
+
+    expect(entries).toBeInstanceOf(Array);
+    expect(entries.length).toBeGreaterThan(0);
+
+    const test_entry = entries.find((e) => e.parent === "cto-a" && e.slug === "a7f3b9c2");
+    expect(test_entry).toBeDefined();
+  });
+
+  it("does not include parent variants in results", () => {
+    const entries = list_sub_variants();
+    const slugs = entries.map((e) => e.slug);
+
+    expect(slugs).not.toContain("default");
+    expect(slugs).not.toContain("cto-a");
+    expect(slugs).not.toContain("cto-b");
+  });
+});
+
+describe("load_sub_variant", () => {
+  it("loads a sub-variant manifest", () => {
+    const sub = load_sub_variant("cto-a", "a7f3b9c2");
+
+    expect(sub.parent).toBe("cto-a");
+    expect(sub.job.company).toBe("Acme Corp");
+    expect(sub.title).toBe("VP of Engineering");
+  });
+
+  it("throws for nonexistent sub-variants", () => {
+    expect(() => load_sub_variant("cto-a", "00000000")).toThrow();
+  });
+});
+
+describe("resolve_sub_variant", () => {
+  it("inherits parent fields when sub-variant omits them", () => {
+    const data = load_resume_data();
+    const parent = load_variant("cto-a");
+    const sub = load_sub_variant("cto-a", "a7f3b9c2");
+    const resolved = resolve_sub_variant(data, parent, sub);
+
+    expect(resolved.title).toBe("VP of Engineering");
+    expect(resolved.skills.length).toBe(parent.skills.length);
+    expect(resolved.employment.length).toBe(parent.employment.length);
+    expect(resolved.theme).toBe(parent.theme);
+  });
+
+  it("overrides fields present in sub-variant", () => {
+    const data = load_resume_data();
+    const parent = load_variant("cto-a");
+    const sub = load_sub_variant("cto-a", "a7f3b9c2");
+    const resolved = resolve_sub_variant(data, parent, sub);
+
+    expect(resolved.title).toBe("VP of Engineering");
+    expect(resolved.summary).not.toBe(parent.summary);
+  });
+
+  it("applies employment overrides without mutating source data", () => {
+    const data = load_resume_data();
+    const parent = load_variant("cto-a");
+    const sub = load_sub_variant("cto-a", "a7f3b9c2");
+    sub.employment_overrides = [
+      { id: "monks-vpe", summary: "Custom summary for testing" },
+    ];
+
+    const original_summary = data.employment.find((e) => e.id === "monks-vpe")?.summary;
+    const resolved = resolve_sub_variant(data, parent, sub);
+    const overridden = resolved.employment.find((e) => e.id === "monks-vpe");
+
+    expect(overridden?.summary).toBe("Custom summary for testing");
+    expect(data.employment.find((e) => e.id === "monks-vpe")?.summary).toBe(original_summary);
+  });
+});
+
+describe("load_and_resolve_sub_variant", () => {
+  it("loads and resolves a sub-variant", () => {
+    const resolved = load_and_resolve_sub_variant("cto-a", "a7f3b9c2");
+
+    expect(resolved.title).toBe("VP of Engineering");
+    expect(resolved.profile.name).toBe("Tim Gunter");
+    expect(resolved.skills.length).toBeGreaterThan(0);
+  });
+
+  it("throws when parent field mismatches directory", () => {
+    expect(() => load_and_resolve_sub_variant("default", "a7f3b9c2")).toThrow();
   });
 });

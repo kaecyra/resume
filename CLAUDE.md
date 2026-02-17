@@ -15,3 +15,79 @@ Before starting any task, read these files to understand project conventions:
 - [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md) - How we collaborate. Always follow these when doing anything.
 - [ENGINEERING.md](./ENGINEERING.md) - Project conventions. Always follow these when writing code.
 - [LESSONS.md](./LESSONS.md) - Lessons learned over time, from user corrections. Always follow these when writing code.
+
+## Sub-Variant Customization Workflow
+
+When the user asks you to customize a resume for a specific job posting (e.g., "customize cto-a for this job: <URL>"), follow this workflow:
+
+### 1. Gather context
+
+Read these files to understand the full picture:
+- `data/resume.yaml` — master resume data (all available content and IDs)
+- `data/variants/{parent}.yaml` — the parent variant being customized
+- `src/lib/types.ts` — `SubVariantManifest` schema for reference
+
+Fetch the job posting URL using WebFetch to extract the job title, company, and description.
+
+### 2. Generate the sub-variant YAML
+
+Generate an 8-character hex slug:
+```sh
+npm run generate-slug
+```
+
+Create the file at `data/variants/{parent}/{slug}.yaml` with this structure:
+
+```yaml
+parent: {parent-variant-name}
+
+job:
+  url: "{job-posting-url}"
+  company: "{company-name}"
+  title: "{job-title}"
+  fetched_at: "{ISO-8601-timestamp}"
+
+# Only include fields that benefit from customization.
+# Omitted fields inherit from the parent variant.
+title: "..."
+summary: |
+  ...
+tagline: |
+  ...
+skills:
+  - skill_id
+employment_overrides:
+  - id: employment-id
+    summary: |
+      Rewritten summary...
+    highlights:
+      - title: "..."
+        description: |
+          ...
+```
+
+### 3. Constraints
+
+- **NEVER fabricate** experience, skills, or accomplishments. Only use content from `data/resume.yaml`.
+- **Preserve voice and style** — match the tone of the parent variant.
+- All IDs (skills, employment, domains, etc.) MUST exist in `data/resume.yaml`.
+- Employment override IDs must be in the active employment list (sub-variant's or parent's).
+- Only override what benefits from customization. Less is more.
+- Keep the summary concise (3-5 sentences).
+- Do NOT set `theme` or `online_callout` — those inherit from the parent.
+
+### 4. Validate and verify
+
+```sh
+npm run validate-sub-variants
+npm run build
+```
+
+The validation script checks: parent field matches directory, all IDs exist in master data, required job metadata is present.
+
+### 5. Helper scripts
+
+| Script | Purpose |
+|---|---|
+| `npm run generate-slug` | Generate a random 8-char hex slug |
+| `npm run validate-sub-variants` | Validate all sub-variant manifests |
