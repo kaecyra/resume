@@ -15,7 +15,9 @@
     "generate-og": "tsx scripts/generate-og-images.ts",
     "generate-pdf": "tsx scripts/generate-pdf.ts",
     "linkedin": "tsx scripts/linkedin-export.ts",
-    "generate-icons": "tsx scripts/generate-apple-touch-icon.ts"
+    "generate-icons": "tsx scripts/generate-apple-touch-icon.ts",
+    "generate-slug": "tsx scripts/generate-slug.ts",
+    "validate-sub-variants": "tsx scripts/validate-sub-variants.ts"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",

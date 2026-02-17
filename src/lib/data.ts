@@ -1,9 +1,15 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import yaml from "js-yaml";
 
-import type { ResumeData, VariantManifest, ResolvedResume } from "./types.js";
+import type {
+  ResumeData,
+  VariantManifest,
+  ResolvedResume,
+  SubVariantManifest,
+  SubVariantEntry,
+} from "./types.js";
 
 const DATA_DIR = resolve("data");
 
@@ -64,4 +70,70 @@ export function resolve_resume(data: ResumeData, variant: VariantManifest): Reso
     languages,
     courses,
   };
+}
+
+export function list_sub_variants(): SubVariantEntry[] {
+  const entries: SubVariantEntry[] = [];
+  for (const name of readdirSync(VARIANTS_DIR)) {
+    const dir_path = resolve(VARIANTS_DIR, name);
+    if (!statSync(dir_path).isDirectory()) continue;
+    for (const file of readdirSync(dir_path)) {
+      if (!file.endsWith(".yaml")) continue;
+      entries.push({ parent: name, slug: file.replace(/\.yaml$/, "") });
+    }
+  }
+  return entries;
+}
+
+export function load_sub_variant(parent: string, slug: string): SubVariantManifest {
+  const raw = readFileSync(resolve(VARIANTS_DIR, parent, `${slug}.yaml`), "utf-8");
+  return yaml.load(raw) as SubVariantManifest;
+}
+
+export function resolve_sub_variant(
+  data: ResumeData,
+  parent_variant: VariantManifest,
+  sub_variant: SubVariantManifest,
+): ResolvedResume {
+  const merged: VariantManifest = {
+    ...parent_variant,
+    title: sub_variant.title ?? parent_variant.title,
+    summary: sub_variant.summary ?? parent_variant.summary,
+    tagline: sub_variant.tagline ?? parent_variant.tagline,
+    online_callout: sub_variant.online_callout ?? parent_variant.online_callout,
+    skills: sub_variant.skills ?? parent_variant.skills,
+    domains: sub_variant.domains ?? parent_variant.domains,
+    field_deployments: sub_variant.field_deployments ?? parent_variant.field_deployments,
+    employment: sub_variant.employment ?? parent_variant.employment,
+    languages: sub_variant.languages ?? parent_variant.languages,
+    courses: sub_variant.courses ?? parent_variant.courses,
+  };
+
+  const resolved = resolve_resume(data, merged);
+
+  if (sub_variant.employment_overrides) {
+    for (const override of sub_variant.employment_overrides) {
+      const index = resolved.employment.findIndex((e) => e.id === override.id);
+      if (index === -1) continue;
+      resolved.employment[index] = {
+        ...resolved.employment[index],
+        ...(override.summary !== undefined && { summary: override.summary }),
+        ...(override.highlights !== undefined && { highlights: override.highlights }),
+      };
+    }
+  }
+
+  return resolved;
+}
+
+export function load_and_resolve_sub_variant(parent: string, slug: string): ResolvedResume {
+  const sub_variant = load_sub_variant(parent, slug);
+  if (sub_variant.parent !== parent) {
+    throw new Error(
+      `Sub-variant parent mismatch: expected "${parent}", got "${sub_variant.parent}"`,
+    );
+  }
+  const data = load_resume_data();
+  const parent_variant = load_variant(parent);
+  return resolve_sub_variant(data, parent_variant, sub_variant);
 }

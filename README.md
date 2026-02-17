@@ -47,6 +47,8 @@ npm install
 | `npm run generate-og` | Generate Open Graph images for all variants |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
 | `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
+| `npm run generate-slug` | Generate a random 8-char hex slug for sub-variants |
+| `npm run validate-sub-variants` | Validate all sub-variant manifests against master data |
 | `npm run prepare` | Sync SvelteKit types |
 
 ## Project Structure
@@ -58,6 +60,8 @@ data/
     cto-a.yaml
     cto-b.yaml
     default.yaml
+    cto-a/                # Sub-variants (job-specific customizations)
+      a7f3b9c2.yaml
 src/
   lib/
     data.ts               # Data loading and variant resolution
@@ -78,6 +82,14 @@ docker-compose.yml        # Docker Compose for local dev and production
 ## Data Model
 
 Resume content lives in `data/resume.yaml` as a single source of truth containing all skills, employment history, languages, and courses. Variant manifests in `data/variants/` select and order a subset of this content for a specific role or audience, enabling multiple tailored resumes from one data source.
+
+### Sub-Variants
+
+Sub-variants are job-specific customizations of an existing variant. They live in subdirectories of `data/variants/` (e.g., `data/variants/cto-a/a7f3b9c2.yaml`) and inherit all fields from their parent variant, overriding only what benefits from customization.
+
+Sub-variants are generated via Claude Code — ask it to "customize cto-a for this job: \<URL\>" and it will fetch the posting, generate the tailored YAML, validate it, and verify the build. See [CLAUDE.md](./CLAUDE.md) for the full workflow.
+
+Sub-variants are served at `/{parent}/{slug}` (e.g., `/cto-a/a7f3b9c2`) with `noindex` meta tags and are excluded from the sitemap.
 
 ## CI
 

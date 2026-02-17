@@ -1,0 +1,95 @@
+parent: cto-a
+
+job:
+  url: "https://www.linkedin.com/jobs/view/4371514940/"
+  company: "SearchLabs"
+  title: "Vice President of Engineering"
+  fetched_at: "2026-02-17T21:30:00Z"
+
+title: "Vice President of Engineering"
+
+summary: |
+  Engineering executive who builds the organizational and technical systems required to scale
+  through inflection points — from early-stage to acquisition, and from private to public-company
+  rigor. Proven track record of standing up AI-native product capabilities with commercial
+  viability, constructing senior leadership layers, and integrating product thinking into
+  engineering execution. Adept at translating technical strategy into board-ready narratives
+  and building operational frameworks that deliver velocity without sacrificing predictability.
+
+tagline: |
+  **I build the engineering organizations and systems that make sustained, scaled delivery inevitable.**
+
+skills:
+  - strategy
+  - executive_leadership
+  - solution_architecture
+  - software_engineering
+  - operational_innovation
+  - communication
+  - culture
+  - customer_experience
+
+domains:
+  - product-led-strategy
+  - organizational-cultural-engineering
+  - narrative-translation
+  - infrastructure-fiscal-sovereignty
+  - systemic-modernization
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Assumed global leadership of a 310-person engineering org during extreme organizational
+      volatility. Stabilized retention of critical senior talent, stood up an AI-native product
+      capability (LiveVision) with commercial validation at CES and NVIDIA GTC, and engineered
+      operational frameworks that aligned staffing, margin, and delivery into a single system of record.
+    highlights:
+      - title: "AI-Native Product Innovation"
+        description: |
+          Championed and delivered LiveVision, an AI-powered real-time video processing
+          platform, from concept through commercial validation. Secured non-traditional
+          Capex funding, proved viability via a live CES 2026 Foundry demo, and earned
+          an invited session at NVIDIA GTC 2026 — demonstrating the ability to ship
+          agentic AI capabilities with measurable business outcomes.
+
+      - title: "Operational Frameworks at Scale"
+        description: |
+          Engineered a data-driven staffing and margin calculator that replaced ad-hoc
+          processes with a single source of truth for capacity planning. Automated
+          finance-ready reporting, forcing architectural and budgetary alignment between
+          Sales and Delivery across 30+ concurrent engagements.
+
+      - title: "Organizational Stabilization & Leadership Development"
+        description: |
+          Maintained 90%+ retention of critical SMEs through radical transparency during
+          a period of corporate restructuring. Deployed a searchable talent database and
+          operationalized a pre-sales SME program that enabled senior engineers to
+          directly influence revenue by compressing Enterprise sales cycles.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR. Architected the
+      cross-functional organizational infrastructure — HR, InfoSec, CX, and Engineering —
+      required to sustain high growth through a successful acquisition, establishing the
+      governance and operational rigor expected of a mature technology company.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the leadership and operational structure required for a
+          profitable acquisition, scaling engineering, CX, and Infosec teams from
+          inception through successful exit — proving the ability to build the
+          organizational systems that support sustained growth through major milestones.
+
+      - title: "Compliance as a Growth Lever"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2 compliance,
+          transforming security from a cost center into a competitive advantage that
+          unlocked Fortune 500 enterprise deals and established the governance
+          foundation expected at public-company scale.
+
+      - title: "Infrastructure Sovereignty"
+        description: |
+          Scaled the global footprint from one to four data centers (including EU
+          expansion for compliance). Leveraged a private-cloud-first strategy to maintain
+          higher total utilization and lower overhead than industry standard public cloud
+          alternatives, demonstrating durable and extensible infrastructure design.

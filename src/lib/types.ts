@@ -87,6 +87,38 @@ export interface VariantManifest {
   courses: string[];
 }
 
+export interface EmploymentOverride {
+  id: string;
+  summary?: string;
+  highlights?: Highlight[];
+}
+
+export interface SubVariantManifest {
+  parent: string;
+  job: {
+    url: string;
+    company: string;
+    title: string;
+    fetched_at: string;
+  };
+  title?: string;
+  summary?: string;
+  tagline?: string;
+  online_callout?: string;
+  skills?: string[];
+  domains?: string[];
+  field_deployments?: string[];
+  employment?: string[];
+  languages?: string[];
+  courses?: string[];
+  employment_overrides?: EmploymentOverride[];
+}
+
+export interface SubVariantEntry {
+  parent: string;
+  slug: string;
+}
+
 export interface ResolvedResume {
   theme: string;
   profile: Profile;
