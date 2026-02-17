@@ -18,10 +18,17 @@ async function generate_pdf(): Promise<void> {
       const output_path = resolve("build", `${variant}.pdf`);
 
       const page = await browser.newPage();
+      await page.setViewport({ width: 816, height: 1056 });
       await page.goto(url, { waitUntil: "networkidle0" });
+
+      const content_height = await page.evaluate(
+        () => document.documentElement.scrollHeight,
+      );
+
       await page.pdf({
         path: output_path,
-        format: "Letter",
+        width: "8.5in",
+        height: `${content_height}px`,
         margin: {
           top: "0",
           right: "0",
