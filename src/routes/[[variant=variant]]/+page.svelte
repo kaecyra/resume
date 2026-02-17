@@ -39,6 +39,46 @@
 
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
+  {@html `<style>body { background-color: ${data.palette.page_background}; }</style>`}
 </svelte:head>
 
+<div class="resume-tools" style="max-width: {data.palette.content_width};">
+  <a
+    class="resume-tools-download-link"
+    href="/{data.variant_name}.pdf"
+    download
+    style="color: {data.palette.accent};"
+  >
+    Download PDF
+  </a>
+</div>
+
 <Theme resume={data.resume} />
+
+<style>
+  .resume-tools {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 auto;
+    padding: 0.5rem 0;
+  }
+
+  .resume-tools-download-link {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .resume-tools-download-link:hover {
+    opacity: 0.7;
+  }
+
+  @media print {
+    .resume-tools {
+      display: none;
+    }
+  }
+</style>

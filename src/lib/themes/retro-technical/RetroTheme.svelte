@@ -32,7 +32,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen py-4 md:py-10 print:min-h-0 print:py-0"
+  class="min-h-screen pb-4 md:pb-10 print:min-h-0 print:py-0"
   style="--retro-heading-font: 'Rajdhani', sans-serif; --retro-body-font: 'IBM Plex Sans', system-ui, sans-serif; font-family: var(--retro-body-font);"
 >
   <div

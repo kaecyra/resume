@@ -41,10 +41,13 @@ export const load: PageServerLoad = ({ params }) => {
 
   const person_jsonld = build_person_jsonld(resume.profile, resume.title, og_url);
   const webpage_jsonld = build_webpage_jsonld(og_title, og_description, og_url);
-  const theme_color = get_theme_palette(resume.theme).background;
+  const palette = get_theme_palette(resume.theme);
+  const theme_color = palette.background;
 
   return {
     resume,
+    variant_name,
+    palette,
     og: { title: og_title, description: og_description, image: og_image, url: og_url },
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
     theme_color,
