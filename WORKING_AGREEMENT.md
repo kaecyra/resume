@@ -69,6 +69,11 @@ Generally, since you work primarily from Github issues, you'll usually have an I
    - Include acceptance criteria where applicable
    - Update issue status as work progresses
    - Update issue description as/if the requirements change as a result of conversation
+10. **Git Actions**:
+
+- Do not add "🤖 Generated with Claude Code" signature to messages (issues, commits, pull requests, etc)
+- **Never commit, push, or open PRs without explicit permission.** Always ask before running `git commit`, `git push`, or `gh pr create`. The user will tell you when they're ready for these actions — don't assume.
+- Exception: if the user grants blanket permission in advance for a session (e.g., "go ahead and commit and push when ready"), that permission stands for the scope described.
 
 ## Core Principles
 
