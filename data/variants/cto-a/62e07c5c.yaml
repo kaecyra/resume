@@ -11,10 +11,10 @@ title: "Vice President of Engineering"
 summary: |
   Engineering executive who builds the organizational and technical systems required to scale
   through inflection points — from early-stage to acquisition, and from private to public-company
-  rigor. Proven track record of standing up AI-native product capabilities with commercial
-  viability, constructing senior leadership layers, and integrating product thinking into
-  engineering execution. Adept at translating technical strategy into board-ready narratives
-  and building operational frameworks that deliver velocity without sacrificing predictability.
+  rigor. Stood up AI-native product capabilities with commercial viability, constructed senior
+  leadership layers, and integrated product thinking into engineering execution. Translates
+  technical strategy into board-ready narratives and builds operational frameworks that deliver
+  velocity without sacrificing predictability.
 
 tagline: |
   **I build the engineering organizations and systems that make sustained, scaled delivery inevitable.**
@@ -61,7 +61,7 @@ employment_overrides:
     highlights:
       - title: "AI-Native Product Innovation"
         description: |
-          Championed and delivered LiveVision, an AI-powered real-time video processing
+          Built and delivered LiveVision, an AI-powered real-time video processing
           platform, from concept through commercial validation. Secured non-traditional
           Capex funding, proved viability via a live CES 2026 Foundry demo, and earned
           an invited session at NVIDIA GTC 2026 — demonstrating the ability to ship
@@ -78,7 +78,7 @@ employment_overrides:
         description: |
           Maintained 90%+ retention of critical SMEs across NA, LATAM, and EMEA through
           radical transparency during a period of corporate restructuring. Deployed a
-          searchable talent database and operationalized a pre-sales SME program that
+          searchable talent database and stood up a pre-sales SME program that
           enabled senior engineers to directly influence revenue by compressing Enterprise
           sales cycles.
 
@@ -106,6 +106,6 @@ employment_overrides:
       - title: "Infrastructure Sovereignty"
         description: |
           Scaled the global footprint from one to four data centers (including EU
-          expansion for compliance). Leveraged a private-cloud-first strategy to maintain
+          expansion for compliance). Used a private-cloud-first strategy to maintain
           higher total utilization and lower overhead than industry standard public cloud
           alternatives, demonstrating durable and extensible infrastructure design.

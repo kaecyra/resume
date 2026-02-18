@@ -44,7 +44,7 @@ domains:
   - id: organizational-cultural-engineering
     title: "Organizational & Cultural Engineering"
     description: |
-      Built high-trust, high-autonomy engineering cultures across globally distributed teams spanning multiple continents, time zones, and working cultures. Designed async-first communication norms, timezone-equitable meeting cadences, and documentation-driven decision processes that create cohesion without demanding cultural conformity. Leveraged radical transparency and data-driven alignment to bolster talent retention during corporate restructuring and acquisitions.
+      Built high-trust, high-autonomy engineering cultures across globally distributed teams spanning multiple continents, time zones, and working cultures. Designed async-first communication norms, timezone-equitable meeting cadences, and documentation-driven decision processes that create cohesion without demanding cultural conformity. Used radical transparency and data-driven alignment to retain talent during corporate restructuring and acquisitions.
   - id: infrastructure-fiscal-sovereignty
     title: "Infrastructure & Fiscal Sovereignty"
     description: |
@@ -52,7 +52,7 @@ domains:
   - id: product-led-strategy
     title: "Product-Led Technical Strategy"
     description: |
-      Proven track record of identifying and productizing repeatable technical assets within service-based P&Ls. Experienced in navigating the "Build vs. Buy" landscape to ensure technical investment aligns with long-term business value.
+      Identified and productized repeatable technical assets within service-based P&Ls. Navigates the "Build vs. Buy" landscape to ensure technical investment aligns with long-term business value.
   - id: systemic-modernization
     title: "Systemic Modernization"
     description: |
@@ -60,7 +60,7 @@ domains:
   - id: narrative-translation
     title: "Narrative & Technical Translation"
     description: |
-      Skilled at distilling complex architectural diagrams and technical risks into succinct, actionable insights for non-technical stakeholders, board members, and clients.
+      Distills complex architectural diagrams and technical risks into succinct, actionable insights for non-technical stakeholders, board members, and clients.
 
 field_deployments:
   - id: gtc-2026
@@ -82,7 +82,7 @@ field_deployments:
     description: |
       Conceived and executed a live, on-prem technical demo for the CES Foundry,
       showcasing a fully operational computer vision pipeline. Successfully secured
-      Capex for DGX Spark/Lenovo Neo infrastructure and managed a high-velocity
+      Capex for DGX Spark/Lenovo Neo infrastructure and managed a fast-moving
       delivery team to prove the economic and operational viability of AI-native
       media workflows to global C-suite stakeholders.
 
@@ -104,7 +104,7 @@ field_deployments:
     venue: "https://github.com/kaecyra/resume"
     date: "2026-02"
     description: |
-      Architected a schema-driven resume deployment platform to demonstrate Chat Oriented Programming (CHOP). This project serves as a live experiment with code quality and systematic prompt engineering when leveraging LLMs with a clear technical vision. The system establishes total data sovereignty and showcases the ability to orchestrate AI for responsible and painless delivery.
+      Architected a schema-driven resume deployment platform to demonstrate Chat Oriented Programming (CHOP). This project serves as a live experiment with code quality and systematic prompt engineering when using LLMs with a clear technical vision. The system establishes total data sovereignty and demonstrates how to orchestrate AI for responsible, low-friction delivery.
 
 employment:
   - id: monks-vpe
@@ -127,8 +127,8 @@ employment:
       - title: "Resource Arbitrage & Product Innovation"
         description: |
           Architected and delivered LiveVision, an AI-powered real-time video
-          processing platform, by leveraging "bench" engineering resources and
-          securing non-traditional Capex funding. Validated the architecture
+          processing platform, by putting "bench" engineering resources to work
+          and securing non-traditional Capex funding. Validated the architecture
           via a live CES 2026 Foundry demo and an invited session at NVIDIA
           GTC 2026.
 
@@ -148,9 +148,9 @@ employment:
 
       - title: "Revenue-Focused SME Program"
         description: |
-          Operationalized a pre-sales Subject Matter Expert (SME) program,
-          enabling the sales team to leverage deep technical authority to
-          compress sales cycles and secure high-complexity Enterprise deals.
+          Stood up a pre-sales Subject Matter Expert (SME) program, giving
+          the sales team direct access to deep technical authority to compress
+          sales cycles and secure high-complexity Enterprise deals.
 
   - id: monks-doe
     title: "Director of Engineering"
@@ -178,14 +178,14 @@ employment:
       - title: "Engagement Orchestration"
         description: |
           Structured and staffed high-performing delivery teams across multiple
-          time zones and cultures for ongoing client projects, ensuring seamless
-          technical continuity and alignment with long-term business objectives.
+          time zones and cultures for ongoing client projects, maintaining
+          technical continuity and keeping delivery aligned with business goals.
 
       - title: "Operational Tooling"
         description: |
           Iterated on internal engagement management tools to increase
-          reporting accuracy and improve project sightlines, enabling more
-          proactive risk mitigation.
+          reporting accuracy and improve project sightlines, so teams could
+          catch risks earlier.
 
   - id: higher-logic
     title: "Global Platform Leader"
@@ -202,7 +202,7 @@ employment:
     highlights:
       - title: "Modernization of Legacy Debt"
         description: |
-          Spearheaded the transition of a legacy Windows/.NET stack from
+          Led the transition of a legacy Windows/.NET stack from
           "artisanal" manual deployments to a versioned, automated blue/green
           pipeline. Massively increased deployment frequency while reducing
           human toil and COGS.
@@ -251,7 +251,7 @@ employment:
       - title: "Infrastructure Sovereignty"
         description: |
           Scaled the global footprint from one to four data centers (including
-          EU expansion). Leveraged a private-cloud-first strategy to maintain
+          EU expansion). Used a private-cloud-first strategy to maintain
           higher total utilization and lower overhead than industry standard
           public cloud alternatives.
 
