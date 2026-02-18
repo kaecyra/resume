@@ -43,9 +43,19 @@
               <span class="retro-heading pl-0.5 text-lg text-retro-accent">{initials}</span>
             </div>
             <div>
-              <span class="block font-bold text-retro-cream md:inline print:inline">{profile.name}</span>
-              <span class="mx-2 hidden text-retro-muted md:inline">|</span>
-              <span class="block text-retro-cream md:inline print:inline">{job.title}</span>
+              <div>
+                <span class="block font-bold text-retro-cream md:inline print:inline">{profile.name}</span>
+                <span class="mx-2 hidden text-retro-muted md:inline">|</span>
+                <span class="block text-retro-cream md:inline print:inline">{job.title}</span>
+              </div>
+              {#if profile.contact.linkedin}
+                <a
+                  href="https://{profile.contact.linkedin}"
+                  class="block text-xs normal-case tracking-wide text-retro-muted hover:text-white"
+                >
+                  {profile.contact.linkedin}
+                </a>
+              {/if}
             </div>
           </div>
         </h1>
@@ -82,6 +92,10 @@
         <span class="text-retro-cream">{profile.contact.email}</span>
         <span class="hidden text-retro-accent md:inline">|</span>
         <span class="text-retro-cream">{profile.contact.location}</span>
+        {#if profile.contact.linkedin}
+          <span class="hidden text-retro-accent md:inline">|</span>
+          <a href="https://{profile.contact.linkedin}" class="text-retro-cream hover:text-white">{profile.contact.linkedin}</a>
+        {/if}
       </div>
     </div>
   </div>

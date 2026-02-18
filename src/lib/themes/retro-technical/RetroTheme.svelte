@@ -126,6 +126,10 @@
         <span class="text-retro-cream">{resume.profile.contact.email}</span>
         <span class="hidden text-retro-accent md:inline">|</span>
         <span class="text-retro-cream">{resume.profile.contact.location}</span>
+        {#if resume.profile.contact.linkedin}
+          <span class="hidden text-retro-accent md:inline">|</span>
+          <a href="https://{resume.profile.contact.linkedin}" class="text-retro-cream hover:text-white">{resume.profile.contact.linkedin}</a>
+        {/if}
       </div>
     </div>
   </div>

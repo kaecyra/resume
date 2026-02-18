@@ -16,6 +16,9 @@
       <span>{profile.contact.email}</span>
       <span>{profile.contact.phone}</span>
       <span>{profile.contact.location}</span>
+      {#if profile.contact.linkedin}
+        <a href="https://{profile.contact.linkedin}" class="text-gray-600 hover:text-gray-900">{profile.contact.linkedin}</a>
+      {/if}
     </div>
   </header>
 

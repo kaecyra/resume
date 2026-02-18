@@ -46,6 +46,14 @@
           <span class="inline-block w-10 shrink-0 bg-stone-200 px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500">Loc</span>
           <span class="text-sm text-stone-700">{profile.contact.location}</span>
         </div>
+        {#if profile.contact.linkedin}
+          <div class="flex items-baseline gap-2">
+            <span class="inline-block w-10 shrink-0 bg-stone-200 px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500">Lnk</span>
+            <span class="text-sm text-stone-700">
+              <a href="https://{profile.contact.linkedin}" class="text-stone-700 underline hover:text-[#c4412b]">{profile.contact.linkedin}</a>
+            </span>
+          </div>
+        {/if}
       </div>
     </div>
 
