@@ -49,15 +49,6 @@
   >
     {data.job_url}
   </a>
-  {#if data.has_cover_letter}
-    <a
-      class="resume-tools-link"
-      href="/{data.variant_name}/letter"
-      style="color: {data.palette.accent};"
-    >
-      View Cover Letter
-    </a>
-  {/if}
   <a
     class="resume-tools-link"
     href="/{data.variant_name}.pdf"

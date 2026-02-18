@@ -2,7 +2,6 @@ import { error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
 
 import {
-  has_active_cover_letter,
   list_sub_variants,
   load_and_resolve_sub_variant,
   load_sub_variant,
@@ -52,7 +51,6 @@ export const load: PageServerLoad = ({ params }) => {
     resume,
     variant_name,
     job_url: sub_variant.job.url,
-    has_cover_letter: has_active_cover_letter(sub_variant),
     palette,
     og: { title: og_title, description: og_description, image: og_image, url: og_url },
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
