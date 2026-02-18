@@ -126,6 +126,10 @@ export function resolve_sub_variant(
   return resolved;
 }
 
+export function has_active_cover_letter(sub: SubVariantManifest): boolean {
+  return !!sub.cover_letter && sub.cover_letter_enabled !== false;
+}
+
 export function load_and_resolve_sub_variant(parent: string, slug: string): ResolvedResume {
   const sub_variant = load_sub_variant(parent, slug);
   if (sub_variant.parent !== parent) {

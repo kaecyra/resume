@@ -36,6 +36,20 @@ domains:
   - infrastructure-fiscal-sovereignty
   - systemic-modernization
 
+cover_letter:
+  greeting: "Dear SearchLabs Hiring Team,"
+  body: |
+    I'm writing regarding the Vice President of Engineering role at SearchLabs. Your posting describes a leader who can unify engineering and product functions at public-company scale while advancing AI-native capabilities pragmatically. That intersection — organizational scaling, product-integrated engineering leadership, and shipping agentic systems with real commercial outcomes — is precisely where I've spent the last decade operating.
+
+    As VP of Engineering at .Monks, I lead a 310-person engineering org across 30+ concurrent engagements. I stood up LiveVision, an agentic AI video processing platform, from whiteboard through commercial validation at CES 2026 and an invited architecture session at NVIDIA GTC 2026. That required hands-on architectural work — designing the edge-broadcast pipeline and model inference orchestration — alongside the executive work of securing non-traditional Capex funding and translating the technical strategy into a board-ready investment narrative. In parallel, I built the operational frameworks that replaced ad-hoc staffing processes with a single system of record aligning capacity, margin, and delivery predictability.
+
+    The product dimension is central to how I operate. I embed product thinking into engineering decisions — not as an afterthought, but as the lens through which technical investment gets evaluated. At .Monks, that meant productizing repeatable technical assets within a services P&L. At Vanilla Forums, it meant building the multi-tenant SaaS architecture from scratch, then constructing the senior leadership layers — Directors, team leads, and specialized ICs — required to scale a platform organization from inception through a successful acquisition.
+
+    On the governance and compliance side: I built Vanilla's Infosec organization from zero, achieved SOC2 compliance, and scaled our distributed infrastructure from one to four data centers including EU expansion for data sovereignty. That compliance posture unlocked Fortune 500 enterprise deals and established the governance rigor that made the company acquisition-ready. I've navigated the transition from startup to public-company expectations firsthand.
+
+    I'd welcome the chance to discuss how this experience maps to where SearchLabs is headed.
+  closing: "Best regards,"
+
 employment_overrides:
   - id: monks-vpe
     summary: |

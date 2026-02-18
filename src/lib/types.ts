@@ -93,6 +93,12 @@ export interface EmploymentOverride {
   highlights?: Highlight[];
 }
 
+export interface CoverLetter {
+  greeting?: string;
+  body: string;
+  closing?: string;
+}
+
 export interface SubVariantManifest {
   parent: string;
   job: {
@@ -112,6 +118,8 @@ export interface SubVariantManifest {
   languages?: string[];
   courses?: string[];
   employment_overrides?: EmploymentOverride[];
+  cover_letter?: CoverLetter;
+  cover_letter_enabled?: boolean;
 }
 
 export interface SubVariantEntry {
