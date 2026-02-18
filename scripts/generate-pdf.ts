@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { list_variants, list_sub_variants } from "../src/lib/data.js";
+import { list_variants, list_sub_variants, load_sub_variant, has_active_cover_letter } from "../src/lib/data.js";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
 
@@ -29,6 +29,15 @@ async function generate_pdf(): Promise<void> {
       output_path: resolve("build", parent, `${slug}.pdf`),
       label: `${parent}/${slug}`,
     });
+
+    const sub = load_sub_variant(parent, slug);
+    if (has_active_cover_letter(sub)) {
+      targets.push({
+        url: `${BASE_URL}/${parent}/${slug}/letter`,
+        output_path: resolve("build", parent, `${slug}-letter.pdf`),
+        label: `${parent}/${slug}/letter`,
+      });
+    }
   }
 
   const browser = await puppeteer.launch({

@@ -66,6 +66,29 @@ employment_overrides:
           ...
 ```
 
+### 2b. Generate the cover letter
+
+Always generate a `cover_letter` as part of sub-variant creation:
+
+```yaml
+cover_letter:
+  greeting: "Dear Hiring Team,"
+  body: |
+    First paragraph...
+
+    Second paragraph...
+  closing: "Best regards,"
+```
+
+- `greeting` defaults to "Dear Hiring Manager," if omitted
+- `body` is required and supports markdown (paragraphs separated by blank lines)
+- `closing` defaults to "Sincerely," if omitted
+- The cover letter renders at `/{variant}/{slug}/letter` using the parent's theme
+- A cover letter PDF is generated at `build/{parent}/{slug}-letter.pdf`
+- **NEVER fabricate** content. Base the letter on real experience from `data/resume.yaml`.
+
+To suppress a cover letter from rendering/routing, add `cover_letter_enabled: false` to the YAML. The cover letter data stays in the file but the route and PDF will not be generated.
+
 ### 3. Constraints
 
 - **NEVER fabricate** experience, skills, or accomplishments. Only use content from `data/resume.yaml`.

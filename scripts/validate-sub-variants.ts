@@ -48,6 +48,12 @@ function validate(
     }
   }
 
+  if (sub.cover_letter) {
+    if (!sub.cover_letter.body || sub.cover_letter.body.trim().length === 0) {
+      errors.push({ path, message: "cover_letter.body must be non-empty" });
+    }
+  }
+
   if (sub.employment_overrides) {
     const parent_variant = load_variant(parent);
     const effective_employment = sub.employment ?? parent_variant.employment;
