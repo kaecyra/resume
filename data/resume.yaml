@@ -44,7 +44,7 @@ domains:
   - id: organizational-cultural-engineering
     title: "Organizational & Cultural Engineering"
     description: |
-      Built high-trust, high-autonomy engineering cultures in high-volatility environments. Leveraged radical transparency and data-driven alignment to bolster talent retention during corporate restructuring and acquisitions.
+      Built high-trust, high-autonomy engineering cultures across globally distributed teams spanning multiple continents, time zones, and working cultures. Designed async-first communication norms, timezone-equitable meeting cadences, and documentation-driven decision processes that create cohesion without demanding cultural conformity. Leveraged radical transparency and data-driven alignment to bolster talent retention during corporate restructuring and acquisitions.
   - id: infrastructure-fiscal-sovereignty
     title: "Infrastructure & Fiscal Sovereignty"
     description: |
@@ -118,10 +118,11 @@ employment:
       and scary software engineering challenges on behalf of large organizations that 
       aren't nimble enough to go it alone.
     summary: |
-      Stepped into global leadership during a period of extreme organizational volatility 
-      following a predecessor’s exit. Tasked with stabilizing a 310-person engineering org 
-      and 30+ concurrent projects while pivoting toward an AI-native service model. Reduced 
-      turnover through radical transparency and data-driven resource management.
+      Stepped into global leadership of a 310-person engineering org distributed across
+      North America, Latin America, and EMEA during extreme organizational volatility
+      following a predecessor's exit. Tasked with stabilizing 30+ concurrent projects
+      while pivoting toward an AI-native service model. Reduced turnover through radical
+      transparency and data-driven resource management.
     highlights:
       - title: "Resource Arbitrage & Product Innovation"
         description: |
@@ -140,10 +141,10 @@ employment:
 
       - title: "Organizational Stabilization"
         description: |
-          Assumed leadership of a 310-person engineering org during extreme
-          corporate volatility. Maintained 90%+ retention of critical SMEs
-          through radical transparency and the deployment of a searchable
-          "Skillbased" talent database.
+          Assumed leadership of a globally distributed 310-person engineering
+          org spanning NA, LATAM, and EMEA during extreme corporate volatility.
+          Maintained 90%+ retention of critical SMEs through radical transparency
+          and the deployment of a searchable "Skillbased" talent database.
 
       - title: "Revenue-Focused SME Program"
         description: |
@@ -176,9 +177,9 @@ employment:
 
       - title: "Engagement Orchestration"
         description: |
-          Structured and staffed high-performing delivery teams for ongoing
-          client projects, ensuring seamless technical continuity and alignment
-          with long-term business objectives.
+          Structured and staffed high-performing delivery teams across multiple
+          time zones and cultures for ongoing client projects, ensuring seamless
+          technical continuity and alignment with long-term business objectives.
 
       - title: "Operational Tooling"
         description: |
