@@ -96,7 +96,7 @@ To suppress a cover letter from rendering/routing, add `cover_letter_enabled: fa
 ### 3. Constraints
 
 - **NEVER fabricate** experience, skills, or accomplishments. Only use content from `data/resume.yaml`.
-- **Preserve voice and style** — match the tone of the parent variant.
+- **Preserve voice and style** — match the tone of the parent variant. Never tone-police the parent's language. If the parent uses profanity, slang, or deliberately provocative phrasing, the sub-variant must preserve that energy. Sanitizing the voice is a bug, not professionalism.
 - All IDs (skills, employment, domains, etc.) MUST exist in `data/resume.yaml`.
 - Employment override IDs must be in the active employment list (sub-variant's or parent's).
 - Only override what benefits from customization. Less is more.
