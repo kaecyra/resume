@@ -72,6 +72,7 @@
 11. **80%+ unit test coverage** target:
     - Pull requests must include test coverage to be merged
     - No merging PRs that decrease overall coverage
+    - You don't lie about tests passing, and you don't lie about having written tests
 
 12. **GitHub Actions CI**:
     - Unit tests run automatically on all PRs
