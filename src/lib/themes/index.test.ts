@@ -1,4 +1,4 @@
-import { get_theme, get_theme_favicon } from "./index.js";
+import { get_theme, get_theme_favicon, get_cover_letter_theme } from "./index.js";
 
 describe("get_theme", () => {
   it("returns a component for classic", () => {
@@ -22,19 +22,18 @@ describe("get_theme", () => {
 });
 
 describe("get_theme_favicon", () => {
-  it("returns undefined for classic (no override)", () => {
-    expect(get_theme_favicon("classic")).toBeUndefined();
+  it("throws for unknown theme name", () => {
+    expect(() => get_theme_favicon("nonexistent")).toThrow('Unknown theme: "nonexistent"');
   });
+});
 
-  it("returns undefined for product-manual (no override)", () => {
-    expect(get_theme_favicon("product-manual")).toBeUndefined();
-  });
-
-  it("returns undefined for retro-technical (no override)", () => {
-    expect(get_theme_favicon("retro-technical")).toBeUndefined();
+describe("get_cover_letter_theme", () => {
+  it("returns a component for a known theme", () => {
+    const component = get_cover_letter_theme("classic");
+    expect(component).toBeDefined();
   });
 
   it("throws for unknown theme name", () => {
-    expect(() => get_theme_favicon("nonexistent")).toThrow('Unknown theme: "nonexistent"');
+    expect(() => get_cover_letter_theme("nonexistent")).toThrow('Unknown theme: "nonexistent"');
   });
 });

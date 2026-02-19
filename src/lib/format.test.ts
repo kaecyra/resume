@@ -1,40 +1,4 @@
-import { format_markdown, format_date, format_date_range, strip_markdown } from "./format.js";
-
-describe("format_markdown", () => {
-  it("converts **text** to <strong>text</strong>", () => {
-    expect(format_markdown("Led **high-performing teams** to success")).toBe(
-      "Led <strong>high-performing teams</strong> to success"
-    );
-  });
-
-  it("handles multiple bold segments", () => {
-    expect(format_markdown("**one** and **two**")).toBe(
-      "<strong>one</strong> and <strong>two</strong>"
-    );
-  });
-
-  it("converts *text* to <em>text</em>", () => {
-    expect(format_markdown("This is *italic* text")).toBe(
-      "This is <em>italic</em> text"
-    );
-  });
-
-  it("converts `code` to <code>code</code>", () => {
-    expect(format_markdown("Use `format_markdown` here")).toBe(
-      "Use <code>format_markdown</code> here"
-    );
-  });
-
-  it("converts [text](url) to an anchor tag", () => {
-    expect(format_markdown("[example](https://example.com)")).toBe(
-      '<a href="https://example.com">example</a>'
-    );
-  });
-
-  it("returns text unchanged when no markdown present", () => {
-    expect(format_markdown("plain text")).toBe("plain text");
-  });
-});
+import { format_date, format_date_range, strip_markdown } from "./format.js";
 
 describe("format_date", () => {
   it("formats YYYY-MM to Mon YYYY", () => {

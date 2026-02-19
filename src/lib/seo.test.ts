@@ -4,7 +4,7 @@ vi.mock("./data.js", () => ({
   list_variants: () => ["default", "cto-a", "cto-b"],
 }));
 
-import { build_variant_urls, build_person_jsonld, build_webpage_jsonld } from "./seo.js";
+import { build_variant_urls, build_person_jsonld, build_webpage_jsonld, build_og_metadata } from "./seo.js";
 
 import type { Profile } from "./types.js";
 
@@ -88,5 +88,48 @@ describe("build_webpage_jsonld", () => {
   it("omits url when null", () => {
     const result = build_webpage_jsonld("My Page", "A description", null);
     expect(result.url).toBeUndefined();
+  });
+});
+
+describe("build_og_metadata", () => {
+  it("builds title from profile name and resume title", () => {
+    const og = build_og_metadata("Tim Gunter", "CTO", "A summary.", "https://example.com", "cto-a", "cto-a");
+    expect(og.title).toBe("Tim Gunter - CTO");
+  });
+
+  it("strips markdown from description", () => {
+    const og = build_og_metadata("Tim", "CTO", "Led **high-performing** teams.", "", "cto-a");
+    expect(og.description).toBe("Led high-performing teams.");
+  });
+
+  it("truncates description to 200 characters", () => {
+    const long_text = "A".repeat(300);
+    const og = build_og_metadata("Tim", "CTO", long_text, "", "cto-a");
+    expect(og.description.length).toBe(200);
+  });
+
+  it("builds image URL from base_url and image_variant", () => {
+    const og = build_og_metadata("Tim", "CTO", "Summary.", "https://example.com", "cto-a");
+    expect(og.image).toBe("https://example.com/og/cto-a.png");
+  });
+
+  it("returns null URL when url_variant is omitted", () => {
+    const og = build_og_metadata("Tim", "CTO", "Summary.", "https://example.com", "cto-a");
+    expect(og.url).toBeNull();
+  });
+
+  it("returns null URL when base_url is empty even with url_variant", () => {
+    const og = build_og_metadata("Tim", "CTO", "Summary.", "", "cto-a", "cto-a");
+    expect(og.url).toBeNull();
+  });
+
+  it("returns base_url directly for default variant", () => {
+    const og = build_og_metadata("Tim", "CTO", "Summary.", "https://example.com", "default", "default");
+    expect(og.url).toBe("https://example.com");
+  });
+
+  it("appends variant name to base_url for non-default variants", () => {
+    const og = build_og_metadata("Tim", "CTO", "Summary.", "https://example.com", "cto-a", "cto-a");
+    expect(og.url).toBe("https://example.com/cto-a");
   });
 });

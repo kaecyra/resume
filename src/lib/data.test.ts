@@ -21,6 +21,7 @@ import {
   list_sub_variants,
   resolve_sub_variant,
   load_and_resolve_sub_variant,
+  has_active_cover_letter,
 } from "./data.js";
 
 // --- Test fixtures ---
@@ -292,5 +293,30 @@ describe("load_and_resolve_sub_variant", () => {
     expect(() => load_and_resolve_sub_variant("test-parent", "abc12345")).toThrow(
       /parent mismatch/,
     );
+  });
+});
+
+describe("has_active_cover_letter", () => {
+  it("returns true when cover_letter exists and enabled is not false", () => {
+    const sub: SubVariantManifest = {
+      ...MOCK_SUB_VARIANT,
+      cover_letter: { body: "Hello" },
+    };
+    expect(has_active_cover_letter(sub)).toBe(true);
+  });
+
+  it("returns false when cover_letter is undefined", () => {
+    const sub: SubVariantManifest = { ...MOCK_SUB_VARIANT };
+    delete (sub as any).cover_letter;
+    expect(has_active_cover_letter(sub)).toBe(false);
+  });
+
+  it("returns false when cover_letter_enabled is explicitly false", () => {
+    const sub: SubVariantManifest = {
+      ...MOCK_SUB_VARIANT,
+      cover_letter: { body: "Hello" },
+      cover_letter_enabled: false,
+    };
+    expect(has_active_cover_letter(sub)).toBe(false);
   });
 });

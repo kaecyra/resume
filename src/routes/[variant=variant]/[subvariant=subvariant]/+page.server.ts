@@ -7,8 +7,7 @@ import {
   load_sub_variant,
   load_variant,
 } from "$lib/data.js";
-import { strip_markdown } from "$lib/format.js";
-import { build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
+import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 import { get_theme_palette } from "$lib/theme-palettes.js";
 
 import type { EntryGenerator, PageServerLoad } from "./$types";
@@ -34,13 +33,14 @@ export const load: PageServerLoad = ({ params }) => {
 
   const variant_name = `${parent}/${slug}`;
   const base_url = env.PUBLIC_BASE_URL ?? "";
-  const og_title = `${resume.profile.name} - ${resume.title}`;
-  const og_description = strip_markdown(resume.tagline ?? resume.summary).slice(0, 200);
-  const og_image = `${base_url}/og/${parent}.png`;
-  const og_url = null;
+  const og = build_og_metadata(
+    resume.profile.name, resume.title,
+    resume.tagline ?? resume.summary,
+    base_url, parent,
+  );
 
-  const person_jsonld = build_person_jsonld(resume.profile, resume.title, og_url);
-  const webpage_jsonld = build_webpage_jsonld(og_title, og_description, og_url);
+  const person_jsonld = build_person_jsonld(resume.profile, resume.title, og.url);
+  const webpage_jsonld = build_webpage_jsonld(og.title, og.description, og.url);
 
   const sub_variant = load_sub_variant(parent, slug);
   const parent_variant = load_variant(parent);
@@ -52,7 +52,7 @@ export const load: PageServerLoad = ({ params }) => {
     variant_name,
     job_url: sub_variant.job.url,
     palette,
-    og: { title: og_title, description: og_description, image: og_image, url: og_url },
+    og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
     theme_color,
   };

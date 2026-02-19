@@ -1,4 +1,5 @@
 import { list_variants } from "./data.js";
+import { strip_markdown } from "./format.js";
 
 import type { Profile } from "./types.js";
 
@@ -91,4 +92,32 @@ export function build_webpage_jsonld(
   }
 
   return page;
+}
+
+export interface OgMetadata {
+  title: string;
+  description: string;
+  image: string;
+  url: string | null;
+}
+
+export function build_og_metadata(
+  profile_name: string,
+  resume_title: string,
+  tagline_or_summary: string,
+  base_url: string,
+  image_variant: string,
+  url_variant?: string,
+): OgMetadata {
+  let url: string | null = null;
+  if (url_variant !== undefined && base_url) {
+    url = url_variant === "default" ? base_url : `${base_url}/${url_variant}`;
+  }
+
+  return {
+    title: `${profile_name} - ${resume_title}`,
+    description: strip_markdown(tagline_or_summary).slice(0, 200),
+    image: `${base_url}/og/${image_variant}.png`,
+    url,
+  };
 }
