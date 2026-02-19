@@ -23,7 +23,7 @@
     class="mx-auto max-w-4xl border border-[#c5bfb3] bg-[#f5f0e8] shadow-xl print:max-w-none print:border-none print:shadow-none"
     style="font-family: 'Share Tech Mono', ui-monospace, monospace;"
   >
-    <ManualHeader profile={resume.profile} title={resume.title} />
+    <ManualHeader profile={resume.profile} title={resume.title} subtitle="Technical Specifications" badge="Status: Deployed" />
     <div class="px-8 pb-8">
       <ManualSummary summary={resume.summary} tagline={resume.tagline} />
       {#if resume.online_callout && resume.online_url}

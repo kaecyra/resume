@@ -1,47 +1,63 @@
 <script lang="ts">
   import type { Profile } from "$lib/types.js";
 
-  let { profile, title }: { profile: Profile; title: string } = $props();
+  let { profile, heading, title, subtitle }: { profile: Profile; heading: string; title: string; subtitle: string } = $props();
+
+  const initials = $derived(
+    profile.name
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+  );
 </script>
 
 <style>
-  h2 {
+  .retro-heading {
     font-family: var(--retro-heading-font);
   }
 </style>
 
-<section class="bg-retro-navy p-5 print:break-inside-avoid">
-  <div class="mb-1">
-    <span class="text-[11px] uppercase tracking-[0.2em] text-retro-muted">Section 1.1</span>
-    <h2 class="mt-1 text-base font-semibold uppercase tracking-[0.15em] text-retro-accent">
-      System Identification
-    </h2>
+<!-- Title bar -->
+<div class="relative flex flex-col bg-retro-navy px-4 py-4 md:flex-row md:items-center md:gap-6 md:px-8 md:py-5 print:flex-row print:items-center print:gap-6 print:px-8 print:py-5">
+  <div class="min-w-0 md:flex-1 print:flex-1">
+    <h1 class="retro-heading text-lg uppercase tracking-[0.15em] text-retro-accent">
+      {heading}
+
+      <div class="mt-1 flex flex-wrap items-center gap-2 text-lg md:flex-nowrap md:gap-4 md:text-2xl">
+        <div
+          class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:flex"
+        >
+          <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
+        </div>
+        <div>
+          <span class="block font-bold text-retro-cream">{profile.name}</span>
+          <span class="block text-retro-cream">{title}</span>
+        </div>
+      </div>
+    </h1>
   </div>
 
-  <div class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-    <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-retro-muted">
-      Designation
-    </span>
-    <span class="text-base text-retro-cream">{profile.name}</span>
+  {#if profile.photo}
+    <img
+      src="/{profile.photo}"
+      alt={profile.name}
+      class="mx-auto mt-4 h-52 w-52 border-2 border-retro-accent object-cover md:absolute md:right-8 md:top-8 md:z-10 md:mt-0 md:mx-0 print:absolute print:right-8 print:top-8 print:z-10 print:mx-0 print:h-40 print:w-40"
+    />
+  {/if}
+</div>
 
-    <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-retro-muted">
-      Function
-    </span>
-    <span class="text-base text-retro-cream">{title}</span>
+<!-- Subtitle bar -->
+<div class="border-b-2 border-retro-accent-dark bg-retro-navy-light px-4 py-2 md:px-8">
+  <span class="text-xs uppercase tracking-[0.25em] text-retro-muted">
+    {subtitle}
+  </span>
+</div>
 
-    <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-retro-muted">
-      Location
-    </span>
-    <span class="text-base text-retro-muted">{profile.contact.location}</span>
-
-    <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-retro-muted">
-      Signal
-    </span>
-    <span class="text-base text-retro-muted">{profile.contact.phone}</span>
-
-    <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-retro-muted">
-      Datalink
-    </span>
-    <span class="text-base text-retro-muted">{profile.contact.email}</span>
-  </div>
-</section>
+<!-- Contact info -->
+<div class="flex gap-4 bg-retro-paper px-4 py-2 text-[11px] tracking-wide text-retro-navy/60 md:px-8">
+  <span class="uppercase">{profile.contact.location}</span>
+  {#if profile.contact.linkedin}
+    <a href="https://{profile.contact.linkedin}" class="text-retro-navy/60 hover:text-retro-navy">{profile.contact.linkedin}</a>
+  {/if}
+</div>

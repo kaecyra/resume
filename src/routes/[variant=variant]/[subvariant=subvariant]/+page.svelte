@@ -45,7 +45,7 @@
     href={data.job_url}
     target="_blank"
     rel="noopener noreferrer"
-    style="color: {data.palette.secondary};"
+    style="color: {data.palette.secondary}; font-weight: normal; text-transform: lowercase;"
   >
     {data.job_url}
   </a>
