@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Profile } from "$lib/types.js";
 
-  let { profile, title }: { profile: Profile; title: string } = $props();
+  let { profile, title, subtitle, badge }: { profile: Profile; title: string; subtitle: string; badge?: string } = $props();
 
   const has_linkedin = $derived(!!profile.contact.linkedin);
 </script>
@@ -17,7 +17,7 @@
   </div>
   <div class="bg-[#3d3d3d] px-8 py-1">
     <span class="font-sans text-[10px] uppercase tracking-[0.3em] text-stone-400">
-      Technical Specifications
+      {subtitle}
     </span>
   </div>
 
@@ -25,17 +25,19 @@
     <div class="flex items-start gap-6">
       {#if profile.photo}
         <img
-          src={profile.photo}
+          src="/{profile.photo}"
           alt={profile.name}
           class="h-32 w-32 shrink-0 border border-stone-300 object-cover"
         />
       {/if}
       <div class="min-w-0 flex-1">
-        <span
-          class="inline-block bg-[#3d3d3d] px-2.5 py-0.5 font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-[#f5f0e8]"
-        >
-          Status: Deployed
-        </span>
+        {#if badge}
+          <span
+            class="inline-block bg-[#3d3d3d] px-2.5 py-0.5 font-sans text-[9px] font-bold uppercase tracking-[0.2em] text-[#f5f0e8]"
+          >
+            {badge}
+          </span>
+        {/if}
 
         <div class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1.5">
           <div class="flex items-baseline gap-2">

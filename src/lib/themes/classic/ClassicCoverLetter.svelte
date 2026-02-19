@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { CoverLetterProps } from "$lib/themes/index.js";
   import { format_markdown } from "$lib/format.js";
+  import AiDisclosure from "$lib/components/AiDisclosure.svelte";
+  import ClassicHeader from "./ClassicHeader.svelte";
 
   let { profile, job, cover_letter }: CoverLetterProps = $props();
 
@@ -10,23 +12,13 @@
 </script>
 
 <div class="mx-auto max-w-4xl px-8 pb-8 text-gray-800 print:max-w-none print:px-12 print:py-8">
-  <header class="mb-8 border-b border-gray-300 pb-6">
-    <h1 class="text-4xl font-bold tracking-tight text-gray-900">{profile.name}</h1>
-    <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
-      <span>{profile.contact.email}</span>
-      <span>{profile.contact.phone}</span>
-      <span>{profile.contact.location}</span>
-      {#if profile.contact.linkedin}
-        <a href="https://{profile.contact.linkedin}" class="text-gray-600 hover:text-gray-900">{profile.contact.linkedin}</a>
-      {/if}
-    </div>
-  </header>
+  <ClassicHeader {profile} />
 
-  <div class="mb-6 text-sm text-gray-600">
+  <div class="text-sm text-gray-600">
     <p>Re: {job.title} at {job.company}</p>
   </div>
 
-  <p class="mb-4 text-sm leading-relaxed text-gray-700">{greeting}</p>
+  <p class="mb-4 mt-6 text-sm leading-relaxed text-gray-700">{greeting}</p>
 
   {#each paragraphs as paragraph}
     <p class="mb-4 text-sm leading-relaxed text-gray-700">{@html format_markdown(paragraph.trim())}</p>
@@ -36,4 +28,6 @@
     <p class="text-sm text-gray-700">{closing}</p>
     <p class="mt-4 text-sm font-semibold text-gray-900">{profile.name}</p>
   </div>
+
+  <AiDisclosure />
 </div>
