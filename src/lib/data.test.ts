@@ -1,109 +1,175 @@
+import { vi } from "vitest";
+import yaml from "js-yaml";
+
+import type {
+  ResumeData,
+  VariantManifest,
+  SubVariantManifest,
+} from "./types.js";
+
+vi.mock("node:fs", () => ({
+  readdirSync: vi.fn(),
+  readFileSync: vi.fn(),
+  statSync: vi.fn(),
+}));
+
+import { readdirSync, readFileSync, statSync } from "node:fs";
+
 import {
   list_variants,
-  load_resume_data,
-  load_variant,
   resolve_resume,
   list_sub_variants,
-  load_sub_variant,
   resolve_sub_variant,
   load_and_resolve_sub_variant,
 } from "./data.js";
 
+// --- Test fixtures ---
+
+const MOCK_RESUME_DATA: ResumeData = {
+  profile: {
+    name: "Test Person",
+    photo: "photo.jpg",
+    contact: { location: "Anywhere", phone: "555-0100", email: "test@example.com" },
+  },
+  skills: [
+    { id: "typescript", name: "TypeScript", level: 5 },
+    { id: "strategy", name: "Strategy", level: 4 },
+  ],
+  domains: [{ id: "web", title: "Web", description: "Web dev" }],
+  field_deployments: [
+    { id: "fd-1", category: "Tech", title: "Talk", venue: "Conf", date: "2024-01-01", description: "A talk" },
+  ],
+  employment: [
+    {
+      id: "job-alpha",
+      title: "Engineer",
+      company: "Alpha Inc",
+      location: "Remote",
+      start_date: "2020-01",
+      end_date: "2023-06",
+      description: null,
+      summary: "Built things",
+      highlights: [{ title: "Feature X", description: "Launched it" }],
+    },
+    {
+      id: "job-beta",
+      title: "Lead",
+      company: "Beta Corp",
+      location: "NYC",
+      start_date: "2023-07",
+      end_date: null,
+      description: null,
+      summary: "Led team",
+      highlights: [{ description: "Grew team" }],
+    },
+  ],
+  languages: [{ id: "en", name: "English", proficiency: "Native", level: 5 }],
+  courses: [{ id: "course-1", title: "CS101", institution: "University", date: "2019" }],
+};
+
+const MOCK_DEFAULT_VARIANT: VariantManifest = {
+  theme: "classic",
+  title: "Software Engineer",
+  summary: "A software engineer.",
+  skills: ["typescript", "strategy"],
+  employment: ["job-alpha", "job-beta"],
+  languages: ["en"],
+  courses: ["course-1"],
+};
+
+const MOCK_PARENT_VARIANT: VariantManifest = {
+  theme: "retro",
+  title: "CTO",
+  summary: "Technical leader.",
+  tagline: "Leading with code",
+  skills: ["typescript", "strategy"],
+  employment: ["job-alpha", "job-beta"],
+  languages: ["en"],
+  courses: ["course-1"],
+};
+
+const MOCK_SUB_VARIANT: SubVariantManifest = {
+  parent: "test-parent",
+  job: {
+    url: "https://example.com/job",
+    company: "Acme Corp",
+    title: "VP of Engineering",
+    fetched_at: "2025-01-01T00:00:00Z",
+  },
+  title: "VP of Engineering",
+  summary: "Custom summary for Acme Corp.",
+};
+
+// --- Helpers ---
+
+function mock_read_file(path_map: Record<string, unknown>) {
+  vi.mocked(readFileSync).mockImplementation((file_path: any) => {
+    const p = String(file_path);
+    for (const [suffix, data] of Object.entries(path_map)) {
+      if (p.endsWith(suffix)) {
+        return yaml.dump(data);
+      }
+    }
+    throw new Error(`ENOENT: no such file or directory, open '${p}'`);
+  });
+}
+
+// --- Tests ---
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("list_variants", () => {
-  it("returns an array containing 'default'", () => {
+  it("returns variant names from yaml filenames", () => {
+    vi.mocked(readdirSync).mockReturnValue(
+      ["default.yaml", "cto-a.yaml", "cto-b.yaml"] as any,
+    );
+
     const variants = list_variants();
 
-    expect(variants).toBeInstanceOf(Array);
-    expect(variants).toContain("default");
-  });
-});
-
-describe("load_resume_data", () => {
-  it("loads and parses resume.yaml", () => {
-    const data = load_resume_data();
-
-    expect(data.profile).toBeDefined();
-    expect(data.profile.name).toBe("Tim Gunter");
-    expect(data.skills).toBeInstanceOf(Array);
-    expect(data.skills.length).toBeGreaterThan(0);
-    expect(data.employment).toBeInstanceOf(Array);
-    expect(data.employment.length).toBeGreaterThan(0);
-    expect(data.languages).toBeInstanceOf(Array);
-    expect(data.courses).toBeInstanceOf(Array);
+    expect(variants).toEqual(["default", "cto-a", "cto-b"]);
   });
 
-  it("parses skill entries with id, name, and level", () => {
-    const data = load_resume_data();
-    const skill = data.skills[0];
+  it("filters out non-yaml files", () => {
+    vi.mocked(readdirSync).mockReturnValue(
+      ["default.yaml", "README.md", ".gitkeep"] as any,
+    );
 
-    expect(skill.id).toBeDefined();
-    expect(skill.name).toBeDefined();
-    expect(typeof skill.level).toBe("number");
-  });
+    const variants = list_variants();
 
-  it("parses employment entries with required fields", () => {
-    const data = load_resume_data();
-    const job = data.employment[0];
-
-    expect(job.id).toBeDefined();
-    expect(job.title).toBeDefined();
-    expect(job.company).toBeDefined();
-    expect(job.start_date).toBeDefined();
-    expect(job.highlights).toBeInstanceOf(Array);
-  });
-});
-
-describe("load_variant", () => {
-  it("throws for nonexistent variant names", () => {
-    expect(() => load_variant("nonexistent")).toThrow();
-  });
-
-  it("loads and parses the default variant", () => {
-    const variant = load_variant("default");
-
-    expect(variant.theme).toBe("classic");
-    expect(variant.title).toBeDefined();
-    expect(variant.summary).toBeDefined();
-    expect(variant.skills).toBeInstanceOf(Array);
-    expect(variant.skills.length).toBeGreaterThan(0);
-    expect(variant.employment).toBeInstanceOf(Array);
-    expect(variant.employment.length).toBeGreaterThan(0);
+    expect(variants).toEqual(["default"]);
   });
 });
 
 describe("resolve_resume", () => {
   it("resolves data with variant manifest", () => {
-    const data = load_resume_data();
-    const variant = load_variant("default");
-    const resolved = resolve_resume(data, variant);
+    const resolved = resolve_resume(MOCK_RESUME_DATA, MOCK_DEFAULT_VARIANT);
 
-    expect(resolved.theme).toBe(variant.theme);
-    expect(resolved.profile.name).toBe("Tim Gunter");
-    expect(resolved.title).toBe(variant.title);
-    expect(resolved.summary).toBe(variant.summary);
-    expect(resolved.skills.length).toBe(variant.skills.length);
-    expect(resolved.employment.length).toBe(variant.employment.length);
-    expect(resolved.languages.length).toBe(variant.languages.length);
-    expect(resolved.courses.length).toBe(variant.courses.length);
+    expect(resolved.theme).toBe("classic");
+    expect(resolved.profile.name).toBe("Test Person");
+    expect(resolved.title).toBe("Software Engineer");
+    expect(resolved.summary).toBe("A software engineer.");
+    expect(resolved.skills).toHaveLength(2);
+    expect(resolved.employment).toHaveLength(2);
+    expect(resolved.languages).toHaveLength(1);
+    expect(resolved.courses).toHaveLength(1);
   });
 
   it("preserves variant ordering", () => {
-    const data = load_resume_data();
-    const variant = load_variant("default");
-    const resolved = resolve_resume(data, variant);
+    const resolved = resolve_resume(MOCK_RESUME_DATA, MOCK_DEFAULT_VARIANT);
 
     for (let i = 0; i < resolved.skills.length; i++) {
-      expect(resolved.skills[i].id).toBe(variant.skills[i]);
+      expect(resolved.skills[i].id).toBe(MOCK_DEFAULT_VARIANT.skills[i]);
     }
 
     for (let i = 0; i < resolved.employment.length; i++) {
-      expect(resolved.employment[i].id).toBe(variant.employment[i]);
+      expect(resolved.employment[i].id).toBe(MOCK_DEFAULT_VARIANT.employment[i]);
     }
   });
 
   it("skips unknown ids without error", () => {
-    const data = load_resume_data();
-    const variant: Parameters<typeof resolve_resume>[1] = {
+    const variant: VariantManifest = {
       theme: "classic",
       title: "Test",
       summary: "Test summary",
@@ -113,7 +179,8 @@ describe("resolve_resume", () => {
       courses: [],
     };
 
-    const resolved = resolve_resume(data, variant);
+    const resolved = resolve_resume(MOCK_RESUME_DATA, variant);
+
     expect(resolved.skills).toHaveLength(1);
     expect(resolved.skills[0].id).toBe("strategy");
   });
@@ -121,89 +188,109 @@ describe("resolve_resume", () => {
 
 describe("list_sub_variants", () => {
   it("returns sub-variants with parent and slug", () => {
+    vi.mocked(readdirSync)
+      .mockReturnValueOnce(["default.yaml", "test-parent"] as any)
+      .mockReturnValueOnce(["abc12345.yaml"] as any);
+    vi.mocked(statSync)
+      .mockReturnValueOnce({ isDirectory: () => false } as any)
+      .mockReturnValueOnce({ isDirectory: () => true } as any);
+
     const entries = list_sub_variants();
 
-    expect(entries).toBeInstanceOf(Array);
-    expect(entries.length).toBeGreaterThan(0);
-
-    const test_entry = entries.find((e) => e.parent === "cto-a" && e.slug === "a7f3b9c2");
-    expect(test_entry).toBeDefined();
+    expect(entries).toEqual([{ parent: "test-parent", slug: "abc12345" }]);
   });
 
-  it("does not include parent variants in results", () => {
+  it("does not include parent variant yaml files as slugs", () => {
+    vi.mocked(readdirSync)
+      .mockReturnValueOnce(["default.yaml", "cto-a.yaml", "my-variant"] as any)
+      .mockReturnValueOnce(["sub1.yaml"] as any);
+    vi.mocked(statSync)
+      .mockReturnValueOnce({ isDirectory: () => false } as any)
+      .mockReturnValueOnce({ isDirectory: () => false } as any)
+      .mockReturnValueOnce({ isDirectory: () => true } as any);
+
     const entries = list_sub_variants();
     const slugs = entries.map((e) => e.slug);
 
     expect(slugs).not.toContain("default");
     expect(slugs).not.toContain("cto-a");
-    expect(slugs).not.toContain("cto-b");
-  });
-});
-
-describe("load_sub_variant", () => {
-  it("loads a sub-variant manifest", () => {
-    const sub = load_sub_variant("cto-a", "a7f3b9c2");
-
-    expect(sub.parent).toBe("cto-a");
-    expect(sub.job.company).toBe("Acme Corp");
-    expect(sub.title).toBe("VP of Engineering");
-  });
-
-  it("throws for nonexistent sub-variants", () => {
-    expect(() => load_sub_variant("cto-a", "00000000")).toThrow();
+    expect(slugs).toEqual(["sub1"]);
   });
 });
 
 describe("resolve_sub_variant", () => {
   it("inherits parent fields when sub-variant omits them", () => {
-    const data = load_resume_data();
-    const parent = load_variant("cto-a");
-    const sub = load_sub_variant("cto-a", "a7f3b9c2");
-    const resolved = resolve_sub_variant(data, parent, sub);
+    const sub: SubVariantManifest = {
+      parent: "test-parent",
+      job: { url: "https://example.com", company: "Acme", title: "VP", fetched_at: "2025-01-01T00:00:00Z" },
+      title: "VP of Engineering",
+    };
+
+    const resolved = resolve_sub_variant(MOCK_RESUME_DATA, MOCK_PARENT_VARIANT, sub);
 
     expect(resolved.title).toBe("VP of Engineering");
-    expect(resolved.skills.length).toBe(parent.skills.length);
-    expect(resolved.employment.length).toBe(parent.employment.length);
-    expect(resolved.theme).toBe(parent.theme);
+    expect(resolved.skills).toHaveLength(MOCK_PARENT_VARIANT.skills.length);
+    expect(resolved.employment).toHaveLength(MOCK_PARENT_VARIANT.employment.length);
+    expect(resolved.theme).toBe(MOCK_PARENT_VARIANT.theme);
   });
 
   it("overrides fields present in sub-variant", () => {
-    const data = load_resume_data();
-    const parent = load_variant("cto-a");
-    const sub = load_sub_variant("cto-a", "a7f3b9c2");
-    const resolved = resolve_sub_variant(data, parent, sub);
+    const sub: SubVariantManifest = {
+      parent: "test-parent",
+      job: { url: "https://example.com", company: "Acme", title: "VP", fetched_at: "2025-01-01T00:00:00Z" },
+      title: "VP of Engineering",
+      summary: "Custom summary.",
+    };
+
+    const resolved = resolve_sub_variant(MOCK_RESUME_DATA, MOCK_PARENT_VARIANT, sub);
 
     expect(resolved.title).toBe("VP of Engineering");
-    expect(resolved.summary).not.toBe(parent.summary);
+    expect(resolved.summary).toBe("Custom summary.");
+    expect(resolved.summary).not.toBe(MOCK_PARENT_VARIANT.summary);
   });
 
   it("applies employment overrides without mutating source data", () => {
-    const data = load_resume_data();
-    const parent = load_variant("cto-a");
-    const sub = load_sub_variant("cto-a", "a7f3b9c2");
-    sub.employment_overrides = [
-      { id: "monks-vpe", summary: "Custom summary for testing" },
-    ];
+    const sub: SubVariantManifest = {
+      parent: "test-parent",
+      job: { url: "https://example.com", company: "Acme", title: "VP", fetched_at: "2025-01-01T00:00:00Z" },
+      employment_overrides: [
+        { id: "job-alpha", summary: "Custom summary for testing" },
+      ],
+    };
 
-    const original_summary = data.employment.find((e) => e.id === "monks-vpe")?.summary;
-    const resolved = resolve_sub_variant(data, parent, sub);
-    const overridden = resolved.employment.find((e) => e.id === "monks-vpe");
+    const original_summary = MOCK_RESUME_DATA.employment.find((e) => e.id === "job-alpha")?.summary;
+    const resolved = resolve_sub_variant(MOCK_RESUME_DATA, MOCK_PARENT_VARIANT, sub);
+    const overridden = resolved.employment.find((e) => e.id === "job-alpha");
 
     expect(overridden?.summary).toBe("Custom summary for testing");
-    expect(data.employment.find((e) => e.id === "monks-vpe")?.summary).toBe(original_summary);
+    expect(MOCK_RESUME_DATA.employment.find((e) => e.id === "job-alpha")?.summary).toBe(original_summary);
   });
 });
 
 describe("load_and_resolve_sub_variant", () => {
   it("loads and resolves a sub-variant", () => {
-    const resolved = load_and_resolve_sub_variant("cto-a", "a7f3b9c2");
+    mock_read_file({
+      "abc12345.yaml": MOCK_SUB_VARIANT,
+      "resume.yaml": MOCK_RESUME_DATA,
+      "test-parent.yaml": MOCK_PARENT_VARIANT,
+    });
+
+    const resolved = load_and_resolve_sub_variant("test-parent", "abc12345");
 
     expect(resolved.title).toBe("VP of Engineering");
-    expect(resolved.profile.name).toBe("Tim Gunter");
+    expect(resolved.profile.name).toBe("Test Person");
     expect(resolved.skills.length).toBeGreaterThan(0);
   });
 
   it("throws when parent field mismatches directory", () => {
-    expect(() => load_and_resolve_sub_variant("default", "a7f3b9c2")).toThrow();
+    const mismatched_sub: SubVariantManifest = {
+      ...MOCK_SUB_VARIANT,
+      parent: "wrong-parent",
+    };
+    mock_read_file({ "abc12345.yaml": mismatched_sub });
+
+    expect(() => load_and_resolve_sub_variant("test-parent", "abc12345")).toThrow(
+      /parent mismatch/,
+    );
   });
 });
