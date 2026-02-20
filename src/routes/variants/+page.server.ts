@@ -8,8 +8,6 @@ import type { PageServerLoad } from "./$types";
 
 export const prerender = true;
 
-export const entries = () => [{}];
-
 interface DashboardRow {
   parent: string;
   slug: string;
