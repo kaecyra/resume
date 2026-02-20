@@ -64,7 +64,7 @@
   <a
     class="resume-tools-link"
     href="/{data.variant_name}.pdf"
-    download
+    download="{data.resume.profile.name} - Resume - {data.job_title} @ {data.job_company}.pdf"
     style="color: {data.palette.accent};"
     onclick={() => track_pdf_download({
       variant: data.variant_parent,
