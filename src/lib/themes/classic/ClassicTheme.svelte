@@ -16,7 +16,7 @@
   <ClassicHeader profile={resume.profile} title={resume.title} />
   <ClassicSummary summary={resume.summary} />
   {#if resume.online_callout && resume.online_url}
-    <OnlineCallout url={resume.online_url} text={resume.online_callout} />
+    <OnlineCallout url={resume.online_url} text={resume.online_callout} qr_svg={resume.online_qr_svg} />
   {/if}
   <ClassicSkills skills={resume.skills} />
   <ClassicEmployment employment={resume.employment} />

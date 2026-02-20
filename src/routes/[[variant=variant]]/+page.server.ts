@@ -2,6 +2,7 @@ import { error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant, resolve_resume } from "$lib/data.js";
+import { generate_qr_svg } from "$lib/qr.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 import { get_theme_palette } from "$lib/theme-palettes.js";
 
@@ -17,7 +18,7 @@ export const entries: EntryGenerator = () => {
   ];
 };
 
-export const load: PageServerLoad = ({ params }) => {
+export const load: PageServerLoad = async ({ params }) => {
   const variant_name = params.variant ?? "default";
 
   let variant;
@@ -37,13 +38,15 @@ export const load: PageServerLoad = ({ params }) => {
     base_url, variant_name, variant_name,
   );
 
+  const palette = get_theme_palette(resume.theme);
+
   if (resume.online_callout && og.url) {
     resume.online_url = og.url;
+    resume.online_qr_svg = await generate_qr_svg(og.url, palette.accent);
   }
 
   const person_jsonld = build_person_jsonld(resume.profile, resume.title, og.url);
   const webpage_jsonld = build_webpage_jsonld(og.title, og.description, og.url);
-  const palette = get_theme_palette(resume.theme);
   const theme_color = palette.background;
 
   return {
