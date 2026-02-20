@@ -12,6 +12,7 @@
 </svelte:head>
 
 <div
+  id="main-content"
   class="card"
   style="background-color: {palette.background}; color: {palette.text};"
 >

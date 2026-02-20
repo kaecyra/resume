@@ -12,7 +12,7 @@
   );
 </script>
 
-<section class="mb-6">
+<section class="mb-6" aria-label="Field Deployments">
   <div class="mb-3 border-b border-stone-300 pb-1">
     <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-stone-600">
       Deployment Log:

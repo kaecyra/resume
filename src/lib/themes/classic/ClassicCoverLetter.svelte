@@ -11,7 +11,7 @@
   const paragraphs = $derived(cover_letter.body.split("\n\n").filter((p) => p.trim()));
 </script>
 
-<div class="mx-auto max-w-4xl px-8 pb-8 text-gray-800 print:max-w-none print:px-12 print:py-8">
+<main id="main-content" class="mx-auto max-w-4xl px-8 pb-8 text-gray-800 print:max-w-none print:px-12 print:py-8">
   <ClassicHeader {profile} />
 
   <div class="text-sm text-gray-600">
@@ -30,4 +30,4 @@
   </div>
 
   <AiDisclosure />
-</div>
+</main>

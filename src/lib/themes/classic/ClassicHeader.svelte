@@ -27,7 +27,7 @@
       </div>
     </div>
     {#if qr_svg}
-      <div class="qr-box hidden shrink-0 print:block">
+      <div class="qr-box hidden shrink-0 print:block" aria-hidden="true">
         {@html qr_svg}
       </div>
     {/if}

@@ -4,7 +4,7 @@
   let { languages }: { languages: Language[] } = $props();
 </script>
 
-<section class="mb-6">
+<section class="mb-6" aria-label="Languages">
   <h2 class="mb-3 text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1">
     Languages
   </h2>
