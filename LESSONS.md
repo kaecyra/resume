@@ -29,3 +29,11 @@ Intake log for corrections. Stable patterns get graduated into [ENGINEERING.md](
 **The rule:** Always create a branch and PR for fixes, even trivial one-line changes. The working agreement is explicit: "Never commit, push, or open PRs without explicit permission" and "Create the feature branch before making any commits — never commit issue work directly to main." Quick fixes are not an exception.
 
 **Why it matters:** Direct commits to main bypass CI validation, skip code review, and break the team's trust in the trunk-based workflow. The whole point of PRs is that CI runs on them.
+
+## 2026-02-20: nginx proxy_pass with variables skips URI rewriting
+
+**What happened:** Added `location /api/umami/ { proxy_pass $umami/api/; }` expecting nginx to strip the `/api/umami/` prefix and proxy to `/api/`. Instead, requests hit `umami:3000/api/umami/...` (404) because `$umami` is a variable.
+
+**The rule:** When `proxy_pass` contains a variable, nginx disables automatic location-prefix-to-URI replacement. Use an explicit `rewrite ... break` to transform the URI, and specify `proxy_pass` without a URI path: `rewrite ^/api/umami/(.*) /api/$1 break; proxy_pass $umami;`. The existing exact-match locations (`= /api/send`) are unaffected because there's no prefix to strip.
+
+**Why it matters:** This is a well-documented nginx behavior but easy to miss. The existing proxy locations in this project all use exact matches and work fine with variables, so the pattern appeared safe to extend to prefix matches.
