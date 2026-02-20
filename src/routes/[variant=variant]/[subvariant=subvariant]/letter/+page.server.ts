@@ -48,6 +48,8 @@ export const load: PageServerLoad = ({ params }) => {
     job: sub.job,
     cover_letter: sub.cover_letter,
     variant_name: `${parent}/${slug}`,
+    variant_parent: parent,
+    variant_slug: slug,
     theme: parent_variant.theme,
     palette,
     theme_color: palette.background,

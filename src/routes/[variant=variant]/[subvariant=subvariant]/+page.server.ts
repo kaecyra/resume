@@ -50,7 +50,10 @@ export const load: PageServerLoad = ({ params }) => {
   return {
     resume,
     variant_name,
+    variant_parent: parent,
+    variant_slug: slug,
     job_url: sub_variant.job.url,
+    job_company: sub_variant.job.company,
     palette,
     og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
