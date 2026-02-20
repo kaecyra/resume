@@ -9,7 +9,7 @@ fi
 if [ -n "$UMAMI_API_TOKEN" ]; then
     printf 'proxy_set_header Authorization "Bearer %s";\n' "$UMAMI_API_TOKEN" > /etc/nginx/umami_auth.conf
 else
-    printf '# UMAMI_API_TOKEN not set\n' > /etc/nginx/umami_auth.conf
+    printf 'return 503;\n' > /etc/nginx/umami_auth.conf
 fi
 
 exec nginx -g 'daemon off;'
