@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
+  import { track_pdf_download, track_resume_view } from "$lib/analytics.js";
   import { get_theme, get_theme_favicon } from "$lib/themes/index.js";
 
   import type { PageData } from "./$types";
@@ -7,6 +10,14 @@
 
   const Theme = $derived(get_theme(data.resume.theme));
   const theme_favicon = $derived(get_theme_favicon(data.resume.theme));
+
+  onMount(() => {
+    track_resume_view({
+      variant: data.variant_parent,
+      slug: data.variant_slug,
+      company: data.job_company,
+    });
+  });
 </script>
 
 <svelte:head>
@@ -54,6 +65,12 @@
     href="/{data.variant_name}.pdf"
     download
     style="color: {data.palette.accent};"
+    onclick={() => track_pdf_download({
+      variant: data.variant_parent,
+      type: "resume",
+      slug: data.variant_slug,
+      company: data.job_company,
+    })}
   >
     Download PDF
   </a>

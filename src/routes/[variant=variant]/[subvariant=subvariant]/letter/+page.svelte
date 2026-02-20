@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
+  import { track_letter_view, track_pdf_download } from "$lib/analytics.js";
   import { get_cover_letter_theme, get_theme_favicon } from "$lib/themes/index.js";
 
   import type { PageData } from "./$types";
@@ -7,6 +10,14 @@
 
   const CoverLetterTheme = $derived(get_cover_letter_theme(data.theme));
   const theme_favicon = $derived(get_theme_favicon(data.theme));
+
+  onMount(() => {
+    track_letter_view({
+      variant: data.variant_parent,
+      slug: data.variant_slug,
+      company: data.job.company,
+    });
+  });
 </script>
 
 <svelte:head>
@@ -37,6 +48,12 @@
     href="/{data.variant_name}-letter.pdf"
     download
     style="color: {data.palette.accent};"
+    onclick={() => track_pdf_download({
+      variant: data.variant_parent,
+      type: "letter",
+      slug: data.variant_slug,
+      company: data.job.company,
+    })}
   >
     Download PDF
   </a>
