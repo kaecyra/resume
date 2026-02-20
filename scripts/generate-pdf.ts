@@ -1,41 +1,90 @@
 import puppeteer from "puppeteer";
-import { mkdirSync } from "node:fs";
+import { PDFDocument } from "pdf-lib";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { list_variants, list_sub_variants, load_sub_variant, has_active_cover_letter } from "../src/lib/data.js";
+import {
+  list_variants,
+  list_sub_variants,
+  load_sub_variant,
+  load_variant,
+  load_resume_data,
+  resolve_resume,
+  resolve_sub_variant,
+  has_active_cover_letter,
+} from "../src/lib/data.js";
+import type { ResolvedResume } from "../src/lib/types.js";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
+
+interface PdfMetadata {
+  title?: string;
+  author?: string;
+  subject?: string;
+  keywords?: string;
+}
 
 interface PdfTarget {
   url: string;
   output_path: string;
   label: string;
+  metadata?: PdfMetadata;
+}
+
+function build_metadata(resolved: ResolvedResume): PdfMetadata {
+  const name = resolved.profile.name;
+  return {
+    title: `${name} - ${resolved.title}`,
+    author: name,
+    subject: resolved.summary.slice(0, 200),
+    keywords: resolved.skills.map((s) => s.name).join(", "),
+  };
+}
+
+async function set_pdf_metadata(path: string, metadata: PdfMetadata): Promise<void> {
+  const bytes = readFileSync(path);
+  const doc = await PDFDocument.load(bytes);
+  if (metadata.title) doc.setTitle(metadata.title);
+  if (metadata.author) doc.setAuthor(metadata.author);
+  if (metadata.subject) doc.setSubject(metadata.subject);
+  if (metadata.keywords) doc.setKeywords([metadata.keywords]);
+  const updated = await doc.save();
+  writeFileSync(path, updated);
 }
 
 async function generate_pdf(): Promise<void> {
+  const data = load_resume_data();
   const targets: PdfTarget[] = [];
 
-  for (const variant of list_variants()) {
+  for (const variant_name of list_variants()) {
+    const variant = load_variant(variant_name);
+    const resolved = resolve_resume(data, variant);
     targets.push({
-      url: `${BASE_URL}/${variant}`,
-      output_path: resolve("build", `${variant}.pdf`),
-      label: variant,
+      url: `${BASE_URL}/${variant_name}`,
+      output_path: resolve("build", `${variant_name}.pdf`),
+      label: variant_name,
+      metadata: build_metadata(resolved),
     });
   }
 
   for (const { parent, slug } of list_sub_variants()) {
+    const sub = load_sub_variant(parent, slug);
+    const parent_variant = load_variant(parent);
+    const resolved = resolve_sub_variant(data, parent_variant, sub);
+
     targets.push({
       url: `${BASE_URL}/${parent}/${slug}`,
       output_path: resolve("build", parent, `${slug}.pdf`),
       label: `${parent}/${slug}`,
+      metadata: build_metadata(resolved),
     });
 
-    const sub = load_sub_variant(parent, slug);
     if (has_active_cover_letter(sub)) {
       targets.push({
         url: `${BASE_URL}/${parent}/${slug}/letter`,
         output_path: resolve("build", parent, `${slug}-letter.pdf`),
         label: `${parent}/${slug}/letter`,
+        metadata: { author: resolved.profile.name },
       });
     }
   }
@@ -70,6 +119,10 @@ async function generate_pdf(): Promise<void> {
         printBackground: true,
       });
       await page.close();
+
+      if (target.metadata) {
+        await set_pdf_metadata(target.output_path, target.metadata);
+      }
 
       console.log(`PDF generated: ${target.output_path}`);
     }

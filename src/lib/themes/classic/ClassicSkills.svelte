@@ -6,7 +6,7 @@
   const MAX_LEVEL = 5;
 </script>
 
-<section class="mb-6">
+<section class="mb-6" aria-label="Skills">
   <h2 class="mb-3 text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1">
     Skills
   </h2>
@@ -24,4 +24,9 @@
       </div>
     {/each}
   </div>
+  <ul class="sr-only">
+    {#each skills as skill}
+      <li>{skill.name}</li>
+    {/each}
+  </ul>
 </section>

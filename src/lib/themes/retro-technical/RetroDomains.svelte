@@ -11,7 +11,7 @@
   }
 </style>
 
-<section>
+<section aria-label="Areas of Expertise">
   <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-retro-tan">
       <span class="italic">[chp. {section}]</span>
