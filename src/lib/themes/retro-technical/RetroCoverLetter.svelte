@@ -3,6 +3,7 @@
   import { format_markdown } from "$lib/format.js";
   import AiDisclosure from "$lib/components/AiDisclosure.svelte";
   import RetroHeader from "./RetroHeader.svelte";
+  import RetroFooter from "./RetroFooter.svelte";
 
   let { profile, job, cover_letter }: CoverLetterProps = $props();
 
@@ -36,20 +37,6 @@
       <AiDisclosure />
     </div>
 
-    <!-- Footer -->
-    <div class="border-t-2 border-retro-accent-dark bg-retro-navy px-4 py-3 md:px-8">
-      <div class="flex flex-col items-center gap-1 text-center text-xs uppercase tracking-[0.2em] text-retro-muted md:flex-row md:justify-center md:gap-6">
-        <span>Manufacturer Contact:</span>
-        <span class="text-retro-cream">{profile.contact.phone}</span>
-        <span class="hidden text-retro-accent md:inline">|</span>
-        <span class="text-retro-cream">{profile.contact.email}</span>
-        <span class="hidden text-retro-accent md:inline">|</span>
-        <span class="text-retro-cream">{profile.contact.location}</span>
-        {#if profile.contact.linkedin}
-          <span class="hidden text-retro-accent md:inline">|</span>
-          <a href="https://{profile.contact.linkedin}" class="text-retro-cream hover:text-white">{profile.contact.linkedin}</a>
-        {/if}
-      </div>
-    </div>
+    <RetroFooter contact={profile.contact} />
   </div>
 </div>
