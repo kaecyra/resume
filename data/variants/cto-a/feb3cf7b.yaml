@@ -1,0 +1,191 @@
+parent: cto-a
+
+job:
+  url: "https://jobs.ashbyhq.com/anyscale/b08b333c-c468-404e-a14c-f523199e1e83"
+  company: "Anyscale"
+  title: "Head of Ray Core / Ray Ecosystem (Director of Engineering)"
+  fetched_at: "2026-02-19T20:00:00Z"
+
+title: "Director of Engineering"
+
+summary: |
+  Technical engineering leader who builds distributed platforms from scratch and scales
+  them through multiple infrastructure generations. Designed and operated a multi-tenant
+  SaaS runtime with custom scheduling, resource isolation, and fault-tolerant deployments
+  across heterogeneous infrastructure. Built the control plane, observability, and
+  provisioning systems that powered thousands of concurrent workloads — then scaled the
+  engineering organization around it. Player-coach who stays close to systems architecture
+  while leading through managers across globally distributed teams.
+
+tagline: |
+  **I build the platforms that make engineering organizations deliver without the bullshit.**
+
+skills:
+  - solution_architecture
+  - software_engineering
+  - operational_innovation
+  - strategy
+  - executive_leadership
+  - communication
+  - culture
+  - customer_experience
+
+domains:
+  - infrastructure-fiscal-sovereignty
+  - systemic-modernization
+  - product-led-strategy
+  - organizational-cultural-engineering
+  - narrative-translation
+
+field_deployments:
+  - vanilla-oss
+  - gtc-2026
+  - ces-2026
+  - resume-engine
+
+cover_letter:
+  greeting: "Dear Anyscale Hiring Team,"
+  body: |
+    I'm writing regarding the Head of Ray Core / Director of Engineering role. You're looking for a technical leader who can own the vision and execution for a foundational distributed runtime — someone who combines deep systems architecture instincts with the organizational leadership to grow a senior team and drive quality through RFCs, design reviews, and long-term API strategy. That intersection of building distributed infrastructure and scaling the team around it is where I've spent the formative years of my career.
+
+    At Vanilla Forums, I designed and built the multi-tenant SaaS hosting platform from the ground up. This wasn't a wrapper around managed services — it was a custom distributed runtime with its own scheduling, resource isolation, provisioning, and fault tolerance. I built a proprietary agent-based control plane that handled provisioning and monitoring across multi-provider, multi-region deployments, establishing a "single pane of glass" observability system that gave us real-time visibility into thousands of concurrent tenant workloads. When the public cloud couldn't deliver the performance margins and reliability we needed, I executed a full cloud repatriation — migrating to private infrastructure and scaling from one to four data centers, including EU expansion for data sovereignty. That platform was the technical foundation that carried Vanilla from $0 to $10M ARR and through a profitable acquisition.
+
+    The systems problems I solved at Vanilla map directly to Ray Core's problem space: cluster scheduling and resource management across heterogeneous infrastructure, fault tolerance and recovery for long-running distributed workloads, performance optimization at the infrastructure layer, and building abstractions that let application developers focus on their work instead of the platform underneath. The difference is scale and ecosystem — and that's exactly the kind of challenge I want to take on.
+
+    I'm also a long-time open-source contributor. I served as a core contributor to the Vanilla Forums open-source ecosystem, working on the security, extensibility, and performance of a platform powering thousands of global communities. I understand the dynamics of maintaining widely-used APIs, balancing contributor community needs with product direction, and establishing design and quality standards that hold up as the contributor base grows.
+
+    At .Monks, I lead a 310-person engineering org across NA, LATAM, and EMEA — managing through directors and senior managers. I've built the organizational systems for operating at that scale: staffing frameworks, margin models, talent databases, pre-sales technical authority programs. But I remain a player-coach at heart. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — and then presented the architecture at NVIDIA GTC 2026. I stay close to the technical work because that's where sound decision-making originates.
+
+    I'd welcome the opportunity to discuss how this experience maps to what Anyscale needs for Ray Core's next chapter.
+  closing: "Best regards,"
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      and EMEA, managing through directors and senior managers. Player-coach who
+      architected an AI-native platform (LiveVision) hands-on while building the
+      organizational systems — staffing frameworks, operational tooling, talent
+      databases — required to operate a complex, multi-team engineering organization
+      at scale.
+    highlights:
+      - title: "Platform Architecture (Player-Coach)"
+        description: |
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, from concept through production — designing the
+          edge-broadcast pipeline and model inference orchestration. Validated
+          the architecture via a live CES 2026 Foundry demo and an invited
+          session at NVIDIA GTC 2026.
+
+      - title: "Engineering Organization at Scale"
+        description: |
+          Assumed leadership of a 310-person engineering org during extreme
+          corporate volatility. Maintained 90%+ retention of critical SMEs
+          across three continents through radical transparency. Built a
+          searchable talent database and pre-sales SME program that gave
+          senior engineers direct influence on revenue.
+
+      - title: "Operational Tooling & Automation"
+        description: |
+          Engineered a data-driven staffing and margin system that replaced
+          ad-hoc processes with automated, finance-ready reporting — forcing
+          alignment between Sales and Delivery across 30+ concurrent engagements.
+
+  - id: higher-logic
+    summary: |
+      Post-acquisition platform lead responsible for modernizing legacy infrastructure
+      into automated, horizontally scalable systems — de-risking single points of failure
+      and standardizing engineering practices across five global platforms.
+    highlights:
+      - title: "Delivery Pipeline Modernization"
+        description: |
+          Led the transition of a legacy Windows/.NET stack from manual
+          deployments to versioned, automated blue/green pipelines — massively
+          increasing deployment frequency while reducing toil and COGS.
+
+      - title: "Architecture De-risking"
+        description: |
+          Initiated the refactoring of a vertically-scaled, 768GB
+          single-point-of-failure database into a horizontally scalable
+          architecture, reducing cloud provider lock-in and regaining
+          technical sovereignty.
+
+      - title: "Platform Standards Across Orgs"
+        description: |
+          Trained legacy staff on modern IaC, observability, and automated
+          deployment paradigms to standardize high-performance engineering
+          practices across five acquired platforms.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR. Built the
+      cross-functional organizational infrastructure — Engineering, InfoSec, CX —
+      required to sustain high growth through a profitable acquisition. Managed
+      through directors and team leads while maintaining direct technical oversight
+      of the platform architecture that underpinned the business.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the engineering and operational structure
+          required for a profitable acquisition — scaling teams from inception
+          through exit while building the leadership layers needed to operate
+          a platform organization at growing scale.
+
+      - title: "Security & Compliance as Platform Discipline"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, embedding security and reliability best practices into
+          the platform layer. Unlocked Fortune 500 enterprise deals by
+          treating compliance as an infrastructure concern, not an afterthought.
+
+      - title: "Infrastructure Sovereignty at Scale"
+        description: |
+          Scaled the global infrastructure footprint from one to four data
+          centers including EU expansion. Used a private-cloud-first strategy
+          to maintain higher utilization and lower overhead than public cloud
+          alternatives — demonstrating the cost and performance discipline
+          required of distributed infrastructure leadership.
+
+  - id: vanilla-vpo
+    summary: |
+      Designed and built the foundational multi-tenant SaaS platform from the ground
+      up — a custom distributed runtime with scheduling, resource isolation, and
+      fault-tolerant provisioning across heterogeneous infrastructure. Built the control
+      plane, observability, and deployment systems that powered thousands of concurrent
+      tenant workloads.
+    highlights:
+      - title: "Distributed Platform Architecture"
+        description: |
+          Conceived, designed, and implemented the multi-tenant SaaS hosting
+          architecture — a custom runtime with scheduling, tenant isolation,
+          and fault-tolerant deployment across multi-provider infrastructure.
+          This platform was the technical foundation for the entire product
+          offering.
+
+      - title: "Control Plane & Observability"
+        description: |
+          Developed a proprietary agent-based provisioning and monitoring
+          system that served as the platform's control plane — establishing
+          "single pane of glass" observability across multi-provider,
+          multi-region deployments and enabling high-availability operations
+          at scale.
+
+  - id: vanilla-doo
+    summary: |
+      Executed the foundational infrastructure work that transformed a single-instance
+      open-source codebase into a distributed, multi-tenant SaaS platform — including
+      a strategic cloud repatriation to reclaim performance and reliability margins.
+    highlights:
+      - title: "Cloud Repatriation"
+        description: |
+          Executed the strategic migration from public to private cloud
+          infrastructure to reclaim performance margins and reliability —
+          demonstrating deep understanding of the cost, performance, and
+          operational tradeoffs in distributed infrastructure.
+
+      - title: "Platform Runtime Engineering"
+        description: |
+          Engineered the production code and tooling required to transform
+          a single-instance open-source codebase into a high-scale,
+          multi-tenant distributed platform with resource isolation and
+          concurrent workload management.

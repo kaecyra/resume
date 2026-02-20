@@ -28,7 +28,8 @@
       "Bash(pkill:*)",
       "Bash(lsof:*)",
       "Bash(chmod:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch"
     ]
   },
   "enabledPlugins": {
