@@ -30,5 +30,8 @@
       "Bash(chmod:*)",
       "WebSearch"
     ]
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
   }
 }
