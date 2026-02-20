@@ -1,0 +1,155 @@
+parent: cto-a
+
+job:
+  url: "https://job-boards.eu.greenhouse.io/overstory/jobs/4724552101"
+  company: "Overstory"
+  title: "Chief Technology Officer"
+  fetched_at: "2026-02-19T21:00:00Z"
+
+title: "Chief Technology Officer"
+
+summary: |
+  Technical executive who has led VC-backed companies from early revenue through profitable
+  acquisition, scaling engineering organizations across continents while staying close to
+  the architecture. Built AI-native product capabilities from concept through commercial
+  validation, constructed the organizational infrastructure required for high-growth, and
+  maintained engineering velocity through extreme volatility. Operates with radical transparency,
+  ships daily, and treats distributed-first as a design constraint — not an afterthought.
+
+tagline: |
+  **I provide the technical leadership required to scale without the bullshit.**
+
+skills:
+  - strategy
+  - executive_leadership
+  - solution_architecture
+  - software_engineering
+  - culture
+  - operational_innovation
+  - communication
+  - customer_experience
+
+domains:
+  - organizational-cultural-engineering
+  - infrastructure-fiscal-sovereignty
+  - product-led-strategy
+  - systemic-modernization
+  - narrative-translation
+
+cover_letter:
+  greeting: "Dear Overstory Hiring Team,"
+  body: |
+    I'm writing regarding the Chief Technology Officer role. You're looking for a technical leader who can scale Overstory's engineering organization through its next growth phase — someone who balances hands-on technical problem-solving with board-level strategic communication, builds high-performing remote teams across countries and time zones, and delivers a compelling vision for the next 12-36 months. That trajectory — VC-backed scaling from early traction through rapid expansion with a globally distributed team — is the one I've navigated for the last decade.
+
+    At Vanilla Forums, I was the first employee after the founders — joining as a hands-on engineer and growing into the COO role across a journey from $0 to $10M ARR through a profitable acquisition by Higher Logic. I built the engineering, infrastructure, InfoSec, and CX organizations from scratch — hiring the first engineers, standing up the first data center, achieving SOC2 compliance, and scaling to four data centers across North America and the EU. I designed and built the multi-tenant SaaS platform architecture that powered the core product, then built the teams and leadership layers to operate it. That meant constructing the entire organizational infrastructure required for sustained growth: career ladders, hiring frameworks, compliance programs, and the cultural norms that hold a distributed team together.
+
+    The technical work was hands-on and stayed that way. I built a proprietary agent-based provisioning and monitoring system, executed a strategic cloud repatriation from public to private infrastructure to reclaim performance margins, and maintained direct architectural oversight as the platform scaled to support thousands of concurrent tenant workloads across multiple regions. I know what it means to be a player-coach CTO because I've been one — the kind who reviews RFCs in the morning and presents to the board in the afternoon.
+
+    At .Monks, I lead a 310-person engineering org distributed across NA, LATAM, and EMEA. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — then validated it through a live CES 2026 Foundry demo and an invited architecture session at NVIDIA GTC 2026. In parallel, I built the data-driven operational systems that replaced ad-hoc processes with automated staffing, margin, and delivery frameworks across 30+ concurrent engagements. I understand what it takes to build and ship ML-powered products with real commercial outcomes, not just proofs of concept.
+
+    On the distributed team front: I've built and led remote-first engineering cultures spanning multiple continents, time zones, and working cultures for over a decade. I designed async-first communication norms, timezone-equitable practices, and documentation-driven decision processes that create cohesion without demanding conformity. Retaining talent across 15+ nationalities during periods of extreme organizational change is something I've done — not something I theorize about.
+
+    I'm drawn to Overstory's mission and the technical challenge of scaling AI and satellite imagery into critical infrastructure for utilities. I'd welcome the opportunity to discuss how this experience maps to where Overstory is headed.
+  closing: "Best regards,"
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Stepped into global leadership of a 310-person engineering org distributed across
+      NA, LATAM, and EMEA during extreme organizational volatility. Stabilized retention
+      of critical senior talent, stood up an AI-native product capability with commercial
+      validation, and built the data-driven operational frameworks required to manage
+      30+ concurrent engagements across cultures and time zones.
+    highlights:
+      - title: "AI Product Innovation (Player-Coach)"
+        description: |
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, from concept through commercial validation —
+          designing the edge-broadcast pipeline and model inference orchestration
+          hands-on. Validated via a live CES 2026 Foundry demo and an invited
+          session at NVIDIA GTC 2026.
+
+      - title: "Organizational Stabilization at Scale"
+        description: |
+          Maintained 90%+ retention of critical SMEs across three continents
+          through radical transparency during corporate restructuring. Deployed
+          a searchable talent database and pre-sales SME program that gave
+          senior engineers direct influence on revenue.
+
+      - title: "Operational Frameworks"
+        description: |
+          Engineered a data-driven staffing and margin system that replaced
+          ad-hoc processes with automated, finance-ready reporting — forcing
+          alignment between Sales and Delivery across a globally distributed
+          organization.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR. Built the
+      cross-functional organizational infrastructure — Engineering, InfoSec, CX — from
+      scratch, then led the organization through a successful, profitable acquisition.
+      Constructed the leadership layers, compliance programs, and cultural frameworks
+      required to sustain high growth with a distributed team.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the complete organizational infrastructure
+          required for a profitable acquisition — scaling engineering, CX, and
+          Infosec teams from inception through successful exit while building
+          the leadership layers for sustainable growth.
+
+      - title: "Security & Compliance as Growth Lever"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, transforming security from a cost center into a
+          competitive advantage that unlocked Fortune 500 enterprise deals.
+
+      - title: "Global Infrastructure Sovereignty"
+        description: |
+          Scaled the global infrastructure footprint from one to four data
+          centers including EU expansion for data sovereignty. Used a
+          private-cloud-first strategy to maintain higher utilization and
+          lower overhead than public cloud alternatives.
+
+  - id: vanilla-vpo
+    summary: |
+      Designed and built the foundational multi-tenant SaaS platform from the ground
+      up — the hosting architecture, provisioning system, and monitoring infrastructure
+      that powered the core product. Executed a strategic cloud repatriation to reclaim
+      performance and cost margins.
+    highlights:
+      - title: "Platform Architecture"
+        description: |
+          Conceived, designed, and implemented the multi-tenant SaaS hosting
+          architecture that powered Vanilla's core offering — hands-on
+          technical leadership from first commit through production scale.
+
+      - title: "Observability & Automation"
+        description: |
+          Developed a proprietary agent-based provisioning and monitoring
+          system, establishing "single pane of glass" observability across
+          multi-provider, multi-region deployments and enabling
+          high-availability operations at scale.
+
+  - id: vanilla-doo
+    summary: |
+      Executed the foundational infrastructure work that transformed a single-instance
+      open-source codebase into a multi-tenant SaaS platform — including a strategic
+      cloud repatriation to reclaim performance and reliability margins.
+    highlights:
+      - title: "Cloud Repatriation"
+        description: |
+          Executed the strategic migration from public to private cloud
+          infrastructure to reclaim performance margins and reliability.
+
+      - title: "SaaS Platform Engineering"
+        description: |
+          Engineered the production code and tooling required to transform
+          a single-instance open-source codebase into a high-scale,
+          multi-tenant SaaS platform.
+
+      - title: "Customer Operations Foundation"
+        description: |
+          Established the initial Customer Support team, defining SLOs, hiring
+          criteria, and cultural standards to align technical support with
+          business growth.
