@@ -20,7 +20,6 @@
       {/if}
       <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
         <span>{profile.contact.email}</span>
-        <span>{profile.contact.phone}</span>
         <span>{profile.contact.location}</span>
         {#if profile.contact.linkedin}
           <a href="https://{profile.contact.linkedin}" class="text-gray-600 hover:text-gray-900">{profile.contact.linkedin}</a>

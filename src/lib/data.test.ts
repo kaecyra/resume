@@ -30,7 +30,7 @@ const MOCK_RESUME_DATA: ResumeData = {
   profile: {
     name: "Test Person",
     photo: "photo.jpg",
-    contact: { location: "Anywhere", phone: "555-0100", email: "test@example.com" },
+    contact: { location: "Anywhere", email: "test@example.com" },
   },
   skills: [
     { id: "typescript", name: "TypeScript", level: 5 },

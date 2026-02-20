@@ -121,7 +121,7 @@ describe("validate_sub_variant", () => {
 describe("build_master_ids", () => {
   it("builds ID sets from resume data", () => {
     const result = build_master_ids({
-      profile: { name: "Test", photo: "", contact: { location: "", phone: "", email: "" } },
+      profile: { name: "Test", photo: "", contact: { location: "", email: "" } },
       skills: [{ id: "s1", name: "Skill", level: 5 }],
       domains: [{ id: "d1", title: "Domain", description: "" }],
       field_deployments: [{ id: "fd1", category: "cat", title: "FD", venue: "v", date: null, description: "" }],

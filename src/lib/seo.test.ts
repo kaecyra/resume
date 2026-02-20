@@ -30,7 +30,6 @@ describe("build_person_jsonld", () => {
     photo: "assets/headshot.png",
     contact: {
       location: "Montreal, QC",
-      phone: "555-0100",
       email: "tim@example.com",
       linkedin: "linkedin.com/in/guntertim",
     },

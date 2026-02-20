@@ -45,10 +45,6 @@
             <span class="text-sm text-stone-700">{profile.contact.location}</span>
           </div>
           <div class="flex items-baseline gap-2">
-            <span class="inline-block w-10 shrink-0 bg-stone-200 px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500">Aph</span>
-            <span class="text-sm text-stone-700">{profile.contact.phone}</span>
-          </div>
-          <div class="flex items-baseline gap-2">
             <span class="inline-block w-10 shrink-0 bg-stone-200 px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500">Sig</span>
             <span class="text-sm text-stone-700">{profile.contact.email}</span>
           </div>
