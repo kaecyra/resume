@@ -37,15 +37,17 @@
         {#if qr_svg}
           <div
             class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:hidden"
+            aria-hidden="true"
           >
             <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
           </div>
-          <div class="qr-box hidden h-16 w-16 shrink-0 items-center justify-center p-1 print:flex">
+          <div class="qr-box hidden h-16 w-16 shrink-0 items-center justify-center p-1 print:flex" aria-hidden="true">
             {@html qr_svg}
           </div>
         {:else}
           <div
             class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:flex"
+            aria-hidden="true"
           >
             <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
           </div>
@@ -75,9 +77,9 @@
 </div>
 
 <!-- Contact info -->
-<div class="flex gap-4 bg-retro-paper px-4 py-2 text-[11px] tracking-wide text-retro-navy/60 md:px-8">
+<div class="flex gap-4 bg-retro-paper px-4 py-2 text-[11px] tracking-wide text-retro-navy/80 md:px-8">
   <span class="uppercase">{profile.contact.location}</span>
   {#if profile.contact.linkedin}
-    <a href="https://{profile.contact.linkedin}" class="text-retro-navy/60 hover:text-retro-navy">{profile.contact.linkedin}</a>
+    <a href="https://{profile.contact.linkedin}" class="text-retro-navy/80 hover:text-retro-navy">{profile.contact.linkedin}</a>
   {/if}
 </div>

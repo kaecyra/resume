@@ -86,7 +86,7 @@
   }
 </style>
 
-<section>
+<section aria-label="Skills">
   <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-retro-tan">
       <span class="italic">[chp. {section}]</span>
@@ -100,7 +100,7 @@
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 print:grid-cols-4 print:gap-4 print:break-inside-avoid">
     {#each skills as skill}
       <div class="flex flex-col items-center">
-        <svg viewBox="0 0 120 58" class="w-full max-w-30">
+        <svg viewBox="0 0 120 58" class="w-full max-w-30" aria-hidden="true">
           <!-- background arc -->
           <path
             d="M {GAUGE_CX - GAUGE_RADIUS} {GAUGE_CY} A {GAUGE_RADIUS} {GAUGE_RADIUS} 0 0 1 {GAUGE_CX + GAUGE_RADIUS} {GAUGE_CY}"
@@ -130,7 +130,7 @@
   <!-- Exploded isometric parts diagram -->
   <div class="mt-2 print:break-inside-avoid">
     
-    <svg viewBox="0 35 500 190" class="w-full">
+    <svg viewBox="0 35 500 190" class="w-full" aria-hidden="true">
       <!-- explosion axis -->
       <line x1="282" y1="58" x2="282" y2="222" stroke="#c96620" stroke-width="0.3" stroke-dasharray="3 2" opacity="0.2" />
 

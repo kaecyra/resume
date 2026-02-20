@@ -18,7 +18,7 @@
   {@html '<style>footer[data-global-version] { display: none; }</style>'}
 </svelte:head>
 
-<div class="min-h-screen bg-[#8a9aa4] pb-10 print:min-h-0 print:py-0">
+<main id="main-content" class="min-h-screen bg-[#8a9aa4] pb-10 print:min-h-0 print:py-0">
   <div
     class="mx-auto max-w-4xl border border-[#c5bfb3] bg-[#f5f0e8] shadow-xl print:max-w-none print:border-none print:shadow-none"
     style="font-family: 'Share Tech Mono', ui-monospace, monospace;"
@@ -51,7 +51,7 @@
       {/if}
     </div>
   </div>
-  <p class="mt-4 text-center text-xs text-white/60 print:hidden">
+  <p class="mt-4 text-center text-xs text-white/80 print:hidden">
     v{__APP_VERSION__}
   </p>
-</div>
+</main>

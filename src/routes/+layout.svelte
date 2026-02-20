@@ -17,6 +17,13 @@
   {/if}
 </svelte:head>
 
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-gray-900 focus:shadow-lg print:hidden"
+>
+  Skip to content
+</a>
+
 {@render children()}
 
 <footer data-global-version class="py-2 text-center text-xs text-gray-400 print:hidden">

@@ -10,7 +10,7 @@
   }
 </style>
 
-<section class="bg-retro-navy p-5 print:break-inside-avoid">
+<section class="bg-retro-navy p-5 print:break-inside-avoid" aria-label="Languages">
   <div class="mb-1">
     <span class="text-[11px] uppercase tracking-[0.2em] text-retro-muted">Section {section}</span>
     <h2 class="mt-1 text-base font-semibold uppercase tracking-[0.15em] text-retro-accent">

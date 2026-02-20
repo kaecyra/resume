@@ -16,9 +16,26 @@
   --color-retro-active: #2a9d8f;
 }
 
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 @media print {
   * {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  *:focus-visible {
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

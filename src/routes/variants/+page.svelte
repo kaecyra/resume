@@ -81,7 +81,7 @@
   <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="dashboard">
+<main id="main-content" class="dashboard">
   <div class="header-row">
     <h1>Variant Dashboard</h1>
     <div class="time-range">
@@ -178,7 +178,7 @@
       </tbody>
     </table>
   {/if}
-</div>
+</main>
 
 <style>
   .dashboard {

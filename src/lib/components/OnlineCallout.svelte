@@ -4,7 +4,7 @@
 
 <div class="hidden print:flex print:items-center print:gap-3 my-4 text-left text-xs opacity-70" style="font: inherit; background: none;">
   {#if qr_svg}
-    <div class="qr-container shrink-0">
+    <div class="qr-container shrink-0" aria-hidden="true">
       {@html qr_svg}
     </div>
   {/if}

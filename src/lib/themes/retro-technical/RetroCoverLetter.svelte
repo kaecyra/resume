@@ -12,7 +12,8 @@
   const paragraphs = $derived(cover_letter.body.split("\n\n").filter((p) => p.trim()));
 </script>
 
-<div
+<main
+  id="main-content"
   class="min-h-screen pb-4 md:pb-10 print:min-h-0 print:py-0"
   style="--retro-heading-font: 'Rajdhani', sans-serif; --retro-body-font: 'IBM Plex Sans', system-ui, sans-serif; font-family: var(--retro-body-font);"
 >
@@ -39,4 +40,4 @@
 
     <RetroFooter contact={profile.contact} />
   </div>
-</div>
+</main>

@@ -8,9 +8,9 @@
 
 <header>
   <div class="bg-[#c4412b] px-8 py-3">
-    <span class="font-sans text-2xl font-bold uppercase tracking-[0.25em] text-white">
+    <h1 class="font-sans text-2xl font-bold uppercase tracking-[0.25em] text-white">
       {profile.name}
-    </span>
+    </h1>
     <p class="mt-0.5 font-sans text-xs uppercase tracking-[0.2em] text-white/70">
       {title}
     </p>
@@ -64,7 +64,7 @@
         </div>
       </div>
     {#if qr_svg}
-      <div class="qr-box hidden shrink-0 print:block">
+      <div class="qr-box hidden shrink-0 print:block" aria-hidden="true">
         {@html qr_svg}
       </div>
     {/if}
