@@ -1,12 +1,19 @@
 import {
   has_active_cover_letter,
   list_sub_variants,
+  list_variants,
   load_sub_variant,
+  load_variant,
 } from "$lib/data.js";
 
 import type { PageServerLoad } from "./$types";
 
 export const prerender = true;
+
+interface VariantRow {
+  name: string;
+  title: string;
+}
 
 interface DashboardRow {
   parent: string;
@@ -19,6 +26,11 @@ interface DashboardRow {
 }
 
 export const load: PageServerLoad = () => {
+  const variant_rows: VariantRow[] = list_variants().map((name) => {
+    const variant = load_variant(name);
+    return { name, title: variant.title };
+  });
+
   const rows: DashboardRow[] = list_sub_variants().map((entry) => {
     const sub = load_sub_variant(entry.parent, entry.slug);
     return {
@@ -34,5 +46,5 @@ export const load: PageServerLoad = () => {
 
   rows.sort((a, b) => b.fetched_at.localeCompare(a.fetched_at));
 
-  return { rows };
+  return { variant_rows, rows };
 };

@@ -12,7 +12,7 @@
   const theme_favicon = $derived(get_theme_favicon(data.resume.theme));
 
   onMount(() => {
-    track_resume_view({ variant: data.variant_name });
+    track_resume_view({ variant: data.variant_name, slug: data.variant_name });
   });
 </script>
 
@@ -55,7 +55,7 @@
     href="/{data.variant_name}.pdf"
     download="{data.resume.profile.name} - Resume - {data.resume.title}.pdf"
     style="color: {data.palette.accent};"
-    onclick={() => track_pdf_download({ variant: data.variant_name, type: "resume" })}
+    onclick={() => track_pdf_download({ variant: data.variant_name, type: "resume", slug: data.variant_name })}
   >
     Download PDF
   </a>
