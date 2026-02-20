@@ -12,7 +12,7 @@
   }
 </style>
 
-<section class="print:break-inside-avoid">
+<section class="print:break-inside-avoid" aria-label="Professional Summary">
   <div class="mb-4 print:break-after-avoid">
     <span class="text-[11px] uppercase tracking-[0.2em] text-retro-tan">
       <span class="italic">[chp. {section}]</span>

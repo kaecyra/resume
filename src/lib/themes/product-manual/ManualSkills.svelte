@@ -26,7 +26,7 @@
   const MAX_LEVEL = 5;
 </script>
 
-<section class="mb-6">
+<section class="mb-6" aria-label="Skills">
   <div class="mb-4 border-b border-stone-300 pb-1">
     <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-stone-600">
       Protocol: Proficiency
@@ -50,4 +50,9 @@
       </div>
     {/each}
   </div>
+  <ul class="sr-only">
+    {#each skills as skill}
+      <li>{skill.name}</li>
+    {/each}
+  </ul>
 </section>
