@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Profile } from "$lib/types.js";
 
-  let { profile, title }: { profile: Profile; title?: string } = $props();
+  let { profile, title, qr_svg }: { profile: Profile; title?: string; qr_svg?: string } = $props();
 </script>
 
 <header class="mb-6 border-b border-gray-300 pb-6">
@@ -26,5 +26,26 @@
         {/if}
       </div>
     </div>
+    {#if qr_svg}
+      <div class="qr-box hidden shrink-0 print:block">
+        {@html qr_svg}
+      </div>
+    {/if}
   </div>
 </header>
+
+<style>
+  .qr-box {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .qr-box :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .qr-box :global(path) {
+    stroke: #374151 !important;
+  }
+</style>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { format_markdown } from "$lib/format.js";
 
-  let { summary }: { summary: string } = $props();
+  let { summary, tagline }: { summary: string; tagline?: string } = $props();
 
   const paragraphs = $derived(summary.split("\n\n").filter((p) => p.trim()));
 </script>
@@ -13,4 +13,9 @@
   {#each paragraphs as paragraph}
     <p class="mt-2 text-sm leading-relaxed text-gray-700">{@html format_markdown(paragraph.trim())}</p>
   {/each}
+  {#if tagline}
+    <div class="mt-3 border-l-2 border-gray-300 pl-3">
+      <p class="text-sm italic leading-relaxed text-gray-600">{@html format_markdown(tagline.trim())}</p>
+    </div>
+  {/if}
 </section>
