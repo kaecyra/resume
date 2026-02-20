@@ -6,6 +6,9 @@ services:
         PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
         PUBLIC_UMAMI_WEBSITE_ID: ${PUBLIC_UMAMI_WEBSITE_ID:-}
     image: ghcr.io/kaecyra/resume:latest
+    environment:
+      DASHBOARD_USER: ${DASHBOARD_USER:-}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
     ports:
       - "3000:80"
     restart: unless-stopped
