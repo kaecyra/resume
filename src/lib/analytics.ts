@@ -22,6 +22,7 @@ export function track_resume_view(props: {
   variant: string;
   slug?: string;
   company?: string;
+  title?: string;
 }): void {
   track("resume_view", filter_defined(props));
 }
@@ -30,6 +31,7 @@ export function track_letter_view(props: {
   variant: string;
   slug: string;
   company: string;
+  title: string;
 }): void {
   track("letter_view", props);
 }
@@ -39,6 +41,7 @@ export function track_pdf_download(props: {
   type: "resume" | "letter";
   slug?: string;
   company?: string;
+  title?: string;
 }): void {
   track("pdf_download", filter_defined(props));
 }

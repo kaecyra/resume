@@ -16,12 +16,13 @@
       variant: data.variant_parent,
       slug: data.variant_slug,
       company: data.job_company,
+      title: data.job_title,
     });
   });
 </script>
 
 <svelte:head>
-  <title>{data.og.title}</title>
+  <title>{data.resume.profile.name} - {data.job_title} @ {data.job_company}</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="version" content={__APP_VERSION__} />
   <meta name="description" content={data.og.description} />
@@ -70,6 +71,7 @@
       type: "resume",
       slug: data.variant_slug,
       company: data.job_company,
+      title: data.job_title,
     })}
   >
     Download PDF

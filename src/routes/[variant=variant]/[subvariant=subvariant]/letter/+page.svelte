@@ -16,12 +16,13 @@
       variant: data.variant_parent,
       slug: data.variant_slug,
       company: data.job.company,
+      title: data.job.title,
     });
   });
 </script>
 
 <svelte:head>
-  <title>{data.profile.name} - Cover Letter - {data.job.title} at {data.job.company}</title>
+  <title>{data.profile.name} - Cover Letter - {data.job.title} @ {data.job.company}</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="version" content={__APP_VERSION__} />
   <meta name="theme-color" content={data.theme_color} />
@@ -53,6 +54,7 @@
       type: "letter",
       slug: data.variant_slug,
       company: data.job.company,
+      title: data.job.title,
     })}
   >
     Download PDF
