@@ -1,8 +1,7 @@
 #!/bin/sh
 
 if [ -n "$DASHBOARD_USER" ] && [ -n "$DASHBOARD_PASSWORD" ]; then
-    HASHED=$(openssl passwd -apr1 "$DASHBOARD_PASSWORD")
-    echo "${DASHBOARD_USER}:${HASHED}" > /etc/nginx/.htpasswd
+    htpasswd -cb /etc/nginx/.htpasswd "$DASHBOARD_USER" "$DASHBOARD_PASSWORD"
 else
     : > /etc/nginx/.htpasswd
 fi

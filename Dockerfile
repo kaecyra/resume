@@ -27,6 +27,8 @@ RUN (npm run preview &) && sleep 2 && npm run generate-og && npm run generate-pd
 
 FROM nginx:stable-alpine
 
+RUN apk add --no-cache apache2-utils
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build /usr/share/nginx/html
 COPY docker-entrypoint.sh /docker-entrypoint.sh
