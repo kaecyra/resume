@@ -53,7 +53,9 @@
     try {
       const now = Date.now();
       const start_at = compute_start_at(time_range, now);
-      const slugs = data.rows.map((r) => r.slug);
+      const variant_slugs = data.variant_rows.map((r) => r.name);
+      const sub_variant_slugs = data.rows.map((r) => r.slug);
+      const slugs = [...variant_slugs, ...sub_variant_slugs];
       const raw = await fetch_slug_counts(website_id, start_at, now);
       metrics = aggregate_slug_metrics(raw, slugs);
     } catch {
@@ -75,13 +77,13 @@
 </script>
 
 <svelte:head>
-  <title>Sub-Variant Dashboard</title>
+  <title>Variant Dashboard</title>
   <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="dashboard">
   <div class="header-row">
-    <h1>Sub-Variant Dashboard</h1>
+    <h1>Variant Dashboard</h1>
     <div class="time-range">
       <label for="time-range">Period</label>
       <select id="time-range" value={time_range} onchange={on_range_change}>
@@ -91,6 +93,40 @@
       </select>
     </div>
   </div>
+
+  {#if data.variant_rows.length > 0}
+    <h2>Variants</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Variant</th>
+          <th>Role</th>
+          <th class="metric-header">Views</th>
+          <th class="metric-header">PDFs</th>
+          <th>Resume</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each data.variant_rows as row}
+          {@const pill = get_pill(row.name)}
+          <tr>
+            <td>
+              <span
+                class="pill"
+                style="background: {pill.bg}; color: {pill.text}; border-color: {pill.border};"
+              >{row.name}</span>
+            </td>
+            <td>{row.title}</td>
+            <td class="metric">{metric_cell(row.name, "resume_views")}</td>
+            <td class="metric">{metric_cell(row.name, "pdf_downloads")}</td>
+            <td><a href="/{row.name}">View</a></td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  {/if}
+
+  <h2>Sub-Variants</h2>
 
   {#if data.rows.length === 0}
     <p class="empty">No sub-variants found.</p>
@@ -168,6 +204,16 @@
     letter-spacing: 0.05em;
     color: #111827;
     margin: 0;
+  }
+
+  h2 {
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin: 1.5rem 0 0.5rem;
   }
 
   .time-range {
