@@ -134,6 +134,7 @@ export interface ResolvedResume {
   tagline?: string;
   online_callout?: string;
   online_url?: string;
+  online_qr_svg?: string;
   skills: Skill[];
   domains: Domain[];
   field_deployments: FieldDeployment[];

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Profile } from "$lib/types.js";
 
-  let { profile, heading, title, subtitle }: { profile: Profile; heading: string; title: string; subtitle: string } = $props();
+  let { profile, heading, title, subtitle, qr_svg }: { profile: Profile; heading: string; title: string; subtitle: string; qr_svg?: string } = $props();
 
   const initials = $derived(
     profile.name
@@ -16,6 +16,15 @@
   .retro-heading {
     font-family: var(--retro-heading-font);
   }
+
+  .qr-box :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .qr-box :global(path) {
+    stroke: var(--color-retro-muted) !important;
+  }
 </style>
 
 <!-- Title bar -->
@@ -25,11 +34,22 @@
       {heading}
 
       <div class="mt-1 flex flex-wrap items-center gap-2 text-lg md:flex-nowrap md:gap-4 md:text-2xl">
-        <div
-          class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:flex"
-        >
-          <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
-        </div>
+        {#if qr_svg}
+          <div
+            class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:hidden"
+          >
+            <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
+          </div>
+          <div class="qr-box hidden h-16 w-16 shrink-0 items-center justify-center p-1 print:flex">
+            {@html qr_svg}
+          </div>
+        {:else}
+          <div
+            class="hidden h-16 w-16 shrink-0 items-center justify-center border-2 border-double border-retro-accent bg-retro-navy-light md:flex print:flex"
+          >
+            <span class="retro-heading pl-0.5 text-xl text-retro-accent">{initials}</span>
+          </div>
+        {/if}
         <div>
           <span class="block font-bold text-retro-cream">{profile.name}</span>
           <span class="block text-retro-cream">{title}</span>

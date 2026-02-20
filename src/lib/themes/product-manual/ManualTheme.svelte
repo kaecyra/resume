@@ -27,7 +27,7 @@
     <div class="px-8 pb-8">
       <ManualSummary summary={resume.summary} tagline={resume.tagline} />
       {#if resume.online_callout && resume.online_url}
-        <OnlineCallout url={resume.online_url} text={resume.online_callout} />
+        <OnlineCallout url={resume.online_url} text={resume.online_callout} qr_svg={resume.online_qr_svg} />
       {/if}
       <ManualSkills skills={resume.skills} />
       {#if resume.domains.length > 0}

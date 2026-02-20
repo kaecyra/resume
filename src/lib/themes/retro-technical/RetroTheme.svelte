@@ -27,7 +27,7 @@
   <div
     class="mx-auto max-w-5xl border-2 border-retro-accent-dark bg-retro-parchment shadow-xl print:max-w-none print:border-none print:shadow-none print:bg-retro-parchment"
   >
-    <RetroHeader profile={resume.profile} heading="Technical Specifications Manual:" title={resume.title} subtitle="1984 Service Manual Supplement" />
+    <RetroHeader profile={resume.profile} heading="Technical Specifications Manual:" title={resume.title} subtitle="1984 Service Manual Supplement" qr_svg={resume.online_qr_svg} />
 
     <!-- Summary - full width -->
     <div class="bg-retro-paper p-4 md:p-6 print:p-6">
