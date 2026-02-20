@@ -1,7 +1,20 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
+  import {
+    fetch_slug_counts,
+    aggregate_slug_metrics,
+    compute_start_at,
+  } from "$lib/umami-api.js";
+  import type { TimeRange, MetricsMap, SlugMetrics } from "$lib/umami-api.js";
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+
+  let metrics: MetricsMap | null = $state(null);
+  let loading = $state(false);
+  let error_state = $state(false);
+  let time_range: TimeRange = $state("30d");
 
   function format_date(iso: string): string {
     return iso.slice(0, 10);
@@ -18,6 +31,47 @@
   function get_pill(parent: string) {
     return PILL_COLORS[parent] ?? FALLBACK_PILL;
   }
+
+  function metric_cell(slug: string, field: keyof SlugMetrics): string {
+    if (loading) return "\u2026";
+    if (error_state || !metrics) return "\u2014";
+    const entry = metrics.get(slug);
+    if (!entry) return "\u2014";
+    return String(entry[field]);
+  }
+
+  async function load_metrics() {
+    const website_id = data.umami_website_id;
+    if (!website_id) {
+      error_state = true;
+      return;
+    }
+
+    loading = true;
+    error_state = false;
+
+    try {
+      const now = Date.now();
+      const start_at = compute_start_at(time_range, now);
+      const slugs = data.rows.map((r) => r.slug);
+      const raw = await fetch_slug_counts(website_id, start_at, now);
+      metrics = aggregate_slug_metrics(raw, slugs);
+    } catch {
+      error_state = true;
+      metrics = null;
+    } finally {
+      loading = false;
+    }
+  }
+
+  function on_range_change(e: Event) {
+    time_range = (e.target as HTMLSelectElement).value as TimeRange;
+    load_metrics();
+  }
+
+  onMount(() => {
+    load_metrics();
+  });
 </script>
 
 <svelte:head>
@@ -26,7 +80,17 @@
 </svelte:head>
 
 <div class="dashboard">
-  <h1>Sub-Variant Dashboard</h1>
+  <div class="header-row">
+    <h1>Sub-Variant Dashboard</h1>
+    <div class="time-range">
+      <label for="time-range">Period</label>
+      <select id="time-range" value={time_range} onchange={on_range_change}>
+        <option value="7d">7 days</option>
+        <option value="30d">30 days</option>
+        <option value="all">All time</option>
+      </select>
+    </div>
+  </div>
 
   {#if data.rows.length === 0}
     <p class="empty">No sub-variants found.</p>
@@ -38,6 +102,9 @@
           <th>Parent</th>
           <th>Company</th>
           <th>Role</th>
+          <th class="metric-header">Views</th>
+          <th class="metric-header">Letters</th>
+          <th class="metric-header">PDFs</th>
           <th>Resume</th>
           <th>Letter</th>
           <th>Posting</th>
@@ -56,6 +123,9 @@
             </td>
             <td>{row.company}</td>
             <td>{row.title}</td>
+            <td class="metric">{metric_cell(row.slug, "resume_views")}</td>
+            <td class="metric">{metric_cell(row.slug, "letter_views")}</td>
+            <td class="metric">{metric_cell(row.slug, "pdf_downloads")}</td>
             <td><a href="/{row.parent}/{row.slug}">View</a></td>
             <td>
               {#if row.has_letter}
@@ -83,6 +153,13 @@
     color: #374151;
   }
 
+  .header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
   h1 {
     font-family: "Rajdhani", sans-serif;
     font-weight: 700;
@@ -90,7 +167,30 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #111827;
-    margin-bottom: 1.5rem;
+    margin: 0;
+  }
+
+  .time-range {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+  }
+
+  .time-range select {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #f9fafb;
+    color: #374151;
+    cursor: pointer;
   }
 
   .empty {
@@ -116,6 +216,10 @@
     border: 1px solid #e5e7eb;
   }
 
+  .metric-header {
+    text-align: right;
+  }
+
   td {
     padding: 0.5rem 0.75rem;
     border-bottom: 1px solid #e5e7eb;
@@ -125,6 +229,13 @@
     font-family: "Share Tech Mono", monospace;
     font-size: 0.8rem;
     color: #9ca3af;
+  }
+
+  .metric {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.8rem;
+    text-align: right;
+    color: #6b7280;
   }
 
   .pill {

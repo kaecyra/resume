@@ -9,6 +9,7 @@ services:
     environment:
       DASHBOARD_USER: ${DASHBOARD_USER:-}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+      UMAMI_API_TOKEN: ${UMAMI_API_TOKEN:-}
     ports:
       - "3000:80"
     restart: unless-stopped
