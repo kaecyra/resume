@@ -39,6 +39,10 @@ export const load: PageServerLoad = ({ params }) => {
     base_url, parent,
   );
 
+  if (resume.online_callout && og.url) {
+    resume.online_url = og.url;
+  }
+
   const person_jsonld = build_person_jsonld(resume.profile, resume.title, og.url);
   const webpage_jsonld = build_webpage_jsonld(og.title, og.description, og.url);
 
