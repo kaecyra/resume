@@ -40,6 +40,13 @@
     return String(entry[field]);
   }
 
+  function metric_highlight(slug: string, field: keyof SlugMetrics): string {
+    if (loading || error_state || !metrics) return "";
+    const entry = metrics.get(slug);
+    if (!entry) return "";
+    return entry[field] > 0 ? "metric-nonzero" : "metric-zero";
+  }
+
   async function load_metrics() {
     const website_id = data.umami_website_id;
     if (!website_id) {
@@ -97,6 +104,13 @@
   {#if data.variant_rows.length > 0}
     <h2>Variants</h2>
     <table>
+      <colgroup>
+        <col style="width: 15%">
+        <col>
+        <col style="width: var(--col-stat)">
+        <col style="width: var(--col-stat)">
+        <col style="width: var(--col-action)">
+      </colgroup>
       <thead>
         <tr>
           <th>Variant</th>
@@ -117,8 +131,8 @@
               >{row.name}</span>
             </td>
             <td>{row.title}</td>
-            <td class="metric">{metric_cell(row.name, "resume_views")}</td>
-            <td class="metric">{metric_cell(row.name, "pdf_downloads")}</td>
+            <td class="metric {metric_highlight(row.name, 'resume_views')}">{metric_cell(row.name, "resume_views")}</td>
+            <td class="metric {metric_highlight(row.name, 'pdf_downloads')}">{metric_cell(row.name, "pdf_downloads")}</td>
             <td><a href="/{row.name}">View</a></td>
           </tr>
         {/each}
@@ -132,6 +146,18 @@
     <p class="empty">No sub-variants found.</p>
   {:else}
     <table>
+      <colgroup>
+        <col style="width: 8%">
+        <col style="width: 7%">
+        <col style="width: 12%">
+        <col>
+        <col style="width: var(--col-stat)">
+        <col style="width: var(--col-stat)">
+        <col style="width: var(--col-stat)">
+        <col style="width: var(--col-action)">
+        <col style="width: var(--col-action)">
+        <col style="width: var(--col-action)">
+      </colgroup>
       <thead>
         <tr>
           <th>Date</th>
@@ -159,9 +185,9 @@
             </td>
             <td>{row.company}</td>
             <td>{row.title}</td>
-            <td class="metric">{metric_cell(row.slug, "resume_views")}</td>
-            <td class="metric">{metric_cell(row.slug, "letter_views")}</td>
-            <td class="metric">{metric_cell(row.slug, "pdf_downloads")}</td>
+            <td class="metric {metric_highlight(row.slug, 'resume_views')}">{metric_cell(row.slug, "resume_views")}</td>
+            <td class="metric {metric_highlight(row.slug, 'letter_views')}">{metric_cell(row.slug, "letter_views")}</td>
+            <td class="metric {metric_highlight(row.slug, 'pdf_downloads')}">{metric_cell(row.slug, "pdf_downloads")}</td>
             <td><a href="/{row.parent}/{row.slug}">View</a></td>
             <td>
               {#if row.has_letter}
@@ -244,8 +270,11 @@
   }
 
   table {
+    --col-stat: 5.5%;
+    --col-action: 6%;
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: 0.875rem;
   }
 
@@ -282,6 +311,15 @@
     font-size: 0.8rem;
     text-align: right;
     color: #6b7280;
+  }
+
+  .metric-nonzero {
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .metric-zero {
+    opacity: 0.4;
   }
 
   .pill {
