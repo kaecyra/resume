@@ -1,0 +1,102 @@
+parent: cto-a
+
+job:
+  url: "https://www.linkedin.com/jobs/view/4376060753/"
+  company: "RemoteHunter"
+  title: "Chief Technology & AI Officer"
+  fetched_at: "2026-02-24T12:00:00Z"
+
+title: "Chief Technology & AI Officer"
+
+summary: |
+  Technical executive who builds the systems — technical and organizational — that make AI-native
+  operations inevitable. Architected and delivered a real-time AI video processing platform from
+  concept through commercial validation (CES 2026, NVIDIA GTC 2026), while leading a 310-person
+  globally distributed engineering org through extreme volatility. Deep expertise in data governance,
+  security compliance (SOC2 from scratch), and infrastructure sovereignty — translating technical
+  vision into measurable business impact across multiple business units and acquisitions.
+
+tagline: |
+  **I build the technology and AI strategy required to scale without the bullshit.**
+
+skills:
+  - strategy
+  - executive_leadership
+  - solution_architecture
+  - software_engineering
+  - operational_innovation
+  - culture
+  - communication
+  - customer_experience
+
+cover_letter:
+  greeting: "Dear Hiring Team,"
+  body: |
+    I'm writing regarding the Chief Technology & AI Officer role. You're looking for someone who can own company-wide technology and AI strategy, design agentic operating models, establish data governance, and lead the cross-departmental workflow transformation that turns AI from a buzzword into an operational advantage. That's the work I've been doing — and I'd like to tell you why.
+
+    At .Monks, I lead a 310-person engineering org distributed across three continents. When I stepped in, the org was in turmoil following my predecessor's exit, with 30+ concurrent projects at risk. I stabilized the team through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized engineering resources to work and securing non-traditional Capex funding for DGX Spark infrastructure. I proved viability through a live demo at CES 2026 and earned an invited presentation at NVIDIA GTC 2026. That's what it looks like when a technology leader doesn't just talk about AI strategy — they build it, validate it, and present it to the world.
+
+    The role calls for someone who can determine which decisions should be automated versus human-directed, and who can architect AI agents across departments. I've been making exactly those calls — designing the operating models that decide where AI adds leverage and where it doesn't. My staffing automation work replaced ad-hoc spreadsheets with a data-driven system that generates finance-ready reporting automatically, a practical example of identifying workflow bottlenecks and deploying intelligent automation where it actually matters.
+
+    On data governance and compliance: I built an Infosec organization from scratch at Vanilla Forums, achieving SOC2 compliance and transforming security from a cost center into a sales lever that unlocked the Fortune 500 market. I've scaled infrastructure across four data centers with a private-cloud-first strategy that maintained fiscal sovereignty. Post-acquisition at Higher Logic, I led the modernization of five global platforms, standardizing engineering practices and de-risking single-point-of-failure architectures. I understand the compliance, security, and governance frameworks that underpin responsible AI deployment.
+
+    I've spent my career at the intersection of technology strategy and organizational scaling — from a first-employee SaaS startup through profitable acquisition, to stabilizing a 300+ person global engineering org. I'd welcome the chance to discuss how that experience maps to what you need in a CTAO.
+  closing: "Best regards,"
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      and EMEA during extreme organizational volatility. Owns company-wide technology
+      strategy including the design and delivery of AI-native platforms. Architected
+      agentic automation for internal operations while stabilizing 30+ concurrent
+      projects through radical transparency and data-driven decision-making.
+    highlights:
+      - title: "AI Platform Architecture & Validation"
+        description: |
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, from concept through commercial validation.
+          Secured Capex for DGX Spark/Lenovo Neo infrastructure, proved viability
+          via a live CES 2026 Foundry demo, and earned an invited session at
+          NVIDIA GTC 2026.
+
+      - title: "Operational Automation & Data-Driven Decision Systems"
+        description: |
+          Engineered a data-driven staffing and margin system that replaced
+          ad-hoc processes with automated, finance-ready reporting — a practical
+          deployment of intelligent automation that forced budgetary alignment
+          between Sales and Delivery across 30+ concurrent engagements.
+
+      - title: "Organizational Stabilization Across Business Units"
+        description: |
+          Maintained 90%+ retention of critical SMEs across three continents
+          through radical transparency during corporate restructuring. Built a
+          searchable talent database and pre-sales SME program that gave senior
+          engineers direct influence on Enterprise deal flow.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR. Built the
+      cross-functional organizational infrastructure — Engineering, InfoSec, CX — from
+      scratch, including data governance and compliance frameworks. Led the organization
+      through a profitable acquisition while maintaining infrastructure sovereignty.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the complete organizational infrastructure
+          required for a profitable acquisition — scaling engineering, CX,
+          and Infosec teams from inception through exit.
+
+      - title: "Security, Compliance & Data Governance"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, establishing the data governance and security frameworks
+          that transformed compliance from a cost center into a competitive
+          advantage unlocking the Fortune 500 market.
+
+      - title: "Infrastructure Sovereignty"
+        description: |
+          Scaled the global footprint from one to four data centers including
+          EU expansion. Used a private-cloud-first strategy to maintain higher
+          utilization and lower overhead than public cloud alternatives,
+          ensuring full data sovereignty and fiscal control.
