@@ -11,7 +11,7 @@ title: "Chief Technology & AI Officer"
 summary: |
   Technical executive who builds the systems — technical and organizational — that make AI-native
   operations inevitable. Architected and delivered a real-time AI video processing platform from
-  concept through commercial validation (CES 2026, NVIDIA GTC 2026), while leading a 310-person
+  concept through commercial validation (CES 2026, NVIDIA GTC 2026), while leading a 300-person
   globally distributed engineering org through extreme volatility. Deep expertise in data governance,
   security compliance (SOC2 from scratch), and infrastructure sovereignty — translating technical
   vision into measurable business impact across multiple business units and acquisitions.
@@ -34,7 +34,7 @@ cover_letter:
   body: |
     I'm writing regarding the Chief Technology & AI Officer role. You're looking for someone who can own company-wide technology and AI strategy, design agentic operating models, establish data governance, and lead the cross-departmental workflow transformation that turns AI from a buzzword into an operational advantage. That's the work I've been doing — and I'd like to tell you why.
 
-    At .Monks, I lead a 310-person engineering org distributed across three continents. When I stepped in, the org was in turmoil following my predecessor's exit, with 30+ concurrent projects at risk. I stabilized the team through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized engineering resources to work and securing non-traditional Capex funding for DGX Spark infrastructure. I proved viability through a live demo at CES 2026 and earned an invited presentation at NVIDIA GTC 2026. That's what it looks like when a technology leader doesn't just talk about AI strategy — they build it, validate it, and present it to the world.
+    At .Monks, I lead a 300-person engineering org distributed across three continents. When I stepped in, the org was in turmoil following my predecessor's exit, with 30+ concurrent projects at risk. I stabilized the team through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized engineering resources to work and securing non-traditional Capex funding for DGX Spark infrastructure. I proved viability through a live demo at CES 2026 and earned an invited presentation at NVIDIA GTC 2026. That's what it looks like when a technology leader doesn't just talk about AI strategy — they build it, validate it, and present it to the world.
 
     The role calls for someone who can determine which decisions should be automated versus human-directed, and who can architect AI agents across departments. I've been making exactly those calls — designing the operating models that decide where AI adds leverage and where it doesn't. My staffing automation work replaced ad-hoc spreadsheets with a data-driven system that generates finance-ready reporting automatically, a practical example of identifying workflow bottlenecks and deploying intelligent automation where it actually matters.
 
@@ -46,7 +46,7 @@ cover_letter:
 employment_overrides:
   - id: monks-vpe
     summary: |
-      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      Leading a globally distributed 300-person engineering org spanning NA, LATAM,
       and EMEA during extreme organizational volatility. Owns company-wide technology
       strategy including the design and delivery of AI-native platforms. Architected
       agentic automation for internal operations while stabilizing 30+ concurrent

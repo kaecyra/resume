@@ -36,7 +36,7 @@ cover_letter:
 
     At Vanilla Forums, I built the SaaS product engineering organization from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and hired and developed the engineering team that operated them — from the first engineer through a profitable acquisition by Higher Logic. That journey took us from $0 to $10M ARR and required building everything: the platform, the teams, the leadership layers, the compliance programs (SOC2 from scratch), and the cross-functional operational infrastructure that made sustained growth possible. Post-acquisition, I led the modernization of legacy infrastructure across five global platforms, transitioning manual deployments to automated blue/green pipelines and de-risking single-point-of-failure architectures.
 
-    At .Monks, I lead a 310-person engineering org distributed across North America, Latin America, and EMEA — managing through directors and senior managers across 30+ concurrent engagements. I own the operational frameworks: I built a data-driven staffing and margin system that replaced spreadsheets with automated, finance-ready reporting, deployed a searchable talent database for resource allocation, and stood up a pre-sales SME program that gave senior engineers direct influence on deal flow. I understand what it means to own an engineering P&L and make the numbers work across geographies.
+    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA — managing through directors and senior managers across 30+ concurrent engagements. I own the operational frameworks: I built a data-driven staffing and margin system that replaced spreadsheets with automated, finance-ready reporting, deployed a searchable talent database for resource allocation, and stood up a pre-sales SME program that gave senior engineers direct influence on deal flow. I understand what it means to own an engineering P&L and make the numbers work across geographies.
 
     On the technical side, I remain hands-on. I architected LiveVision, an AI-powered real-time video processing platform, and presented the architecture at NVIDIA GTC 2026. I engage in architectural reviews, drive technical standards, and maintain the credibility with senior engineers that comes from having built real systems at scale. The player-coach model isn't aspirational for me — it's how I've operated for over a decade.
 
@@ -46,7 +46,7 @@ cover_letter:
 employment_overrides:
   - id: monks-vpe
     summary: |
-      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      Leading a globally distributed 300-person engineering org spanning NA, LATAM,
       and EMEA, managing through directors and senior managers across 30+ concurrent
       engagements. Owns operational frameworks including staffing, margin, and delivery
       systems. Hands-on technical leader who architected an AI-native platform while
