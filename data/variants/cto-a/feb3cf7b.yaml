@@ -54,7 +54,7 @@ cover_letter:
 
     I'm also a long-time open-source contributor. I served as a core contributor to the Vanilla Forums open-source ecosystem, working on the security, extensibility, and performance of a platform powering thousands of global communities. I understand the dynamics of maintaining widely-used APIs, balancing contributor community needs with product direction, and establishing design and quality standards that hold up as the contributor base grows.
 
-    At .Monks, I lead a 310-person engineering org across NA, LATAM, and EMEA — managing through directors and senior managers. I've built the organizational systems for operating at that scale: staffing frameworks, margin models, talent databases, pre-sales technical authority programs. But I remain a player-coach at heart. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — and then presented the architecture at NVIDIA GTC 2026. I stay close to the technical work because that's where sound decision-making originates.
+    At .Monks, I lead a 300-person engineering org across NA, LATAM, and EMEA — managing through directors and senior managers. I've built the organizational systems for operating at that scale: staffing frameworks, margin models, talent databases, pre-sales technical authority programs. But I remain a player-coach at heart. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — and then presented the architecture at NVIDIA GTC 2026. I stay close to the technical work because that's where sound decision-making originates.
 
     I'd welcome the opportunity to discuss how this experience maps to what Anyscale needs for Ray Core's next chapter.
   closing: "Best regards,"
@@ -62,7 +62,7 @@ cover_letter:
 employment_overrides:
   - id: monks-vpe
     summary: |
-      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      Leading a globally distributed 300-person engineering org spanning NA, LATAM,
       and EMEA, managing through directors and senior managers. Player-coach who
       architected an AI-native platform (LiveVision) hands-on while building the
       organizational systems — staffing frameworks, operational tooling, talent
@@ -79,7 +79,7 @@ employment_overrides:
 
       - title: "Engineering Organization at Scale"
         description: |
-          Assumed leadership of a 310-person engineering org during extreme
+          Assumed leadership of a 300-person engineering org during extreme
           corporate volatility. Maintained 90%+ retention of critical SMEs
           across three continents through radical transparency. Built a
           searchable talent database and pre-sales SME program that gave

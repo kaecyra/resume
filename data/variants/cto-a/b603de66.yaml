@@ -10,7 +10,7 @@ title: "Chief Technology Officer"
 
 summary: |
   Technical executive who builds the systems — technical and organizational — that make
-  high-performance delivery inevitable. Led a 310-person globally distributed engineering org
+  high-performance delivery inevitable. Led a 300-person globally distributed engineering org
   through extreme volatility while architecting and validating an AI-native platform (CES 2026,
   NVIDIA GTC 2026). Deep experience productizing repeatable technical assets within a services P&L,
   standing up pre-sales engineering programs, and scaling open-source-rooted organizations from
@@ -34,7 +34,7 @@ cover_letter:
   body: |
     I'm writing about the CTO role at XWP. You need someone who can set enterprise technical standards, lead an AI transformation, serve as the technical authority in client engagements, and mentor engineering leadership — all within an open-source-rooted, fully remote organization. That's the work I've been doing for over a decade, and I'd like to explain why I think the fit is strong.
 
-    At .Monks, I lead a 310-person engineering org distributed across NA, LATAM, and EMEA. When I stepped in, the org was destabilized following my predecessor's exit with 30+ concurrent projects at risk. I stabilized through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized bench resources to work and securing non-traditional Capex funding. I validated it through a live demo at CES 2026 and an invited presentation at NVIDIA GTC 2026. That's what AI strategy looks like when a CTO actually builds things instead of commissioning slide decks.
+    At .Monks, I lead a 300-person engineering org distributed across NA, LATAM, and EMEA. When I stepped in, the org was destabilized following my predecessor's exit with 30+ concurrent projects at risk. I stabilized through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized bench resources to work and securing non-traditional Capex funding. I validated it through a live demo at CES 2026 and an invited presentation at NVIDIA GTC 2026. That's what AI strategy looks like when a CTO actually builds things instead of commissioning slide decks.
 
     The role calls for someone who can define service offerings, contribute to solutioning and estimation, and serve as the technical authority in sales engagements. I stood up a pre-sales SME program that gave the sales team direct access to deep technical authority, compressing sales cycles and landing high-complexity Enterprise deals. I've also productized repeatable technical assets from within a services P&L — turning internal capability into defensible revenue streams rather than treating every engagement as a bespoke build.
 
@@ -46,7 +46,7 @@ cover_letter:
 employment_overrides:
   - id: monks-vpe
     summary: |
-      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      Leading a globally distributed 300-person engineering org spanning NA, LATAM,
       and EMEA during extreme organizational volatility. Owns company-wide technology
       strategy including AI-native platform development. Serves as senior technical
       authority in pre-sales engagements while stabilizing 30+ concurrent projects

@@ -45,7 +45,7 @@ cover_letter:
 
     The technical work was hands-on and stayed that way. I built a proprietary agent-based provisioning and monitoring system, executed a strategic cloud repatriation from public to private infrastructure to reclaim performance margins, and maintained direct architectural oversight as the platform scaled to support thousands of concurrent tenant workloads across multiple regions. I know what it means to be a player-coach CTO because I've been one — the kind who reviews RFCs in the morning and presents to the board in the afternoon.
 
-    At .Monks, I lead a 310-person engineering org distributed across NA, LATAM, and EMEA. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — then validated it through a live CES 2026 Foundry demo and an invited architecture session at NVIDIA GTC 2026. In parallel, I built the data-driven operational systems that replaced ad-hoc processes with automated staffing, margin, and delivery frameworks across 30+ concurrent engagements. I understand what it takes to build and ship ML-powered products with real commercial outcomes, not just proofs of concept.
+    At .Monks, I lead a 300-person engineering org distributed across NA, LATAM, and EMEA. I architected LiveVision, an AI-powered real-time video processing platform, hands-on — designing the edge-broadcast pipeline and model inference orchestration — then validated it through a live CES 2026 Foundry demo and an invited architecture session at NVIDIA GTC 2026. In parallel, I built the data-driven operational systems that replaced ad-hoc processes with automated staffing, margin, and delivery frameworks across 30+ concurrent engagements. I understand what it takes to build and ship ML-powered products with real commercial outcomes, not just proofs of concept.
 
     On the distributed team front: I've built and led remote-first engineering cultures spanning multiple continents, time zones, and working cultures for over a decade. I designed async-first communication norms, timezone-equitable practices, and documentation-driven decision processes that create cohesion without demanding conformity. Retaining talent across 15+ nationalities during periods of extreme organizational change is something I've done — not something I theorize about.
 
@@ -55,7 +55,7 @@ cover_letter:
 employment_overrides:
   - id: monks-vpe
     summary: |
-      Stepped into global leadership of a 310-person engineering org distributed across
+      Stepped into global leadership of a 300-person engineering org distributed across
       NA, LATAM, and EMEA during extreme organizational volatility. Stabilized retention
       of critical senior talent, stood up an AI-native product capability with commercial
       validation, and built the data-driven operational frameworks required to manage
