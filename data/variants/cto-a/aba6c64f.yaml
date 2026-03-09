@@ -1,0 +1,123 @@
+parent: cto-a
+
+job:
+  url: "https://www.linkedin.com/jobs/view/4379206951"
+  company: "Viral Nation"
+  title: "VP, Engineering"
+  fetched_at: "2026-03-09T13:00:00Z"
+
+title: "Vice President of Engineering"
+
+summary: |
+  Engineering executive who builds and scales globally distributed product engineering
+  organizations. Led a 300-person engineering org across three continents while architecting
+  data-driven operational systems that replaced guesswork with measurable delivery metrics.
+  Deep SaaS platform experience from first commit through profitable acquisition, with a
+  track record of balancing feature velocity against technical debt and maintaining quality
+  standards at scale.
+
+tagline: |
+  **I build the engineering organizations required to scale without the bullshit.**
+
+skills:
+  - strategy
+  - executive_leadership
+  - solution_architecture
+  - software_engineering
+  - operational_innovation
+  - culture
+  - communication
+  - customer_experience
+
+cover_letter:
+  greeting: "Dear Viral Nation Hiring Team,"
+  body: |
+    I'm writing about the VP of Engineering role. You need someone who can lead distributed engineering teams, drive technical strategy across product development, and build the measurement and quality systems that keep velocity high without letting technical debt compound silently. That's the work I've spent the last decade doing, and I'd like to explain why the fit makes sense.
+
+    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA — managing through directors and senior managers across 30+ concurrent engagements. When I stepped in, the org was destabilized and I had no reliable way to measure engineering capacity or delivery health. I built a data-driven staffing and margin system that replaced ad-hoc processes with automated, finance-ready reporting — giving leadership clear sightlines into utilization, delivery risk, and budget alignment. I also deployed a searchable talent database to match engineering skills to project needs, which is exactly the kind of resource allocation discipline a multi-product engineering org requires.
+
+    Before .Monks, I spent nearly a decade at Vanilla Forums building a SaaS platform from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and scaled from a single server to four data centers across North America and the EU. I hired and developed the engineering teams that operated it all — from the first engineer through a profitable acquisition by Higher Logic at $10M ARR. That journey required building everything: the platform, the teams, the quality standards, the security program (SOC2 from scratch), and the operational infrastructure that let us ship reliably while managing technical debt against a growing feature backlog.
+
+    The cross-functional dimension is central to how I operate. I've co-owned technical roadmaps with product and business leadership throughout my career — at Vanilla through the COO role, and at .Monks through a pre-sales SME program that embedded senior engineers directly into the sales cycle. I understand the tension between feature delivery and platform health, and I build the systems that make those tradeoffs visible and data-driven rather than political.
+
+    I'm based in the Montreal area, which makes the Hudson location a natural fit. I'd welcome the conversation about how this experience maps to what Viral Nation needs.
+  closing: "Best regards,"
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Leading a globally distributed 300-person engineering org spanning NA, LATAM,
+      and EMEA, managing through directors and senior managers across 30+ concurrent
+      engagements. Built data-driven operational systems for measuring engineering
+      performance, capacity planning, and delivery health — replacing ad-hoc processes
+      with automated, measurable frameworks.
+    highlights:
+      - title: "Engineering Performance & Delivery Measurement"
+        description: |
+          Engineered a data-driven staffing and margin system that replaced
+          ad-hoc processes with automated, finance-ready reporting — giving
+          leadership clear sightlines into utilization, delivery risk, and
+          budget alignment across 30+ concurrent engagements.
+
+      - title: "AI Product Innovation"
+        description: |
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, from concept through commercial validation.
+          Secured Capex for DGX Spark/Lenovo Neo infrastructure, proved viability
+          via a live CES 2026 Foundry demo, and earned an invited session at
+          NVIDIA GTC 2026.
+
+      - title: "Talent Systems & Resource Allocation"
+        description: |
+          Deployed a searchable talent database and pre-sales SME program,
+          enabling data-driven resource allocation and giving senior engineers
+          direct influence on Enterprise deal flow.
+
+      - title: "Organizational Stabilization"
+        description: |
+          Maintained 90%+ retention of critical SMEs across three continents
+          through radical transparency during corporate restructuring.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR at a SaaS platform
+      company. Built cross-functional organizational infrastructure — Engineering, InfoSec,
+      CX — from scratch while co-owning the product and technical roadmap. Led the
+      organization through a profitable acquisition.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the complete organizational infrastructure
+          required for a profitable acquisition — scaling engineering, CX,
+          and Infosec teams from inception through exit.
+
+      - title: "Security & Compliance"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, moving security from a cost center to a competitive
+          advantage that unlocked the Fortune 500 market.
+
+      - title: "Infrastructure at Scale"
+        description: |
+          Scaled the global footprint from one to four data centers including
+          EU expansion. Used a private-cloud-first strategy to maintain higher
+          utilization and lower overhead than public cloud alternatives.
+
+  - id: vanilla-vpo
+    summary: |
+      Designed and built the foundational multi-tenant SaaS architecture from the
+      ground up — the hosting platform, provisioning systems, and monitoring
+      infrastructure that powered the core product. Balanced feature delivery with
+      platform reliability across a growing engineering team.
+    highlights:
+      - title: "SaaS Platform Engineering"
+        description: |
+          Conceived, designed, and implemented the multi-tenant SaaS hosting
+          architecture that powered Vanilla's core offering.
+
+      - title: "Observability & Quality Systems"
+        description: |
+          Developed a proprietary agent-based provisioning and monitoring
+          system, establishing a "single pane of glass" observability culture
+          that enabled high-availability across multi-provider and multi-region
+          deployments.
