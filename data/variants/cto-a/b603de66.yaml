@@ -1,0 +1,106 @@
+parent: cto-a
+
+job:
+  url: "https://www.linkedin.com/jobs/view/4382931623"
+  company: "XWP"
+  title: "Chief Technology Officer"
+  fetched_at: "2026-03-09T12:00:00Z"
+
+title: "Chief Technology Officer"
+
+summary: |
+  Technical executive who builds the systems — technical and organizational — that make
+  high-performance delivery inevitable. Led a 310-person globally distributed engineering org
+  through extreme volatility while architecting and validating an AI-native platform (CES 2026,
+  NVIDIA GTC 2026). Deep experience productizing repeatable technical assets within a services P&L,
+  standing up pre-sales engineering programs, and scaling open-source-rooted organizations from
+  startup through profitable acquisition.
+
+tagline: |
+  **I provide the technical leadership required to scale without the bullshit.**
+
+skills:
+  - strategy
+  - executive_leadership
+  - solution_architecture
+  - software_engineering
+  - operational_innovation
+  - culture
+  - communication
+  - customer_experience
+
+cover_letter:
+  greeting: "Dear Hiring Team,"
+  body: |
+    I'm writing about the CTO role at XWP. You need someone who can set enterprise technical standards, lead an AI transformation, serve as the technical authority in client engagements, and mentor engineering leadership — all within an open-source-rooted, fully remote organization. That's the work I've been doing for over a decade, and I'd like to explain why I think the fit is strong.
+
+    At .Monks, I lead a 310-person engineering org distributed across NA, LATAM, and EMEA. When I stepped in, the org was destabilized following my predecessor's exit with 30+ concurrent projects at risk. I stabilized through radical transparency and data-driven resource management, maintaining 90%+ retention of critical talent. Then I went on offense: I architected LiveVision, an AI-powered real-time video processing platform, by putting underutilized bench resources to work and securing non-traditional Capex funding. I validated it through a live demo at CES 2026 and an invited presentation at NVIDIA GTC 2026. That's what AI strategy looks like when a CTO actually builds things instead of commissioning slide decks.
+
+    The role calls for someone who can define service offerings, contribute to solutioning and estimation, and serve as the technical authority in sales engagements. I stood up a pre-sales SME program that gave the sales team direct access to deep technical authority, compressing sales cycles and landing high-complexity Enterprise deals. I've also productized repeatable technical assets from within a services P&L — turning internal capability into defensible revenue streams rather than treating every engagement as a bespoke build.
+
+    My open-source roots run deep — and they share DNA with WordPress. I was the first employee at Vanilla Forums, an open-source PHP platform with the same architectural bones: plugin/extension ecosystems, theme layers, multi-tenant hosting at scale, and a global community of contributors who care deeply about the open web. I spent nearly a decade scaling Vanilla from zero to $10M ARR through a profitable acquisition. I built the multi-tenant SaaS architecture, the Infosec program (SOC2 from scratch), and scaled infrastructure across four data centers with a private-cloud-first strategy. Post-acquisition at Higher Logic, I led the modernization of five global platforms, transitioning legacy stacks to automated deployment pipelines and de-risking single-point-of-failure architectures. The enterprise challenges — performance at scale, security compliance, plugin architecture governance, reliable multi-tenant hosting — are the same problems, on the same foundation.
+
+    I'd welcome the conversation about how that experience translates to what XWP is building.
+  closing: "Best regards,"
+
+employment_overrides:
+  - id: monks-vpe
+    summary: |
+      Leading a globally distributed 310-person engineering org spanning NA, LATAM,
+      and EMEA during extreme organizational volatility. Owns company-wide technology
+      strategy including AI-native platform development. Serves as senior technical
+      authority in pre-sales engagements while stabilizing 30+ concurrent projects
+      through radical transparency and data-driven decision-making.
+    highlights:
+      - title: "AI Platform Architecture & Commercial Validation"
+        description: |
+          Architected and delivered LiveVision, an AI-powered real-time video
+          processing platform, from concept through commercial validation.
+          Secured Capex for DGX Spark/Lenovo Neo infrastructure, proved viability
+          via a live CES 2026 Foundry demo, and earned an invited session at
+          NVIDIA GTC 2026.
+
+      - title: "Pre-Sales Technical Authority & Revenue Support"
+        description: |
+          Stood up a pre-sales SME program giving the sales team direct access
+          to deep technical authority. Compressed sales cycles and secured
+          high-complexity Enterprise deals by translating engineering capability
+          into defensible delivery roadmaps.
+
+      - title: "Operational Automation & Staffing Intelligence"
+        description: |
+          Engineered a data-driven staffing and margin system that replaced
+          ad-hoc processes with automated, finance-ready reporting — forcing
+          architectural and budgetary alignment between Sales and Delivery
+          across 30+ concurrent engagements.
+
+      - title: "Organizational Stabilization"
+        description: |
+          Maintained 90%+ retention of critical SMEs across three continents
+          through radical transparency during corporate restructuring. Deployed
+          a searchable talent database to match expertise to engagement needs.
+
+  - id: vanilla-coo
+    summary: |
+      Scaling and Operations lead on the journey from $0 to $10M ARR at an open-source
+      community platform company. Architected the cross-functional organizational
+      infrastructure — Engineering, InfoSec, CX — required to sustain high growth,
+      eventually leading the organization through a profitable acquisition.
+    highlights:
+      - title: "Organizational Scaling ($0 to $10M ARR)"
+        description: |
+          Designed and executed the complete organizational infrastructure
+          required for a profitable acquisition — scaling engineering, CX,
+          and Infosec teams from inception through exit.
+
+      - title: "Security as a Sales Lever"
+        description: |
+          Built the Infosec organization from scratch and achieved SOC2
+          compliance, moving security from a cost center to a competitive
+          advantage that unlocked the Fortune 500 market.
+
+      - title: "Infrastructure Sovereignty"
+        description: |
+          Scaled the global footprint from one to four data centers including
+          EU expansion. Used a private-cloud-first strategy to maintain higher
+          utilization and lower overhead than public cloud alternatives.
