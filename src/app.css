@@ -14,6 +14,13 @@
   --color-retro-paper: #faf9f7;
   --color-retro-tan: #a07850;
   --color-retro-active: #2a9d8f;
+
+  --color-clean-ink: #1c1c1e;
+  --color-clean-page: #ffffff;
+  --color-clean-accent: #d4652a;
+  --color-clean-secondary: #6b7280;
+  --color-clean-rule: #e5e7eb;
+  --color-clean-active: #2a9d8f;
 }
 
 *:focus-visible {

@@ -16,6 +16,11 @@ describe("get_theme", () => {
     expect(theme).toBeDefined();
   });
 
+  it("returns a component for retro-clean", () => {
+    const theme = get_theme("retro-clean");
+    expect(theme).toBeDefined();
+  });
+
   it("throws for unknown theme name", () => {
     expect(() => get_theme("nonexistent")).toThrow('Unknown theme: "nonexistent"');
   });

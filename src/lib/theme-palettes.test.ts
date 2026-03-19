@@ -13,6 +13,10 @@ describe("get_theme_palette", () => {
     expect(get_theme_palette("product-manual")).toBe(THEME_PALETTES["product-manual"]);
   });
 
+  it("returns retro-clean palette for retro-clean theme", () => {
+    expect(get_theme_palette("retro-clean")).toBe(THEME_PALETTES["retro-clean"]);
+  });
+
   it("falls back to classic palette for unknown theme", () => {
     expect(get_theme_palette("nonexistent")).toBe(THEME_PALETTES["classic"]);
   });
