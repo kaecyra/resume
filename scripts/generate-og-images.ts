@@ -24,7 +24,7 @@ async function generate_og_images(): Promise<void> {
 
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 630 });
-      await page.goto(url, { waitUntil: "networkidle0" });
+      await page.goto(url, { waitUntil: "networkidle2" });
       await page.screenshot({ path: output_path, type: "png" });
       await page.close();
 
@@ -35,4 +35,7 @@ async function generate_og_images(): Promise<void> {
   }
 }
 
-generate_og_images();
+generate_og_images().catch((err) => {
+  console.error("Failed to generate OG images:", err);
+  process.exit(1);
+});

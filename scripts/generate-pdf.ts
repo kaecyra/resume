@@ -100,7 +100,7 @@ async function generate_pdf(): Promise<void> {
 
       const page = await browser.newPage();
       await page.setViewport({ width: 816, height: 1056 });
-      await page.goto(target.url, { waitUntil: "networkidle0" });
+      await page.goto(target.url, { waitUntil: "networkidle2" });
 
       const content_height = await page.evaluate(
         () => document.documentElement.scrollHeight,
@@ -131,4 +131,7 @@ async function generate_pdf(): Promise<void> {
   }
 }
 
-generate_pdf();
+generate_pdf().catch((err) => {
+  console.error("Failed to generate PDFs:", err);
+  process.exit(1);
+});
