@@ -33,8 +33,8 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
     secondary: "#57534e",
   },
   "retro-clean": {
-    background: "#ffffff",
-    page_background: "#ffffff",
+    background: "#faf8f5",
+    page_background: "#faf8f5",
     content_width: "56rem",
     accent: "#d4652a",
     text: "#1c1c1e",

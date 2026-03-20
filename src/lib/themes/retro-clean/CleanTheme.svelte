@@ -17,16 +17,25 @@
 
 <svelte:head>
   <style>
-    body { background-color: #ffffff; }
+    body { background-color: #faf8f5; }
   </style>
 </svelte:head>
+
+<!-- SVG noise filter for subtle paper texture -->
+<svg class="hidden" aria-hidden="true">
+  <filter id="paper-grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" />
+    <feColorMatrix type="saturate" values="0" />
+    <feBlend in="SourceGraphic" mode="multiply" />
+  </filter>
+</svg>
 
 <main
   id="main-content"
   class="min-h-screen pb-4 md:pb-10 print:min-h-0 print:py-0"
   style="--retro-heading-font: 'Rajdhani', sans-serif; --retro-body-font: 'IBM Plex Sans', system-ui, sans-serif; font-family: var(--retro-body-font);"
 >
-  <div class="mx-auto max-w-4xl bg-clean-page print:max-w-none">
+  <div class="clean-paper mx-auto max-w-4xl print:max-w-none">
     <CleanHeader profile={resume.profile} title={resume.title} qr_svg={resume.online_qr_svg} />
 
     <div class="flex flex-col gap-8 pb-8">
@@ -69,3 +78,28 @@
     <CleanFooter contact={resume.profile.contact} />
   </div>
 </main>
+
+<style>
+  .clean-paper {
+    position: relative;
+    background-color: #faf8f5;
+  }
+
+  .clean-paper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    filter: url(#paper-grain);
+    opacity: 0.03;
+    pointer-events: none;
+  }
+
+  @media print {
+    .clean-paper {
+      background-color: transparent;
+    }
+    .clean-paper::after {
+      display: none;
+    }
+  }
+</style>
