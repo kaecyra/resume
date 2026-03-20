@@ -31,7 +31,7 @@ async function generate_apple_touch_icon(): Promise<void> {
       </html>
     `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
     await page.screenshot({ path: output_path, type: "png" });
     await page.close();
 
@@ -41,4 +41,7 @@ async function generate_apple_touch_icon(): Promise<void> {
   }
 }
 
-generate_apple_touch_icon();
+generate_apple_touch_icon().catch((err) => {
+  console.error("Failed to generate apple touch icon:", err);
+  process.exit(1);
+});
