@@ -1,4 +1,4 @@
-import puppeteer, { type Page } from "puppeteer";
+import puppeteer from "puppeteer";
 import { PDFDocument } from "pdf-lib";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -17,16 +17,8 @@ import type { ResolvedResume } from "../src/lib/types.js";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
 
-async function block_external_requests(page: Page): Promise<void> {
-  await page.setRequestInterception(true);
-  page.on("request", (req) => {
-    const url = req.url();
-    if (url.startsWith(BASE_URL) || url.startsWith("data:")) {
-      req.continue();
-    } else {
-      req.abort();
-    }
-  });
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 interface PdfMetadata {
@@ -111,9 +103,17 @@ async function generate_pdf(): Promise<void> {
       mkdirSync(dirname(target.output_path), { recursive: true });
 
       const page = await browser.newPage();
-      await block_external_requests(page);
+      await page.setRequestInterception(true);
+      page.on("request", (req) => {
+        if (req.url().startsWith(BASE_URL) || req.url().startsWith("data:")) {
+          req.continue();
+        } else {
+          req.abort();
+        }
+      });
       await page.setViewport({ width: 816, height: 1056 });
-      await page.goto(target.url, { waitUntil: "networkidle0" });
+      await page.goto(target.url, { waitUntil: "load" });
+      await delay(500);
 
       const content_height = await page.evaluate(
         () => document.documentElement.scrollHeight,
