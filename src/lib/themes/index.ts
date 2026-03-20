@@ -7,6 +7,8 @@ import ManualTheme from "./product-manual/ManualTheme.svelte";
 import ManualCoverLetter from "./product-manual/ManualCoverLetter.svelte";
 import RetroTheme from "./retro-technical/RetroTheme.svelte";
 import RetroCoverLetter from "./retro-technical/RetroCoverLetter.svelte";
+import CleanTheme from "./retro-clean/CleanTheme.svelte";
+import CleanCoverLetter from "./retro-clean/CleanCoverLetter.svelte";
 
 interface ThemeProps {
   resume: ResolvedResume;
@@ -28,6 +30,7 @@ const THEMES: Record<string, ThemeEntry> = {
   classic: { component: ClassicTheme, cover_letter: ClassicCoverLetter },
   "product-manual": { component: ManualTheme, cover_letter: ManualCoverLetter },
   "retro-technical": { component: RetroTheme, cover_letter: RetroCoverLetter },
+  "retro-clean": { component: CleanTheme, cover_letter: CleanCoverLetter },
 };
 
 function resolve_theme(name: string): ThemeEntry {

@@ -1,4 +1,4 @@
-parent: cto-a
+parent: default
 
 job:
   url: "https://www.linkedin.com/jobs/view/4361659347"
@@ -9,7 +9,7 @@ job:
 title: "Vice President of Engineering"
 
 summary: |
-  Engineering executive who has scaled SaaS organizations through every growth phase — from
+  Engineering executive who has scaled SaaS organizations through every growth phase, from
   first engineer through profitable acquisition at $10M ARR. Built compliance programs (SOC2
   from scratch), multi-tenant cloud architecture, and AI-native product capabilities while
   managing operating metrics across uptime, velocity, quality, and cost. Leads through managers
@@ -34,13 +34,13 @@ cover_letter:
   body: |
     I'm writing about the VP of Software Engineering role. You need someone who can scale a high-performing engineering organization through Series A-C growth, partner with Product on roadmap execution, manage operating metrics with discipline, maintain SOC2/ISO compliance maturity, and bring AI strategy from concept to production. That's the trajectory of my career, and the fit is direct enough that I want to walk you through it.
 
-    At Vanilla Forums, I was the first employee after the founders. Over nearly a decade I built the entire SaaS engineering organization from scratch — the multi-tenant cloud architecture, the provisioning and monitoring systems, and the teams that operated them. I scaled the company from $0 to $10M ARR through a profitable acquisition by Higher Logic. That journey required building everything CoLab is building now: the engineering team, the leadership layers, the compliance programs, and the operational infrastructure that lets you ship fast without breaking things. I built our Infosec organization from zero and achieved SOC2 compliance, which transformed security from a cost center into a competitive advantage that unlocked Fortune 500 enterprise deals. I know what compliance maturity looks like at every stage of growth because I've constructed it from scratch.
+    At Vanilla Forums, I was the first employee after the founders. Over nearly a decade I built the entire SaaS engineering organization from scratch: the multi-tenant cloud architecture, the provisioning and monitoring systems, and the teams that operated them. I scaled the company from $0 to $10M ARR through a profitable acquisition by Higher Logic. That journey required building everything CoLab is building now: the engineering team, the leadership layers, the compliance programs, and the operational infrastructure that lets you ship fast without breaking things. I built our Infosec organization from zero and achieved SOC2 compliance, which transformed security from a cost center into a competitive advantage that unlocked Fortune 500 enterprise deals. I know what compliance maturity looks like at every stage of growth because I've constructed it from scratch.
 
-    At .Monks, I lead a 300-person engineering org distributed across three continents, managing through directors and senior managers across 30+ concurrent engagements. I built a data-driven staffing and margin system that tracks the operating metrics that matter — utilization, delivery risk, budget alignment — and replaced ad-hoc processes with automated, finance-ready reporting. I also stood up a pre-sales SME program that embedded senior engineers directly into the sales cycle, compressing deal timelines and supporting customer success through technical authority. That's the same "support customer success and technical sales" muscle your posting describes.
+    At .Monks, I lead a 300-person engineering org distributed across three continents, managing through directors and senior managers across 30+ concurrent engagements. I built a data-driven staffing and margin system that tracks the operating metrics that matter (utilization, delivery risk, budget alignment) and replaced ad-hoc processes with automated, finance-ready reporting. I also stood up a pre-sales SME program that embedded senior engineers directly into the sales cycle, compressing deal timelines and supporting customer success through technical authority. That's the same "support customer success and technical sales" muscle your posting describes.
 
-    On AI: I architected LiveVision, an AI-powered real-time video processing platform, from concept through commercial validation — securing capital investment for GPU infrastructure, demonstrating viability at CES 2026, and presenting the architecture at NVIDIA GTC 2026. I understand what it takes to move AI from proof-of-concept to production at scale, and I've done it while running a large engineering organization simultaneously. The player-coach model isn't aspirational for me.
+    On AI: I architected LiveVision, an AI-powered real-time video processing platform, from concept through commercial validation, securing capital investment for GPU infrastructure, demonstrating viability at CES 2026, and presenting the architecture at NVIDIA GTC 2026. I understand what it takes to move AI from proof-of-concept to production at scale, and I've done it while running a large engineering organization simultaneously. The player-coach model isn't aspirational for me.
 
-    Post-acquisition at Higher Logic, I led the modernization of five global platforms — transitioning legacy stacks to automated deployment pipelines and de-risking single-point-of-failure architectures. I've lived the "inherited technical debt during rapid growth" problem and know how to manage it without grinding feature delivery to a halt.
+    Post-acquisition at Higher Logic, I led the modernization of five global platforms, transitioning legacy stacks to automated deployment pipelines and de-risking single-point-of-failure architectures. I've lived the "inherited technical debt during rapid growth" problem and know how to manage it without grinding feature delivery to a halt.
 
     I'm drawn to CoLab's problem space and the stage you're at. Scaling an engineering org through this growth phase while maintaining compliance rigor and shipping AI capabilities is exactly the challenge I've built my career around. I'd welcome the conversation.
   closing: "Best regards,"
@@ -57,7 +57,7 @@ employment_overrides:
       - title: "Operating Metrics & Engineering Performance"
         description: |
           Engineered a data-driven staffing and margin system that tracks
-          utilization, delivery risk, and budget alignment — replacing ad-hoc
+          utilization, delivery risk, and budget alignment, replacing ad-hoc
           processes with automated, finance-ready reporting across 30+
           concurrent engagements.
 
@@ -84,13 +84,13 @@ employment_overrides:
   - id: higher-logic
     summary: |
       Post-acquisition platform lead responsible for modernizing legacy infrastructure
-      and standardizing engineering practices across five global platforms — driving
+      and standardizing engineering practices across five global platforms, driving
       deployment automation, architectural de-risking, and cross-team alignment.
     highlights:
       - title: "Delivery Pipeline Modernization"
         description: |
           Led the transition of a legacy Windows/.NET stack from manual
-          deployments to versioned, automated blue/green pipelines — increasing
+          deployments to versioned, automated blue/green pipelines, increasing
           deployment frequency while reducing toil and COGS.
 
       - title: "Architecture De-risking"
@@ -102,14 +102,14 @@ employment_overrides:
   - id: vanilla-coo
     summary: |
       Scaling and Operations lead on the journey from $0 to $10M ARR at a SaaS
-      platform company. Built cross-functional organizational infrastructure —
-      Engineering, InfoSec, CX — from scratch through a profitable acquisition,
+      platform company. Built cross-functional organizational infrastructure
+      (Engineering, InfoSec, CX) from scratch through a profitable acquisition,
       including compliance programs that unlocked enterprise market access.
     highlights:
       - title: "Organizational Scaling ($0 to $10M ARR)"
         description: |
           Designed and executed the complete organizational infrastructure
-          required for a profitable acquisition — scaling engineering, CX,
+          required for a profitable acquisition, scaling engineering, CX,
           and Infosec teams from inception through exit.
 
       - title: "Compliance as a Growth Lever"
@@ -127,7 +127,7 @@ employment_overrides:
   - id: vanilla-vpo
     summary: |
       Designed and built the foundational multi-tenant SaaS architecture from the
-      ground up — the cloud hosting platform, provisioning systems, and monitoring
+      ground up: the cloud hosting platform, provisioning systems, and monitoring
       infrastructure that powered the core product through rapid growth.
     highlights:
       - title: "SaaS Platform Engineering"

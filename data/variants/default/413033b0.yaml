@@ -1,4 +1,4 @@
-parent: cto-a
+parent: default
 
 job:
   url: "https://builtin.com/job/vp-software-engineering/8528426"
@@ -10,7 +10,7 @@ title: "Vice President of Engineering"
 
 summary: |
   Engineering executive who builds and scales product engineering organizations across
-  geographies — from first hire through 300+ engineers. Led a $0 to $10M ARR SaaS platform
+  geographies, from first hire through 300+ engineers. Led a $0 to $10M ARR SaaS platform
   through profitable acquisition, then stabilized a globally distributed org spanning three
   continents during extreme volatility. Hands-on technical leader who stays close to
   architecture and code while owning P&L, budgets, and organizational design. Builds the
@@ -32,15 +32,15 @@ skills:
 cover_letter:
   greeting: "Dear PAR Technology Hiring Team,"
   body: |
-    I'm writing regarding the VP, Software Engineering role leading the Punchh engineering organization. You're looking for a leader who can drive engineering strategy across a 120+ person multi-geography team, own the P&L, enforce technical standards, and build the hiring and organizational systems to sustain a $100M ARR product through its next growth phase. That description — scaling a SaaS product engineering org across geographies while maintaining technical depth and operational discipline — is the arc of my career.
+    I'm writing regarding the VP, Software Engineering role leading the Punchh engineering organization. You're looking for a leader who can drive engineering strategy across a 120+ person multi-geography team, own the P&L, enforce technical standards, and build the hiring and organizational systems to sustain a $100M ARR product through its next growth phase. That description, scaling a SaaS product engineering org across geographies while maintaining technical depth and operational discipline, is the arc of my career.
 
-    At Vanilla Forums, I built the SaaS product engineering organization from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and hired and developed the engineering team that operated them — from the first engineer through a profitable acquisition by Higher Logic. That journey took us from $0 to $10M ARR and required building everything: the platform, the teams, the leadership layers, the compliance programs (SOC2 from scratch), and the cross-functional operational infrastructure that made sustained growth possible. Post-acquisition, I led the modernization of legacy infrastructure across five global platforms, transitioning manual deployments to automated blue/green pipelines and de-risking single-point-of-failure architectures.
+    At Vanilla Forums, I built the SaaS product engineering organization from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and hired and developed the engineering team that operated them, from the first engineer through a profitable acquisition by Higher Logic. That journey took us from $0 to $10M ARR and required building everything: the platform, the teams, the leadership layers, the compliance programs (SOC2 from scratch), and the cross-functional operational infrastructure that made sustained growth possible. Post-acquisition, I led the modernization of legacy infrastructure across five global platforms, transitioning manual deployments to automated blue/green pipelines and de-risking single-point-of-failure architectures.
 
-    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA — managing through directors and senior managers across 30+ concurrent engagements. I own the operational frameworks: I built a data-driven staffing and margin system that replaced spreadsheets with automated, finance-ready reporting, deployed a searchable talent database for resource allocation, and stood up a pre-sales SME program that gave senior engineers direct influence on deal flow. I understand what it means to own an engineering P&L and make the numbers work across geographies.
+    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA, managing through directors and senior managers across 30+ concurrent engagements. I own the operational frameworks: I built a data-driven staffing and margin system that replaced spreadsheets with automated, finance-ready reporting, deployed a searchable talent database for resource allocation, and stood up a pre-sales SME program that gave senior engineers direct influence on deal flow. I understand what it means to own an engineering P&L and make the numbers work across geographies.
 
-    On the technical side, I remain hands-on. I architected LiveVision, an AI-powered real-time video processing platform, and presented the architecture at NVIDIA GTC 2026. I engage in architectural reviews, drive technical standards, and maintain the credibility with senior engineers that comes from having built real systems at scale. The player-coach model isn't aspirational for me — it's how I've operated for over a decade.
+    On the technical side, I remain hands-on. I architected LiveVision, an AI-powered real-time video processing platform, and presented the architecture at NVIDIA GTC 2026. I engage in architectural reviews, drive technical standards, and maintain the credibility with senior engineers that comes from having built real systems at scale. The player-coach model isn't aspirational for me; it's how I've operated for over a decade.
 
-    I'm particularly drawn to the Punchh platform's scale — $100M ARR handling $25B in annual sales — and the multi-geography engineering challenge across Toronto, Austin, and Jaipur. I've built and led exactly this kind of organization and I'd welcome the opportunity to discuss how that experience translates to what PAR Technology needs.
+    I'm particularly drawn to the Punchh platform's scale ($100M ARR handling $25B in annual sales) and the multi-geography engineering challenge across Toronto, Austin, and Jaipur. I've built and led exactly this kind of organization and I'd welcome the opportunity to discuss how that experience translates to what PAR Technology needs.
   closing: "Best regards,"
 
 employment_overrides:
@@ -55,7 +55,7 @@ employment_overrides:
       - title: "Engineering P&L & Operational Frameworks"
         description: |
           Engineered a data-driven staffing and margin system that replaced
-          ad-hoc processes with automated, finance-ready reporting — forcing
+          ad-hoc processes with automated, finance-ready reporting, forcing
           budgetary alignment between Sales and Delivery across 30+ concurrent
           engagements and giving engineering leadership clear sightlines into
           utilization, margin, and delivery risk.
@@ -103,13 +103,13 @@ employment_overrides:
   - id: higher-logic
     summary: |
       Post-acquisition platform lead responsible for modernizing legacy infrastructure
-      and standardizing engineering practices across five global platforms — driving
+      and standardizing engineering practices across five global platforms, driving
       deployment automation, architectural de-risking, and cross-team technical alignment.
     highlights:
       - title: "Delivery Pipeline Modernization"
         description: |
           Led the transition of a legacy Windows/.NET stack from manual
-          deployments to versioned, automated blue/green pipelines — massively
+          deployments to versioned, automated blue/green pipelines, massively
           increasing deployment frequency while reducing toil and COGS.
 
       - title: "Architecture De-risking"
@@ -128,7 +128,7 @@ employment_overrides:
   - id: vanilla-coo
     summary: |
       Scaling and Operations lead on the journey from $0 to $10M ARR. Built the
-      cross-functional organizational infrastructure — Engineering, InfoSec, CX — from
+      cross-functional organizational infrastructure (Engineering, InfoSec, CX) from
       scratch, then led the organization through a profitable acquisition. Owned
       budgets, headcount planning, and the leadership development required to sustain
       growth across a distributed team.
@@ -136,7 +136,7 @@ employment_overrides:
       - title: "Organizational Scaling ($0 to $10M ARR)"
         description: |
           Designed and executed the complete organizational infrastructure
-          required for a profitable acquisition — scaling engineering, CX,
+          required for a profitable acquisition, scaling engineering, CX,
           and Infosec teams from inception through exit.
 
       - title: "Security & Compliance"

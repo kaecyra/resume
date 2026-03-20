@@ -32,6 +32,14 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
     text: "#292524",
     secondary: "#57534e",
   },
+  "retro-clean": {
+    background: "#faf8f5",
+    page_background: "#faf8f5",
+    content_width: "56rem",
+    accent: "#d4652a",
+    text: "#1c1c1e",
+    secondary: "#6b7280",
+  },
 };
 
 export function get_theme_palette(theme: string): ThemePalette {

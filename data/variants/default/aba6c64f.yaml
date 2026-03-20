@@ -1,4 +1,4 @@
-parent: cto-a
+parent: default
 
 job:
   url: "https://www.linkedin.com/jobs/view/4379206951"
@@ -34,11 +34,11 @@ cover_letter:
   body: |
     I'm writing about the VP of Engineering role. You need someone who can lead distributed engineering teams, drive technical strategy across product development, and build the measurement and quality systems that keep velocity high without letting technical debt compound silently. That's the work I've spent the last decade doing, and I'd like to explain why the fit makes sense.
 
-    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA — managing through directors and senior managers across 30+ concurrent engagements. When I stepped in, the org was destabilized and I had no reliable way to measure engineering capacity or delivery health. I built a data-driven staffing and margin system that replaced ad-hoc processes with automated, finance-ready reporting — giving leadership clear sightlines into utilization, delivery risk, and budget alignment. I also deployed a searchable talent database to match engineering skills to project needs, which is exactly the kind of resource allocation discipline a multi-product engineering org requires.
+    At .Monks, I lead a 300-person engineering org distributed across North America, Latin America, and EMEA, managing through directors and senior managers across 30+ concurrent engagements. When I stepped in, the org was destabilized and I had no reliable way to measure engineering capacity or delivery health. I built a data-driven staffing and margin system that replaced ad-hoc processes with automated, finance-ready reporting, giving leadership clear sightlines into utilization, delivery risk, and budget alignment. I also deployed a searchable talent database to match engineering skills to project needs, which is exactly the kind of resource allocation discipline a multi-product engineering org requires.
 
-    Before .Monks, I spent nearly a decade at Vanilla Forums building a SaaS platform from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and scaled from a single server to four data centers across North America and the EU. I hired and developed the engineering teams that operated it all — from the first engineer through a profitable acquisition by Higher Logic at $10M ARR. That journey required building everything: the platform, the teams, the quality standards, the security program (SOC2 from scratch), and the operational infrastructure that let us ship reliably while managing technical debt against a growing feature backlog.
+    Before .Monks, I spent nearly a decade at Vanilla Forums building a SaaS platform from the ground up. I designed the multi-tenant hosting architecture, built the provisioning and monitoring systems, and scaled from a single server to four data centers across North America and the EU. I hired and developed the engineering teams that operated it all, from the first engineer through a profitable acquisition by Higher Logic at $10M ARR. That journey required building everything: the platform, the teams, the quality standards, the security program (SOC2 from scratch), and the operational infrastructure that let us ship reliably while managing technical debt against a growing feature backlog.
 
-    The cross-functional dimension is central to how I operate. I've co-owned technical roadmaps with product and business leadership throughout my career — at Vanilla through the COO role, and at .Monks through a pre-sales SME program that embedded senior engineers directly into the sales cycle. I understand the tension between feature delivery and platform health, and I build the systems that make those tradeoffs visible and data-driven rather than political.
+    The cross-functional dimension is central to how I operate. I've co-owned technical roadmaps with product and business leadership throughout my career, at Vanilla through the COO role, and at .Monks through a pre-sales SME program that embedded senior engineers directly into the sales cycle. I understand the tension between feature delivery and platform health, and I build the systems that make those tradeoffs visible and data-driven rather than political.
 
     I'm based in the Montreal area, which makes the Hudson location a natural fit. I'd welcome the conversation about how this experience maps to what Viral Nation needs.
   closing: "Best regards,"
@@ -49,13 +49,13 @@ employment_overrides:
       Leading a globally distributed 300-person engineering org spanning NA, LATAM,
       and EMEA, managing through directors and senior managers across 30+ concurrent
       engagements. Built data-driven operational systems for measuring engineering
-      performance, capacity planning, and delivery health — replacing ad-hoc processes
+      performance, capacity planning, and delivery health, replacing ad-hoc processes
       with automated, measurable frameworks.
     highlights:
       - title: "Engineering Performance & Delivery Measurement"
         description: |
           Engineered a data-driven staffing and margin system that replaced
-          ad-hoc processes with automated, finance-ready reporting — giving
+          ad-hoc processes with automated, finance-ready reporting, giving
           leadership clear sightlines into utilization, delivery risk, and
           budget alignment across 30+ concurrent engagements.
 
@@ -81,14 +81,14 @@ employment_overrides:
   - id: vanilla-coo
     summary: |
       Scaling and Operations lead on the journey from $0 to $10M ARR at a SaaS platform
-      company. Built cross-functional organizational infrastructure — Engineering, InfoSec,
-      CX — from scratch while co-owning the product and technical roadmap. Led the
+      company. Built cross-functional organizational infrastructure (Engineering, InfoSec,
+      CX) from scratch while co-owning the product and technical roadmap. Led the
       organization through a profitable acquisition.
     highlights:
       - title: "Organizational Scaling ($0 to $10M ARR)"
         description: |
           Designed and executed the complete organizational infrastructure
-          required for a profitable acquisition — scaling engineering, CX,
+          required for a profitable acquisition, scaling engineering, CX,
           and Infosec teams from inception through exit.
 
       - title: "Security & Compliance"
@@ -106,7 +106,7 @@ employment_overrides:
   - id: vanilla-vpo
     summary: |
       Designed and built the foundational multi-tenant SaaS architecture from the
-      ground up — the hosting platform, provisioning systems, and monitoring
+      ground up: the hosting platform, provisioning systems, and monitoring
       infrastructure that powered the core product. Balanced feature delivery with
       platform reliability across a growing engineering team.
     highlights:
