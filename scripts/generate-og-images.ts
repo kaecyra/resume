@@ -1,11 +1,23 @@
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 
-import puppeteer from "puppeteer";
+import puppeteer, { type Page } from "puppeteer";
 
 import { list_variants } from "../src/lib/data.js";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
+
+async function block_external_requests(page: Page): Promise<void> {
+  await page.setRequestInterception(true);
+  page.on("request", (req) => {
+    const url = req.url();
+    if (url.startsWith(BASE_URL) || url.startsWith("data:")) {
+      req.continue();
+    } else {
+      req.abort();
+    }
+  });
+}
 
 async function generate_og_images(): Promise<void> {
   const variants = list_variants();
@@ -23,8 +35,9 @@ async function generate_og_images(): Promise<void> {
       const output_path = resolve(output_dir, `${variant}.png`);
 
       const page = await browser.newPage();
+      await block_external_requests(page);
       await page.setViewport({ width: 1200, height: 630 });
-      await page.goto(url, { waitUntil: "networkidle2" });
+      await page.goto(url, { waitUntil: "networkidle0" });
       await page.screenshot({ path: output_path, type: "png" });
       await page.close();
 
