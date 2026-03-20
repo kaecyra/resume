@@ -22,8 +22,10 @@ RUN npm run build
 # Generate icons (no server needed)
 RUN npm run generate-icons
 
-# Generate OG images and PDFs: start preview server, run Puppeteer, stop server
-RUN (npm run preview &) && sleep 2 && npm run generate-og && npm run generate-pdf
+# Generate OG images and PDFs: start preview server, wait for it, run Puppeteer
+RUN (npm run preview &) && \
+    for i in $(seq 1 30); do wget -qO /dev/null http://localhost:4173/ && break || sleep 1; done && \
+    npm run generate-og && npm run generate-pdf
 
 FROM nginx:stable-alpine
 
