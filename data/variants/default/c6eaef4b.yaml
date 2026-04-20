@@ -1,0 +1,41 @@
+parent: default
+
+job:
+  url: "https://www.linkedin.com/jobs/view/4379206951"
+  company: "Viral Nation"
+  title: "VP, Engineering"
+  fetched_at: "2026-04-20T15:15:14Z"
+
+title: "Vice President of Engineering"
+
+summary: |
+  Engineering leader and operator who scaled a multi-tenant SaaS platform from early product through a profitable
+  acquisition, and who currently runs global engineering delivery across 30+ concurrent projects in an AI-native
+  services model. Specialized in aligning architecture with the P&L, de-risking technical debt, and turning
+  distributed teams into high-retention, high-velocity delivery organizations. Hands-on across infrastructure,
+  full-stack product, and AI platform integration. I'm a force of nature when aligned with a shared vision and
+  a goal worth achieving.
+
+cover_letter:
+  greeting: "Dear Viral Nation Hiring Team,"
+  body: |
+    I'm applying for the VP of Engineering role. My current job at .Monks is functionally the same title:
+    global engineering leadership of ~300 people across North America, Latin America, and EMEA, pivoting
+    delivery toward AI-native products. Before that, I spent nine years at Vanilla Forums scaling a
+    multi-tenant SaaS platform from early product through $10M ARR and a profitable acquisition by
+    Higher Logic. That arc — the human and technical stack of a SaaS business that actually ships — is
+    what your posting describes.
+
+    On the stack: AWS at meaningful scale, Node/Python services, React front-ends, and multi-region SaaS
+    architecture built to stay out of public-cloud lock-in. On the AI side, I architected and delivered
+    LiveVision, a real-time video understanding platform, which I presented at NVIDIA GTC 2026 and demoed
+    at CES 2026. That's the flavor of "driving innovative technologies" I read in your JD. And I've spent
+    serious time on the less glamorous parts of the job: hiring loops, performance management, retention
+    through restructuring, and the spreadsheet work that makes engineering investment legible to the CFO.
+
+    On location: I'm in Montreal. Hudson is a non-issue.
+
+    What I bring that isn't on the JD: I'm allergic to corporate ceremony, I default to radical transparency
+    with my teams, and I'd rather ship a smaller thing that works than a larger thing that impresses a deck.
+    If that sounds like the VPE you're hiring for, I'd like to talk.
+  closing: "Best regards,"

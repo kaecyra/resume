@@ -87,7 +87,13 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 
 Sub-variants are job-specific customizations of an existing variant. They live in subdirectories of `data/variants/` (e.g., `data/variants/cto-a/a7f3b9c2.yaml`) and inherit all fields from their parent variant, overriding only what benefits from customization.
 
-Sub-variants are generated via Claude Code — ask it to "customize cto-a for this job: \<URL\>" and it will fetch the posting, generate the tailored YAML, validate it, and verify the build. See [CLAUDE.md](./CLAUDE.md) for the full workflow.
+Sub-variants are generated via Claude Code using the `/customize-variant` skill:
+
+```
+/customize-variant <parent> <job-url>
+```
+
+For example: `/customize-variant cto-a https://example.com/jobs/123`. The skill fetches the posting, generates the tailored YAML (including a cover letter), validates it, and verifies the build. Plain-language requests like "customize cto-a for this job: \<URL\>" work too. See [.claude/skills/customize-variant/SKILL.md](./.claude/skills/customize-variant/SKILL.md) for the full workflow.
 
 Sub-variants are served at `/{parent}/{slug}` (e.g., `/cto-a/a7f3b9c2`) with `noindex` meta tags and are excluded from the sitemap.
 
