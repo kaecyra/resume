@@ -15,6 +15,21 @@
   let loading = $state(false);
   let error_state = $state(false);
   let time_range: TimeRange = $state("30d");
+  let umami_excluded = $state(false);
+
+  function refresh_umami_exclusion() {
+    if (typeof localStorage === "undefined") return;
+    umami_excluded = localStorage.getItem("umami.disabled") === "1";
+  }
+
+  function toggle_umami_exception() {
+    if (umami_excluded) {
+      localStorage.removeItem("umami.disabled");
+    } else {
+      localStorage.setItem("umami.disabled", "1");
+    }
+    refresh_umami_exclusion();
+  }
 
   function format_date(iso: string): string {
     return iso.slice(0, 10);
@@ -80,6 +95,7 @@
 
   onMount(() => {
     load_metrics();
+    refresh_umami_exclusion();
   });
 </script>
 
@@ -91,13 +107,26 @@
 <main id="main-content" class="dashboard">
   <div class="header-row">
     <h1>Variant Dashboard</h1>
-    <div class="time-range">
-      <label for="time-range">Period</label>
-      <select id="time-range" value={time_range} onchange={on_range_change}>
-        <option value="7d">7 days</option>
-        <option value="30d">30 days</option>
-        <option value="all">All time</option>
-      </select>
+    <div class="controls">
+      {#if data.umami_website_id}
+        <button
+          type="button"
+          class="exception-toggle"
+          class:active={umami_excluded}
+          onclick={toggle_umami_exception}
+          title="Sets umami.disabled in localStorage for this browser"
+        >
+          {umami_excluded ? "Tracking excluded" : "Exclude this browser"}
+        </button>
+      {/if}
+      <div class="time-range">
+        <label for="time-range">Period</label>
+        <select id="time-range" value={time_range} onchange={on_range_change}>
+          <option value="7d">7 days</option>
+          <option value="30d">30 days</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -240,6 +269,33 @@
     letter-spacing: 0.05em;
     color: #6b7280;
     margin: 1.5rem 0 0.5rem;
+  }
+
+  .controls {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .exception-toggle {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #f9fafb;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .exception-toggle:hover {
+    background: #f3f4f6;
+  }
+
+  .exception-toggle.active {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
   }
 
   .time-range {
