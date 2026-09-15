@@ -1,0 +1,60 @@
+theme: "retro-clean"
+
+title: "AI-Native Engineering Leader"
+
+online_callout: "View the full interactive resume online at"
+
+summary: |
+  I don't write most of the code anymore. I build software by directing AI agents:
+  I bring the technical vision and the constraints, the agents do the typing, and I
+  review everything that matters. Done right it's faster, and the code is cleaner,
+  because my time goes to architecture and judgment instead of boilerplate.
+
+  I built this resume platform this way, end to end, through Chat-Oriented
+  Programming — schema-driven, tested, with the AI doing the implementation. And
+  I've delivered AI-native products at scale: LiveVision, a real-time video pipeline
+  running high-concurrency model inference at the edge, shipped live at CES 2026 and
+  NVIDIA GTC 2026.
+
+  Before AI could write code, I spent over a decade building multi-tenant SaaS and
+  the infrastructure under it — $0 to $10M ARR, automated provisioning, IaC. That's
+  why I know when the agents are wrong. The typing was never the point; the judgment
+  is.
+
+tagline: |
+  **I don't hand-code anymore. I direct the AI that does — and I know when it's bullshitting.**
+
+domains:
+  - product-led-strategy
+  - systemic-modernization
+  - infrastructure-fiscal-sovereignty
+  - narrative-translation
+
+field_deployments:
+  - resume-engine
+  - gtc-2026
+  - ces-2026
+  - vanilla-oss
+
+skills:
+  - software_engineering
+  - solution_architecture
+  - operational_innovation
+  - strategy
+  - executive_leadership
+  - communication
+
+employment:
+  - monks-vpe
+  - higher-logic
+  - vanilla-vpo
+  - vanilla-doo
+
+languages:
+  - english
+  - engineer
+  - french
+
+courses:
+  - csm
+  - cspo

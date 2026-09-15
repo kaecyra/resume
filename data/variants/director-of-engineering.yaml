@@ -1,0 +1,43 @@
+theme: "classic"
+
+title: "Director of Engineering"
+
+online_callout: "View the full interactive resume online at"
+
+summary: |
+    Director of Engineering who stays close to the code and the team, not just
+    the roadmap. I've run engineering orgs up to 300 people, kept 8-figure
+    multi-team engagements on track, and scaled a SaaS business from $0 to
+    $10M ARR through acquisition.
+
+    I build the systems, technical and organizational, that let delivery
+    scale without turning into chaos: automation, observability, and staffing
+    models that hold up under real volatility. I stay close enough to the
+    code to know when a plan won't work before it fails in production.
+
+skills:
+    - software_engineering
+    - solution_architecture
+    - operational_innovation
+    - culture
+    - strategy
+    - communication
+    - customer_experience
+    - executive_leadership
+
+employment:
+    - monks-vpe
+    - monks-doe
+    - higher-logic
+    - vanilla-coo
+    - vanilla-vpo
+    - vanilla-doo
+
+languages:
+    - english
+    - engineer
+    - french
+
+courses:
+    - csm
+    - cspo
