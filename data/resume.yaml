@@ -68,10 +68,7 @@ field_deployments:
     venue: "NVIDIA GTC 2026"
     date: "2026-03"
     description: |
-      Invited to present at the premier global AI conference on the architecture
-      of LiveVision. Detailed the engineering requirements for near real-time AI
-      video understanding, focusing on edge-broadcast pipelines and the
-      orchestration of high-concurrency model inference.
+      Invited by NVIDIA to present at the premier global AI conference on the architecture and market value of LiveVision. Detailed the engineering requirements for near real-time AI video understanding, focusing on edge-broadcast pipelines and the orchestration of high-concurrency model inference, along with quick-turn asset generation.
 
   - id: ces-2026
     category: "Tradeshow Demo"
@@ -79,11 +76,7 @@ field_deployments:
     venue: "CES 2026"
     date: "2026-01"
     description: |
-      Conceived and executed a live, on-prem technical demo for the CES Foundry,
-      showcasing a fully operational computer vision pipeline. Successfully secured
-      Capex for DGX Spark/Lenovo Neo infrastructure and managed a fast-moving
-      delivery team to prove the economic and operational viability of AI-native
-      media workflows to global C-suite stakeholders.
+      Conceived, architected, assembled and executed a live, on-prem technical demo at CES 2026, showcasing a fully operational computer vision pipeline operating on feeds from an NFL game. Successfully secured capex for DGX Spark/Lenovo Neo infrastructure and managed a fast-moving delivery team to prove the economic and operational viability of AI-native media workflows to global C-suite stakeholders.
 
   - id: vanilla-oss
     category: "Open Source"
@@ -104,6 +97,14 @@ field_deployments:
     date: "2026-02"
     description: |
       Architected a schema-driven resume deployment platform to demonstrate Chat Oriented Programming (CHOP). This project serves as a live experiment with code quality and systematic prompt engineering when using LLMs with a clear technical vision. The system establishes total data sovereignty and demonstrates how to orchestrate AI for responsible, low-friction delivery.
+
+  - id: odette
+    category: "Open Source"
+    title: "Odette"
+    venue: "The Basement Network... for now"
+    date: "2026-02"
+    description: |
+      Built a sandboxing and orchestration harness for running AI coding agents safely: network egress gatekept through a host-side proxy, shell commands broken out to a host-side execution daemon with per-project mount and volume isolation and configurable approval gates (Manual, Judge, Yolo). Lets an agent session run a real toolchain without direct access to credentials or the open internet. Promotes continuous harness evolution by making skills and agent guidance portable between unrelated projects.
 
 employment:
   - id: monks-vpe
