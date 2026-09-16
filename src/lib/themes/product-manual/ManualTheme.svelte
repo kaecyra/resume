@@ -35,7 +35,9 @@
           <ManualDomains domains={resume.domains} />
           <div>
             <ManualLanguages languages={resume.languages} />
-            <ManualCourses courses={resume.courses} />
+            {#if resume.courses.length > 0}
+              <ManualCourses courses={resume.courses} />
+            {/if}
           </div>
         </div>
       {/if}
@@ -46,7 +48,9 @@
       {#if resume.domains.length === 0}
         <div class="grid grid-cols-2 gap-8 print:grid-cols-2">
           <ManualLanguages languages={resume.languages} />
-          <ManualCourses courses={resume.courses} />
+          {#if resume.courses.length > 0}
+            <ManualCourses courses={resume.courses} />
+          {/if}
         </div>
       {/if}
     </div>
