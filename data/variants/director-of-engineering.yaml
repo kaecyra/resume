@@ -39,6 +39,4 @@ languages:
   - engineer
   - french
 
-courses:
-  - csm
-  - cspo
+courses: []

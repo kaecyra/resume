@@ -29,5 +29,7 @@
   {/if}
   <ClassicEmployment employment={resume.employment} />
   <ClassicLanguages languages={resume.languages} />
-  <ClassicCourses courses={resume.courses} />
+  {#if resume.courses.length > 0}
+    <ClassicCourses courses={resume.courses} />
+  {/if}
 </main>

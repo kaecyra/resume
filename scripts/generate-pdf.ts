@@ -114,6 +114,7 @@ async function generate_pdf(): Promise<void> {
       await page.setViewport({ width: 816, height: 1056 });
       await page.goto(target.url, { waitUntil: "load" });
       await delay(500);
+      await page.emulateMediaType("print");
 
       const content_height = await page.evaluate(
         () => document.documentElement.scrollHeight,
