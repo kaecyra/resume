@@ -1,0 +1,44 @@
+theme: "classic"
+
+title: "Director of Engineering"
+
+online_callout: "View the full interactive resume online at"
+
+summary: |
+  Director of Engineering with senior technical authority over multi-team, 8-figure delivery. I've run orgs up to 300 people and scaled a SaaS business from $0 to $10M ARR and onward through acquisition.
+
+  I build the systems, both technical and organizational, that keep delivery scaling without breaking: automation, observability, and staffing models that hold up under real delivery demand. My interest in, and continued practice of, the underlying technology keeps my input relevant and actionable.
+
+  I'm a direct communicator, I default to transparency, and I take action.
+
+skills:
+  - software_engineering
+  - solution_architecture
+  - operational_innovation
+  - culture
+  - strategy
+  - communication
+  - customer_experience
+  - executive_leadership
+
+field_deployments:
+  - gtc-2026
+  - ces-2026
+  - odette
+
+employment:
+  - monks-vpe
+  - monks-doe
+  - higher-logic
+  - vanilla-coo
+  - vanilla-vpo
+  - vanilla-doo
+
+languages:
+  - english
+  - engineer
+  - french
+
+courses:
+  - csm
+  - cspo

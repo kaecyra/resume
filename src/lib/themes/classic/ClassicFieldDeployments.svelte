@@ -14,7 +14,7 @@
 
 <section class="mb-6" aria-label="Field Deployments">
   <h2 class="mb-3 text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1">
-    Speaking &amp; Publications
+    Field Deployment Record
   </h2>
   <div class="space-y-4">
     {#each Object.entries(grouped) as [category, items]}

@@ -30,6 +30,14 @@ Intake log for corrections. Stable patterns get graduated into [ENGINEERING.md](
 
 **Why it matters:** Direct commits to main bypass CI validation, skip code review, and break the team's trust in the trunk-based workflow. The whole point of PRs is that CI runs on them.
 
+## 2026-07-21: Resume/narrative copy must follow SOUL.md voice — no buzzwords
+
+**What happened:** Drafted the `agentic-engineer` variant summary and tagline in generic LLM voice — "orchestrate LLMs and AI harnesses," "first-class engineering disciplines," "direct fleets of agents," "systems judgment that makes delivery reliable instead of reckless." Tim called it out: "You wrote it like a fuckin' Claude."
+
+**The rule:** All user-facing copy (variant summaries, taglines, cover letters, domain/highlight text) follows the voice in [SOUL.md](./SOUL.md) line 7: radical candor, no bullshit, low-buzzword, plain and direct. No tech-bro / corporate buzzword soup — no "orchestrate," "harnesses," "first-class disciplines," "force of nature" filler, "ship what actually works." Reference existing variants for tone: `default.yaml` ("scale without the bullshit"). Write blunt, concrete, human. Call out my own drift before shipping.
+
+**Why it matters:** The whole brand is anti-bullshit technical candor. Buzzword copy on a resume that pitches "I know when the agents are bullshitting" is self-refuting.
+
 ## 2026-02-20: nginx proxy_pass with variables skips URI rewriting
 
 **What happened:** Added `location /api/umami/ { proxy_pass $umami/api/; }` expecting nginx to strip the `/api/umami/` prefix and proxy to `/api/`. Instead, requests hit `umami:3000/api/umami/...` (404) because `$umami` is a variable.

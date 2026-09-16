@@ -60,3 +60,7 @@ coverage/
 # Claude
 tasks/
 .claude/settings.local.json
+.memory/
+
+# odette
+.odette/
