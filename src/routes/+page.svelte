@@ -5,8 +5,6 @@
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
-
-  const summary_paragraphs = $derived(data.summary.split("\n\n").filter((p) => p.trim()));
 </script>
 
 <svelte:head>
@@ -46,10 +44,6 @@
       <p class="landing-tagline">{@html format_markdown(data.tagline.trim())}</p>
     {/if}
 
-    {#each summary_paragraphs as paragraph}
-      <p class="landing-summary">{@html format_markdown(paragraph.trim())}</p>
-    {/each}
-
     <div class="landing-actions">
       <a class="landing-cta" href="/default">View the full resume</a>
       <a
@@ -65,13 +59,17 @@
 </main>
 
 <style>
+  :global(body) {
+    background-color: var(--color-retro-navy);
+  }
+
   .landing {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #1a2744;
-    color: #f0e6d6;
+    background-color: var(--color-retro-navy);
+    color: var(--color-retro-cream);
     padding: 2rem 1.5rem;
   }
 
@@ -84,7 +82,7 @@
     font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #8b9bb5;
+    color: var(--color-retro-muted);
     margin: 0 0 0.5rem;
   }
 
@@ -99,14 +97,7 @@
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.4;
-    color: #e87a2e;
-    margin: 0 0 1rem;
-  }
-
-  .landing-summary {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #8b9bb5;
+    color: var(--color-retro-accent);
     margin: 0 0 1rem;
   }
 
@@ -121,8 +112,8 @@
   .landing-cta {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background-color: #e87a2e;
-    color: #1a2744;
+    background-color: var(--color-retro-accent);
+    color: var(--color-retro-navy);
     font-weight: 600;
     text-decoration: none;
     border-radius: 0.25rem;
@@ -138,7 +129,7 @@
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #e87a2e;
+    color: var(--color-retro-accent);
     text-decoration: underline;
     transition: opacity 0.15s ease;
   }

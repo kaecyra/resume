@@ -1,12 +1,12 @@
 import { env } from "$env/dynamic/public";
 
-import { build_variant_urls } from "$lib/seo.js";
+import { build_sitemap_urls } from "$lib/seo.js";
 
 export const prerender = true;
 
 export function GET() {
   const base_url = env.PUBLIC_BASE_URL ?? "";
-  const urls = build_variant_urls(base_url);
+  const urls = build_sitemap_urls(base_url);
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',

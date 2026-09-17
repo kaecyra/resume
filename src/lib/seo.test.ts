@@ -4,13 +4,13 @@ vi.mock("./data.js", () => ({
   list_variants: () => ["default", "cto-a", "cto-b"],
 }));
 
-import { build_variant_urls, build_person_jsonld, build_webpage_jsonld, build_og_metadata } from "./seo.js";
+import { build_sitemap_urls, build_person_jsonld, build_webpage_jsonld, build_og_metadata } from "./seo.js";
 
 import type { Profile } from "./types.js";
 
-describe("build_variant_urls", () => {
+describe("build_sitemap_urls", () => {
   it("returns absolute URLs when base_url is provided, leading with the landing URL and the default variant at /default", () => {
-    const urls = build_variant_urls("https://resume.timgunter.ca");
+    const urls = build_sitemap_urls("https://resume.timgunter.ca");
     expect(urls).toEqual([
       "https://resume.timgunter.ca",
       "https://resume.timgunter.ca/default",
@@ -20,7 +20,7 @@ describe("build_variant_urls", () => {
   });
 
   it("returns relative paths when base_url is empty, leading with the landing URL and the default variant at /default", () => {
-    const urls = build_variant_urls("");
+    const urls = build_sitemap_urls("");
     expect(urls).toEqual(["/", "/default", "/cto-a", "/cto-b"]);
   });
 });

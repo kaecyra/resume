@@ -3,7 +3,7 @@ import { strip_markdown } from "./format.js";
 
 import type { Profile } from "./types.js";
 
-export function build_variant_urls(base_url: string): string[] {
+export function build_sitemap_urls(base_url: string): string[] {
   const variants = list_variants();
   const urls: string[] = [base_url || "/"];
 

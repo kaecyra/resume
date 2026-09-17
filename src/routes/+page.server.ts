@@ -14,12 +14,17 @@ export const load: PageServerLoad = () => {
   const base_url = env.PUBLIC_BASE_URL ?? "";
   const canonical_url = base_url || null;
 
-  const default_og = build_og_metadata(
-    data.profile.name, variant.title,
-    variant.tagline ?? variant.summary,
-    base_url, "default",
-  );
-  const og = { ...default_og, url: canonical_url };
+  // build_og_metadata is called without url_variant, so its url is always
+  // null; the landing page is not a variant route, so we supply its own
+  // canonical url (the bare site root) here instead.
+  const og = {
+    ...build_og_metadata(
+      data.profile.name, variant.title,
+      variant.tagline ?? variant.summary,
+      base_url, "default",
+    ),
+    url: canonical_url,
+  };
 
   const person_jsonld = build_person_jsonld(data.profile, variant.title, canonical_url);
   const webpage_jsonld = build_webpage_jsonld(og.title, og.description, canonical_url);
@@ -28,7 +33,6 @@ export const load: PageServerLoad = () => {
     profile: data.profile,
     title: variant.title,
     tagline: variant.tagline,
-    summary: variant.summary,
     og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
   };
