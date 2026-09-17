@@ -56,6 +56,7 @@ npm install
 ```
 data/
   resume.yaml             # All resume content
+  landing.yaml            # Landing page content (hero, projects, resume links, contact)
   variants/               # Variant manifests for tailored output
     cto-a.yaml
     cto-b.yaml
@@ -65,7 +66,9 @@ data/
 src/
   lib/
     data.ts               # Data loading and variant resolution
-    types.ts              # TypeScript type definitions
+    landing.ts             # Landing page data loading and validation
+    landing/               # Dark HUD landing page components
+    types.ts               # TypeScript type definitions
   routes/                 # SvelteKit pages
 scripts/
   generate-og-images.ts   # Puppeteer-based OG image generation
@@ -93,6 +96,10 @@ docker-compose.yml        # Docker Compose for local dev and production
 ## Data Model
 
 Resume content lives in `data/resume.yaml` as a single source of truth containing all skills, employment history, languages, and courses. Variant manifests in `data/variants/` select and order a subset of this content for a specific role or audience, enabling multiple tailored resumes from one data source.
+
+### Landing Page
+
+The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account whose activity the page displays. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
 
 ### Sub-Variants
 

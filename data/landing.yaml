@@ -1,0 +1,101 @@
+hero:
+  name: "Tim Gunter"
+  role: "VP of Engineering, .Monks"
+  tagline: |
+    I lead a 300-person engineering org at .Monks and build things on the side, most
+    recently by directing AI coding agents instead of typing every line myself.
+  status: "Montreal, QC. Currently rebuilding a distributed engineering org and shipping side projects after hours."
+
+projects:
+  - id: odette
+    name: "Odette"
+    blurb: |
+      A sandbox for running AI coding agents without handing them your credentials or
+      the open internet. Network egress runs through a host-side proxy, shell commands
+      go through a separate execution daemon, and every project gets its own mount and
+      volume isolation with configurable approval gates (Manual, Judge, Yolo). Skills
+      and agent guidance move between projects as shared files instead of being
+      copy-pasted into each one.
+    stack:
+      - "TypeScript"
+      - "Docker"
+      - "Agent sandboxing"
+    links: []
+    status: "Not yet public"
+
+  - id: resume-engine
+    name: "Resume Engine"
+    blurb: |
+      This resume site itself: a schema-driven deployment platform where content lives
+      in YAML and every theme, PDF export, and variant reads from the same source.
+      Built almost entirely by directing AI agents rather than hand-typing it, using a
+      workflow I call Chat-Oriented Programming. It's also the live test case for how
+      well that workflow holds up under real constraints.
+    repo_url: "https://github.com/kaecyra/resume"
+    stack:
+      - "SvelteKit"
+      - "TypeScript"
+      - "Tailwind CSS"
+    links: []
+    status: "Active"
+
+  - id: vanilla-oss
+    name: "Vanilla Forums"
+    blurb: |
+      Long-time contributor to the open-source Vanilla Forums platform: high-traffic
+      community software running at the scale of thousands of live communities. I
+      worked on the core codebase as an employee and have stayed involved since.
+    repo_url: "https://github.com/vanilla"
+    stack:
+      - "PHP"
+      - "MySQL"
+      - "Community platforms"
+    links: []
+    status: "Ongoing"
+
+  - id: ces-2026
+    name: "LiveVision - CES 2026 Demo"
+    blurb: |
+      Built and ran a live, on-prem computer vision demo at CES 2026, processing real
+      feeds from an NFL game in front of C-suite stakeholders. Landed the capex for the
+      DGX Spark and Lenovo Neo hardware it ran on, and ran the delivery team that got it
+      working on the show floor.
+    stack:
+      - "Computer vision"
+      - "Edge inference"
+      - "DGX Spark"
+    links: []
+    status: "Demo, January 2026"
+
+  - id: gtc-2026
+    name: "LiveVision - NVIDIA GTC 2026 Talk"
+    blurb: |
+      Invited by NVIDIA to talk about LiveVision at GTC 2026: real-time AI video
+      processing at the edge, what it takes to run high-concurrency model inference in
+      a live broadcast pipeline, and quick-turn asset generation alongside it.
+    stack:
+      - "Edge AI"
+      - "Video pipelines"
+      - "Model inference"
+    links: []
+    status: "Speaking, March 2026"
+
+resume_links:
+  - "default"
+
+contact:
+  - label: "Email"
+    url: "mailto:tim.applied@kaizenize.com"
+  - label: "LinkedIn"
+    url: "https://linkedin.com/in/guntertim"
+  - label: "GitHub"
+    url: "https://github.com/kaecyra"
+
+github:
+  user: "kaecyra"
+
+sections:
+  - "hero"
+  - "projects"
+  - "resume"
+  - "contact"
