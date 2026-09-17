@@ -4,23 +4,24 @@ vi.mock("./data.js", () => ({
   list_variants: () => ["default", "cto-a", "cto-b"],
 }));
 
-import { build_variant_urls, build_person_jsonld, build_webpage_jsonld, build_og_metadata } from "./seo.js";
+import { build_sitemap_urls, build_person_jsonld, build_webpage_jsonld, build_og_metadata } from "./seo.js";
 
 import type { Profile } from "./types.js";
 
-describe("build_variant_urls", () => {
-  it("returns absolute URLs when base_url is provided", () => {
-    const urls = build_variant_urls("https://resume.timgunter.ca");
+describe("build_sitemap_urls", () => {
+  it("returns absolute URLs when base_url is provided, leading with the landing URL and the default variant at /default", () => {
+    const urls = build_sitemap_urls("https://resume.timgunter.ca");
     expect(urls).toEqual([
       "https://resume.timgunter.ca",
+      "https://resume.timgunter.ca/default",
       "https://resume.timgunter.ca/cto-a",
       "https://resume.timgunter.ca/cto-b",
     ]);
   });
 
-  it("returns relative paths when base_url is empty", () => {
-    const urls = build_variant_urls("");
-    expect(urls).toEqual(["/", "/cto-a", "/cto-b"]);
+  it("returns relative paths when base_url is empty, leading with the landing URL and the default variant at /default", () => {
+    const urls = build_sitemap_urls("");
+    expect(urls).toEqual(["/", "/default", "/cto-a", "/cto-b"]);
   });
 });
 
@@ -122,9 +123,9 @@ describe("build_og_metadata", () => {
     expect(og.url).toBeNull();
   });
 
-  it("returns base_url directly for default variant", () => {
+  it("appends /default to base_url for the default variant, same as any other variant", () => {
     const og = build_og_metadata("Tim", "CTO", "Summary.", "https://example.com", "default", "default");
-    expect(og.url).toBe("https://example.com");
+    expect(og.url).toBe("https://example.com/default");
   });
 
   it("appends variant name to base_url for non-default variants", () => {

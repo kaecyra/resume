@@ -11,15 +11,11 @@ import type { EntryGenerator, PageServerLoad } from "./$types";
 export const prerender = true;
 
 export const entries: EntryGenerator = () => {
-  const variants = list_variants();
-  return [
-    { variant: undefined },
-    ...variants.map((v) => ({ variant: v })),
-  ];
+  return list_variants().map((v) => ({ variant: v }));
 };
 
 export const load: PageServerLoad = async ({ params }) => {
-  const variant_name = params.variant ?? "default";
+  const variant_name = params.variant;
 
   let variant;
   try {
