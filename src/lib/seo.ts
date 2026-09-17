@@ -5,14 +5,10 @@ import type { Profile } from "./types.js";
 
 export function build_variant_urls(base_url: string): string[] {
   const variants = list_variants();
-  const urls: string[] = [];
+  const urls: string[] = [base_url || "/"];
 
   for (const variant of variants) {
-    if (variant === "default") {
-      urls.push(base_url || "/");
-    } else {
-      urls.push(base_url ? `${base_url}/${variant}` : `/${variant}`);
-    }
+    urls.push(base_url ? `${base_url}/${variant}` : `/${variant}`);
   }
 
   return urls;
@@ -111,7 +107,7 @@ export function build_og_metadata(
 ): OgMetadata {
   let url: string | null = null;
   if (url_variant !== undefined && base_url) {
-    url = url_variant === "default" ? base_url : `${base_url}/${url_variant}`;
+    url = `${base_url}/${url_variant}`;
   }
 
   return {

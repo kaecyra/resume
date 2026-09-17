@@ -79,6 +79,17 @@ nginx.conf                # Container nginx configuration
 docker-compose.yml        # Docker Compose for local dev and production
 ```
 
+## Routing
+
+| URL | Content |
+|---|---|
+| `/` | Landing page (profile intro, links out to the resume) |
+| `/default` | Default variant resume (canonical) |
+| `/{variant}` | A named variant resume, e.g. `/cto-a` |
+| `/{variant}/{slug}` | A job-specific sub-variant, e.g. `/cto-a/a7f3b9c2` |
+| `/{variant}/{slug}/letter` | That sub-variant's cover letter, when one exists |
+| `/variants` | Auth-gated dashboard listing all variants and sub-variants |
+
 ## Data Model
 
 Resume content lives in `data/resume.yaml` as a single source of truth containing all skills, employment history, languages, and courses. Variant manifests in `data/variants/` select and order a subset of this content for a specific role or audience, enabling multiple tailored resumes from one data source.
