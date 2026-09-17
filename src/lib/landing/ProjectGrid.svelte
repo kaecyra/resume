@@ -11,7 +11,7 @@
     {#each projects as project (project.id)}
       <article class="hud-project-card">
         <div class="hud-project-card-header">
-          <h3 class="hud-project-name">{project.name}</h3>
+          <h2 class="hud-project-name">{project.name}</h2>
           <span class="hud-project-status">{project.status}</span>
         </div>
 
@@ -25,12 +25,12 @@
           </ul>
         {/if}
 
-        {#if project.repo_url || project.links.length > 0}
+        {#if project.repo_url || (project.links?.length ?? 0) > 0}
           <div class="hud-project-links">
             {#if project.repo_url}
               <a href={project.repo_url} target="_blank" rel="noopener noreferrer">Repo</a>
             {/if}
-            {#each project.links as link}
+            {#each project.links ?? [] as link}
               <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
             {/each}
           </div>

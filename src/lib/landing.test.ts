@@ -27,7 +27,6 @@ const MOCK_LANDING_DATA: LandingData = {
       blurb: "Does a thing.",
       repo_url: "https://github.com/example/proj-a",
       stack: ["TypeScript"],
-      links: [],
       status: "Active",
     },
   ],
@@ -101,6 +100,36 @@ describe("validate_landing_data", () => {
     );
   });
 
+  it("detects a project missing a stack array", () => {
+    const landing = make_landing({
+      projects: [{ ...MOCK_LANDING_DATA.projects[0], stack: undefined as unknown as string[] }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `project "proj-a" is missing a stack array` }),
+    );
+  });
+
+  it("detects a project links field that is not an array", () => {
+    const landing = make_landing({
+      projects: [
+        { ...MOCK_LANDING_DATA.projects[0], links: "not-an-array" as unknown as never },
+      ],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `project "proj-a" links must be an array` }),
+    );
+  });
+
+  it("allows a project that omits links entirely", () => {
+    const landing = make_landing({
+      projects: [MOCK_LANDING_DATA.projects[0]],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toEqual([]);
+  });
+
   it("detects empty resume_links", () => {
     const landing = make_landing({ resume_links: [] });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
@@ -119,6 +148,16 @@ describe("validate_landing_data", () => {
     );
   });
 
+  it("detects a contact entry missing a label or url", () => {
+    const landing = make_landing({
+      contact: [{ label: "", url: "" }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "contact entry 0 is missing label or url" }),
+    );
+  });
+
   it("detects missing github.user", () => {
     const landing = make_landing({ github: { user: "" } });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
@@ -132,6 +171,14 @@ describe("validate_landing_data", () => {
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
       expect.objectContaining({ message: `duplicate section "hero"` }),
+    );
+  });
+
+  it("detects a section that nothing renders", () => {
+    const landing = make_landing({ sections: ["hero", "testimonials"] });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `section "testimonials" is not a known section` }),
     );
   });
 

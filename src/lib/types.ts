@@ -161,7 +161,7 @@ export interface LandingProject {
   blurb: string;
   repo_url?: string;
   stack: string[];
-  links: LandingLink[];
+  links?: LandingLink[];
   status: string;
 }
 

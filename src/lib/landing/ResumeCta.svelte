@@ -1,20 +1,22 @@
 <script lang="ts">
   import HudFrame from "./HudFrame.svelte";
 
-  // `resume_links` holds the variant slugs the landing page is allowed to
-  // link to publicly (see data/landing.yaml). Every other variant stays
-  // unlisted and reachable only by direct link - do not render a link here
-  // for anything outside this list.
-  let { resume_links }: { resume_links: string[] } = $props();
+  // `data/landing.yaml`'s `resume_links` is an array, but the data model is
+  // explicit that it is expected to hold exactly one entry: the one public
+  // resume variant. This component takes that single variant as a prop
+  // rather than looping, because a loop over an array that is meant to hold
+  // one item is a bug waiting to happen the day a second entry is added -
+  // two identically-labelled CTAs pointing at different variants. If the
+  // product intent ever genuinely becomes "link several variants publicly",
+  // this component needs a real per-variant label, not just a loop.
+  let { resume_link }: { resume_link: string } = $props();
 </script>
 
 <HudFrame label="Resume" id="resume">
   <div class="hud-cta">
     <p class="hud-cta-copy">Full resume, tailored by role.</p>
     <div class="hud-cta-links">
-      {#each resume_links as variant (variant)}
-        <a class="hud-cta-link" href="/{variant}">View the full resume</a>
-      {/each}
+      <a class="hud-cta-link" href="/{resume_link}">View the full resume</a>
     </div>
   </div>
 </HudFrame>

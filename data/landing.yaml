@@ -1,10 +1,10 @@
 hero:
   name: "Tim Gunter"
-  role: "VP Engineering, .Monks - Montreal, QC"
+  role: "VP Engineering, .Monks"
   tagline: |
     I build systems, and lately I build them by directing AI agents instead of typing
     every line myself.
-  status: "Currently building odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
+  status: "Montreal, QC. Currently building odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
 
 projects:
   - id: odette
@@ -19,7 +19,6 @@ projects:
     stack:
       - "Go"
       - "Docker"
-    links: []
     status: "Not yet public"
 
   - id: resume-engine
@@ -35,7 +34,6 @@ projects:
       - "SvelteKit"
       - "TypeScript"
       - "Tailwind CSS"
-    links: []
     status: "Active"
 
   - id: vanilla-oss
@@ -50,7 +48,6 @@ projects:
       - "PHP"
       - "MySQL"
       - "Community platforms"
-    links: []
     status: "Former core contributor"
 
   - id: ces-2026
@@ -64,7 +61,6 @@ projects:
       - "Computer vision"
       - "Edge inference"
       - "DGX Spark"
-    links: []
     status: "Demo, January 2026"
 
   - id: gtc-2026
@@ -77,8 +73,7 @@ projects:
       - "Edge AI"
       - "Video pipelines"
       - "Model inference"
-    links: []
-    status: "Speaking, March 2026"
+    status: "Spoke, March 2026"
 
 resume_links:
   - "default"
