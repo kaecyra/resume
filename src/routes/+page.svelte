@@ -5,6 +5,8 @@
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
+
+  const DEFAULT_VARIANT = "default";
 </script>
 
 <svelte:head>
@@ -45,12 +47,12 @@
     {/if}
 
     <div class="landing-actions">
-      <a class="landing-cta" href="/default">View the full resume</a>
+      <a class="landing-cta" href="/{DEFAULT_VARIANT}">View the full resume</a>
       <a
         class="landing-download"
-        href="/default.pdf"
+        href="/{DEFAULT_VARIANT}.pdf"
         download="{data.profile.name} - Resume - {data.title}.pdf"
-        onclick={() => track_pdf_download({ variant: "default", type: "resume", slug: "default" })}
+        onclick={() => track_pdf_download({ variant: DEFAULT_VARIANT, type: "resume", slug: DEFAULT_VARIANT })}
       >
         Download PDF
       </a>

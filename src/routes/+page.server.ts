@@ -16,13 +16,20 @@ export const load: PageServerLoad = () => {
 
   // build_og_metadata is called without url_variant, so its url is always
   // null; the landing page is not a variant route, so we supply its own
-  // canonical url (the bare site root) here instead.
+  // canonical url (the bare site root) here instead. Title and description
+  // are overridden too: build_og_metadata's defaults would be byte-identical
+  // to the /default variant page (same name, same title, same tagline), and
+  // two indexed URLs with identical metadata is a duplicate-content signal.
+  // The landing page leads with the person and what they build rather than
+  // the CTO role pitch, so its title is just the name and its description
+  // draws on the summary instead of the tagline /default uses.
   const og = {
     ...build_og_metadata(
       data.profile.name, variant.title,
-      variant.tagline ?? variant.summary,
+      variant.summary,
       base_url, "default",
     ),
+    title: data.profile.name,
     url: canonical_url,
   };
 
