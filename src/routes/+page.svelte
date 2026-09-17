@@ -74,7 +74,9 @@
   }
 
   .landing-content {
+    width: 100%;
     max-width: 42rem;
+    min-width: 0;
   }
 
   .landing-role {
