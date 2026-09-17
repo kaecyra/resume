@@ -31,7 +31,7 @@
   <meta name="twitter:description" content={data.og.description} />
   <meta name="twitter:image" content={data.og.image} />
 
-  <meta name="theme-color" content="#0b0b0c" />
+  <meta name="theme-color" content="#1a2744" />
 
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
@@ -70,8 +70,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #0b0b0c;
-    color: #f5f5f5;
+    background-color: #1a2744;
+    color: #f0e6d6;
     padding: 2rem 1.5rem;
   }
 
@@ -84,7 +84,7 @@
     font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #9a9a9a;
+    color: #8b9bb5;
     margin: 0 0 0.5rem;
   }
 
@@ -99,13 +99,14 @@
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.4;
+    color: #e87a2e;
     margin: 0 0 1rem;
   }
 
   .landing-summary {
     font-size: 1rem;
     line-height: 1.6;
-    color: #cccccc;
+    color: #8b9bb5;
     margin: 0 0 1rem;
   }
 
@@ -120,8 +121,8 @@
   .landing-cta {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background-color: #f5f5f5;
-    color: #0b0b0c;
+    background-color: #e87a2e;
+    color: #1a2744;
     font-weight: 600;
     text-decoration: none;
     border-radius: 0.25rem;
@@ -137,7 +138,7 @@
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #f5f5f5;
+    color: #e87a2e;
     text-decoration: underline;
     transition: opacity 0.15s ease;
   }
