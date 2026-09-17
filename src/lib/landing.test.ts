@@ -80,6 +80,24 @@ describe("validate_landing_data", () => {
     );
   });
 
+  it("detects a missing projects array", () => {
+    const landing = make_landing({ projects: undefined as unknown as never });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "projects must be an array" }),
+    );
+  });
+
+  it("detects a project missing an id", () => {
+    const landing = make_landing({
+      projects: [{ ...MOCK_LANDING_DATA.projects[0], id: "" }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "project is missing an id" }),
+    );
+  });
+
   it("detects duplicate project ids", () => {
     const landing = make_landing({
       projects: [MOCK_LANDING_DATA.projects[0], MOCK_LANDING_DATA.projects[0]],
@@ -134,7 +152,15 @@ describe("validate_landing_data", () => {
     const landing = make_landing({ resume_links: [] });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
-      expect.objectContaining({ message: "resume_links must contain at least one entry" }),
+      expect.objectContaining({ message: expect.stringContaining("resume_links must contain exactly one entry") }),
+    );
+  });
+
+  it("detects resume_links with more than one entry", () => {
+    const landing = make_landing({ resume_links: ["default", "cto-a"] });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: expect.stringContaining("resume_links must contain exactly one entry") }),
     );
   });
 
@@ -145,6 +171,14 @@ describe("validate_landing_data", () => {
       expect.objectContaining({
         message: `resume_links variant "ghost-variant" is not a valid variant`,
       }),
+    );
+  });
+
+  it("detects a missing contact array", () => {
+    const landing = make_landing({ contact: undefined as unknown as never });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "contact must be an array" }),
     );
   });
 
@@ -163,6 +197,14 @@ describe("validate_landing_data", () => {
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
       expect.objectContaining({ message: "github.user is required" }),
+    );
+  });
+
+  it("detects a missing sections array", () => {
+    const landing = make_landing({ sections: undefined as unknown as never });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "sections must be an array" }),
     );
   });
 

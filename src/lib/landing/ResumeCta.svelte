@@ -1,14 +1,9 @@
 <script lang="ts">
   import HudFrame from "./HudFrame.svelte";
 
-  // `data/landing.yaml`'s `resume_links` is an array, but the data model is
-  // explicit that it is expected to hold exactly one entry: the one public
-  // resume variant. This component takes that single variant as a prop
-  // rather than looping, because a loop over an array that is meant to hold
-  // one item is a bug waiting to happen the day a second entry is added -
-  // two identically-labelled CTAs pointing at different variants. If the
-  // product intent ever genuinely becomes "link several variants publicly",
-  // this component needs a real per-variant label, not just a loop.
+  // `validate_landing_data` enforces exactly one entry in `resume_links`, so
+  // this takes that single variant directly. Supporting more than one would
+  // need real per-variant CTA labels here, not just a loop.
   let { resume_link }: { resume_link: string } = $props();
 </script>
 

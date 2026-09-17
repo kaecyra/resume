@@ -54,9 +54,9 @@ projects:
     name: "LiveVision - CES 2026 Demo"
     blurb: |
       Built and ran a live, on-prem computer vision pipeline at CES 2026: real video
-      feeds from an NFL game, processed on DGX Spark and Lenovo Neo hardware with no
-      cloud fallback. Getting inference to keep pace with the live feed, on hardware
-      that had to work correctly the first time on the show floor, was the hard part.
+      feeds from an NFL game, processed on DGX Spark and Lenovo Neo hardware. Getting
+      inference to keep pace with the live feed, on hardware that had to work
+      correctly the first time on the show floor, was the hard part.
     stack:
       - "Computer vision"
       - "Edge inference"

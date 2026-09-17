@@ -1,10 +1,9 @@
 import { HUD_PALETTE } from "./palette.js";
 
 // These helpers implement the WCAG relative-luminance/contrast formulas
-// (https://www.w3.org/TR/WCAG21/#dfn-relative-luminance). They exist only to
-// give this test something real to check - a change that makes the accent
-// unreadable against the background, or corrupts a hex value, is an actual
-// defect these assertions can catch.
+// (https://www.w3.org/TR/WCAG21/#dfn-relative-luminance), used below to
+// check background contrast against every foreground token (accent,
+// secondary, text) that this palette actually defines.
 
 function hex_to_rgb(hex: string): [number, number, number] {
   const value = hex.replace("#", "");
@@ -38,8 +37,11 @@ describe("HUD_PALETTE", () => {
     }
   });
 
-  it("clears WCAG AA contrast (4.5:1) between background and body text", () => {
-    const ratio = contrast_ratio(HUD_PALETTE.background, HUD_PALETTE.text);
-    expect(ratio).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(["accent", "secondary", "text"] as const)(
+    "clears WCAG AA contrast (4.5:1) between background and %s",
+    (token) => {
+      const ratio = contrast_ratio(HUD_PALETTE.background, HUD_PALETTE[token]);
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });

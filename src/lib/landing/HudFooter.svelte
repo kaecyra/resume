@@ -14,7 +14,7 @@
       {/each}
     </ul>
     <p class="hud-footer-github">
-      GitHub activity:
+      GitHub:
       <a href="https://github.com/{github.user}" target="_blank" rel="noopener noreferrer">@{github.user}</a>
     </p>
   </div>

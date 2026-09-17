@@ -17,7 +17,7 @@
 
         <p class="hud-project-blurb">{project.blurb}</p>
 
-        {#if project.stack.length > 0}
+        {#if project.stack?.length}
           <ul class="hud-project-stack">
             {#each project.stack as tag}
               <li>{tag}</li>

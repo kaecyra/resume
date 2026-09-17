@@ -29,24 +29,37 @@ export function validate_landing_data(
     errors.push({ path, message: "hero is missing required fields (name, role, tagline, status)" });
   }
 
+  if (!Array.isArray(landing.projects)) {
+    errors.push({ path, message: "projects must be an array" });
+  }
+
   const seen_project_ids = new Set<string>();
   for (const project of landing.projects ?? []) {
-    if (seen_project_ids.has(project.id)) {
+    const project_label = project.id || "unknown";
+
+    if (!project.id) {
+      errors.push({ path, message: "project is missing an id" });
+    } else if (seen_project_ids.has(project.id)) {
       errors.push({ path, message: `duplicate project id "${project.id}"` });
+    } else {
+      seen_project_ids.add(project.id);
     }
-    seen_project_ids.add(project.id);
 
     if (!project.name || !project.blurb) {
-      errors.push({ path, message: `project "${project.id}" is missing name or blurb` });
+      errors.push({ path, message: `project "${project_label}" is missing name or blurb` });
     }
 
     if (!Array.isArray(project.stack)) {
-      errors.push({ path, message: `project "${project.id}" is missing a stack array` });
+      errors.push({ path, message: `project "${project_label}" is missing a stack array` });
     }
 
     if (project.links !== undefined && !Array.isArray(project.links)) {
-      errors.push({ path, message: `project "${project.id}" links must be an array` });
+      errors.push({ path, message: `project "${project_label}" links must be an array` });
     }
+  }
+
+  if (!Array.isArray(landing.contact)) {
+    errors.push({ path, message: "contact must be an array" });
   }
 
   for (const [index, item] of (landing.contact ?? []).entries()) {
@@ -55,8 +68,12 @@ export function validate_landing_data(
     }
   }
 
-  if (!landing.resume_links || landing.resume_links.length === 0) {
-    errors.push({ path, message: "resume_links must contain at least one entry" });
+  if (!Array.isArray(landing.resume_links) || landing.resume_links.length !== 1) {
+    errors.push({
+      path,
+      message:
+        "resume_links must contain exactly one entry (multiple public variants need per-variant CTA labels, which this data model does not support yet)",
+    });
   }
 
   for (const variant of landing.resume_links ?? []) {
@@ -67,6 +84,10 @@ export function validate_landing_data(
 
   if (!landing.github?.user) {
     errors.push({ path, message: "github.user is required" });
+  }
+
+  if (!Array.isArray(landing.sections)) {
+    errors.push({ path, message: "sections must be an array" });
   }
 
   const seen_sections = new Set<string>();
