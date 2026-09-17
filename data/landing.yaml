@@ -4,7 +4,7 @@ hero:
   tagline: |
     I build systems, and lately I build them by directing AI agents instead of typing
     every line myself.
-  status: "Montreal, QC. Currently building odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
+  status: "Montreal, QC. Currently building Odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
 
 projects:
   - id: odette
@@ -26,9 +26,9 @@ projects:
     blurb: |
       This resume site itself: a schema-driven deployment platform where content lives
       in YAML and every theme, PDF export, and variant reads from the same source.
-      Built almost entirely by directing AI agents rather than hand-typing it, using a
-      workflow I call Chat-Oriented Programming. It's also the live test case for how
-      well that workflow holds up under real constraints.
+      Built almost entirely by directing AI agents rather than hand-typing it, as a
+      live demonstration of Chat-Oriented Programming (CHOP). It's also the test case
+      for how well that workflow holds up under real constraints.
     repo_url: "https://github.com/kaecyra/resume"
     stack:
       - "SvelteKit"

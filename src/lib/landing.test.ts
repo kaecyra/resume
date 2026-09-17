@@ -68,6 +68,49 @@ describe("validate_landing_data", () => {
     expect(errors).toEqual([]);
   });
 
+  it("reports one error and does not throw for an empty document", () => {
+    const errors = validate_landing_data(undefined as unknown as LandingData, VALID_VARIANTS);
+    expect(errors).toEqual([
+      expect.objectContaining({ message: expect.stringContaining("must contain a document") }),
+    ]);
+  });
+
+  it("does not throw when projects is a map instead of an array", () => {
+    const landing = make_landing({ projects: { odette: {} } as unknown as never });
+    expect(() => validate_landing_data(landing, VALID_VARIANTS)).not.toThrow();
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "projects must be an array" }),
+    );
+  });
+
+  it("does not throw when contact is a map instead of an array", () => {
+    const landing = make_landing({ contact: { email: "test@example.com" } as unknown as never });
+    expect(() => validate_landing_data(landing, VALID_VARIANTS)).not.toThrow();
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "contact must be an array" }),
+    );
+  });
+
+  it("does not throw when resume_links is a map instead of an array", () => {
+    const landing = make_landing({ resume_links: { variant: "default" } as unknown as never });
+    expect(() => validate_landing_data(landing, VALID_VARIANTS)).not.toThrow();
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: expect.stringContaining("resume_links must contain exactly one entry") }),
+    );
+  });
+
+  it("does not throw when sections is a map instead of an array", () => {
+    const landing = make_landing({ sections: { hero: true } as unknown as never });
+    expect(() => validate_landing_data(landing, VALID_VARIANTS)).not.toThrow();
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "sections must be an array" }),
+    );
+  });
+
   it("detects missing hero fields", () => {
     const landing = make_landing({
       hero: { name: "", role: "Engineer", tagline: "x", status: "y" },
@@ -114,7 +157,17 @@ describe("validate_landing_data", () => {
     });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
-      expect.objectContaining({ message: `project "proj-a" is missing name or blurb` }),
+      expect.objectContaining({ message: `project "proj-a" is missing name, blurb, or status` }),
+    );
+  });
+
+  it("detects a project missing status", () => {
+    const landing = make_landing({
+      projects: [{ ...MOCK_LANDING_DATA.projects[0], status: "" }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `project "proj-a" is missing name, blurb, or status` }),
     );
   });
 
@@ -140,12 +193,14 @@ describe("validate_landing_data", () => {
     );
   });
 
-  it("allows a project that omits links entirely", () => {
+  it("detects a project link entry missing label or url", () => {
     const landing = make_landing({
-      projects: [MOCK_LANDING_DATA.projects[0]],
+      projects: [{ ...MOCK_LANDING_DATA.projects[0], links: [{ label: "", url: "" }] }],
     });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toEqual([]);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `project "proj-a" link 0 is missing label or url` }),
+    );
   });
 
   it("detects empty resume_links", () => {
@@ -189,6 +244,19 @@ describe("validate_landing_data", () => {
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
       expect.objectContaining({ message: "contact entry 0 is missing label or url" }),
+    );
+  });
+
+  it("detects a duplicate contact url", () => {
+    const landing = make_landing({
+      contact: [
+        { label: "Email", url: "mailto:test@example.com" },
+        { label: "Also email", url: "mailto:test@example.com" },
+      ],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `duplicate contact url "mailto:test@example.com"` }),
     );
   });
 

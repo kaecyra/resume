@@ -25,16 +25,30 @@ export function validate_landing_data(
   const errors: ValidationError[] = [];
   const path = "data/landing.yaml";
 
+  // A missing or malformed document (an empty `data/landing.yaml` parses to
+  // `undefined`) can't be checked field by field, and `landing.hero` would
+  // throw before the `?.` on `hero` ever runs. Stop here rather than guard
+  // every access below against a `landing` that isn't an object at all.
+  if (!landing || typeof landing !== "object") {
+    errors.push({ path, message: "landing.yaml must contain a document" });
+    return errors;
+  }
+
   if (!landing.hero?.name || !landing.hero?.role || !landing.hero?.tagline || !landing.hero?.status) {
     errors.push({ path, message: "hero is missing required fields (name, role, tagline, status)" });
   }
 
-  if (!Array.isArray(landing.projects)) {
+  // `Array.isArray` guards below resolve to a real array or `null`, never
+  // the original (possibly wrong-typed) field, so the `?? []` fallback in
+  // each loop can only ever iterate an array - never a YAML map, which
+  // `for...of` cannot iterate at all and throws on.
+  const projects = Array.isArray(landing.projects) ? landing.projects : null;
+  if (!projects) {
     errors.push({ path, message: "projects must be an array" });
   }
 
   const seen_project_ids = new Set<string>();
-  for (const project of landing.projects ?? []) {
+  for (const project of projects ?? []) {
     const project_label = project.id || "unknown";
 
     if (!project.id) {
@@ -45,8 +59,8 @@ export function validate_landing_data(
       seen_project_ids.add(project.id);
     }
 
-    if (!project.name || !project.blurb) {
-      errors.push({ path, message: `project "${project_label}" is missing name or blurb` });
+    if (!project.name || !project.blurb || !project.status) {
+      errors.push({ path, message: `project "${project_label}" is missing name, blurb, or status` });
     }
 
     if (!Array.isArray(project.stack)) {
@@ -55,20 +69,33 @@ export function validate_landing_data(
 
     if (project.links !== undefined && !Array.isArray(project.links)) {
       errors.push({ path, message: `project "${project_label}" links must be an array` });
+    } else {
+      for (const [link_index, link] of (project.links ?? []).entries()) {
+        if (!link?.label || !link?.url) {
+          errors.push({ path, message: `project "${project_label}" link ${link_index} is missing label or url` });
+        }
+      }
     }
   }
 
-  if (!Array.isArray(landing.contact)) {
+  const contact = Array.isArray(landing.contact) ? landing.contact : null;
+  if (!contact) {
     errors.push({ path, message: "contact must be an array" });
   }
 
-  for (const [index, item] of (landing.contact ?? []).entries()) {
+  const seen_contact_urls = new Set<string>();
+  for (const [index, item] of (contact ?? []).entries()) {
     if (!item?.label || !item?.url) {
       errors.push({ path, message: `contact entry ${index} is missing label or url` });
+    } else if (seen_contact_urls.has(item.url)) {
+      errors.push({ path, message: `duplicate contact url "${item.url}"` });
+    } else {
+      seen_contact_urls.add(item.url);
     }
   }
 
-  if (!Array.isArray(landing.resume_links) || landing.resume_links.length !== 1) {
+  const resume_links = Array.isArray(landing.resume_links) ? landing.resume_links : null;
+  if (!resume_links || resume_links.length !== 1) {
     errors.push({
       path,
       message:
@@ -76,7 +103,7 @@ export function validate_landing_data(
     });
   }
 
-  for (const variant of landing.resume_links ?? []) {
+  for (const variant of resume_links ?? []) {
     if (!valid_variants.includes(variant)) {
       errors.push({ path, message: `resume_links variant "${variant}" is not a valid variant` });
     }
@@ -86,12 +113,13 @@ export function validate_landing_data(
     errors.push({ path, message: "github.user is required" });
   }
 
-  if (!Array.isArray(landing.sections)) {
+  const sections = Array.isArray(landing.sections) ? landing.sections : null;
+  if (!sections) {
     errors.push({ path, message: "sections must be an array" });
   }
 
   const seen_sections = new Set<string>();
-  for (const section of landing.sections ?? []) {
+  for (const section of sections ?? []) {
     if (seen_sections.has(section)) {
       errors.push({ path, message: `duplicate section "${section}"` });
     }

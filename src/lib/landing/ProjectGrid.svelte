@@ -78,7 +78,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--hud-secondary);
-    white-space: nowrap;
+    overflow-wrap: break-word;
   }
 
   .hud-project-blurb {
@@ -86,6 +86,7 @@
     font-size: 0.85rem;
     line-height: 1.6;
     color: var(--hud-text);
+    overflow-wrap: break-word;
   }
 
   .hud-project-stack {
@@ -124,5 +125,26 @@
 
   .hud-project-links a:hover {
     text-decoration: underline;
+  }
+
+  /* Second dark surface independent of HudFrame's own background - see the
+     print note in HudFrame.svelte for why this needs its own override. */
+  @media print {
+    .hud-project-card {
+      background: transparent;
+      border-color: #1a2744;
+    }
+
+    .hud-project-name,
+    .hud-project-status,
+    .hud-project-blurb,
+    .hud-project-stack li,
+    .hud-project-links a {
+      color: #1a2744;
+    }
+
+    .hud-project-stack li {
+      border-color: #1a2744;
+    }
   }
 </style>

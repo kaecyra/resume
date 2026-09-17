@@ -81,4 +81,31 @@
       padding: 2rem;
     }
   }
+
+  /*
+   * src/app.css applies print-color-adjust: exact to * inside @media print
+   * for the resume themes and PDF pipeline, and that rule reaches this
+   * component too. Without an override here, the dark background and the
+   * scanline texture print as-is: wasted ink, and the section label and
+   * corner brackets print in accent orange on top of a solid dark fill.
+   * Override to a plain, printable look instead of fixing the global rule,
+   * which is outside this node's globs.
+   */
+  @media print {
+    .hud-frame {
+      background-color: transparent;
+      background-image: none;
+      color: #1a2744;
+      border-color: #1a2744;
+    }
+
+    .hud-frame::before,
+    .hud-frame::after {
+      border-color: #1a2744;
+    }
+
+    .hud-frame-label {
+      color: #1a2744;
+    }
+  }
 </style>
