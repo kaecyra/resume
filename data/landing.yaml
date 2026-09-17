@@ -1,10 +1,10 @@
 hero:
   name: "Tim Gunter"
-  role: "VP of Engineering, .Monks"
+  role: "VP Engineering, .Monks - Montreal, QC"
   tagline: |
-    I lead a 300-person engineering org at .Monks and build things on the side, most
-    recently by directing AI coding agents instead of typing every line myself.
-  status: "Montreal, QC. Currently rebuilding a distributed engineering org and shipping side projects after hours."
+    I build systems, and lately I build them by directing AI agents instead of typing
+    every line myself.
+  status: "Currently building odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
 
 projects:
   - id: odette
@@ -17,9 +17,8 @@ projects:
       and agent guidance move between projects as shared files instead of being
       copy-pasted into each one.
     stack:
-      - "TypeScript"
+      - "Go"
       - "Docker"
-      - "Agent sandboxing"
     links: []
     status: "Not yet public"
 
@@ -42,24 +41,25 @@ projects:
   - id: vanilla-oss
     name: "Vanilla Forums"
     blurb: |
-      Long-time contributor to the open-source Vanilla Forums platform: high-traffic
+      Core contributor to the open-source Vanilla Forums platform: high-traffic
       community software running at the scale of thousands of live communities. I
-      worked on the core codebase as an employee and have stayed involved since.
+      worked on the core codebase as an employee, focused on its security,
+      extensibility, and performance.
     repo_url: "https://github.com/vanilla"
     stack:
       - "PHP"
       - "MySQL"
       - "Community platforms"
     links: []
-    status: "Ongoing"
+    status: "Former core contributor"
 
   - id: ces-2026
     name: "LiveVision - CES 2026 Demo"
     blurb: |
-      Built and ran a live, on-prem computer vision demo at CES 2026, processing real
-      feeds from an NFL game in front of C-suite stakeholders. Landed the capex for the
-      DGX Spark and Lenovo Neo hardware it ran on, and ran the delivery team that got it
-      working on the show floor.
+      Built and ran a live, on-prem computer vision pipeline at CES 2026: real video
+      feeds from an NFL game, processed on DGX Spark and Lenovo Neo hardware with no
+      cloud fallback. Getting inference to keep pace with the live feed, on hardware
+      that had to work correctly the first time on the show floor, was the hard part.
     stack:
       - "Computer vision"
       - "Edge inference"
@@ -70,9 +70,9 @@ projects:
   - id: gtc-2026
     name: "LiveVision - NVIDIA GTC 2026 Talk"
     blurb: |
-      Invited by NVIDIA to talk about LiveVision at GTC 2026: real-time AI video
-      processing at the edge, what it takes to run high-concurrency model inference in
-      a live broadcast pipeline, and quick-turn asset generation alongside it.
+      Talked at NVIDIA GTC 2026 about the architecture behind LiveVision: real-time AI
+      video understanding at the edge, running high-concurrency model inference against
+      a live broadcast feed, and generating new assets fast enough to keep up with it.
     stack:
       - "Edge AI"
       - "Video pipelines"
