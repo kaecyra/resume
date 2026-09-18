@@ -1,5 +1,5 @@
 <script lang="ts">
-  import HudFrame from "./HudFrame.svelte";
+  import { HUD_PALETTE } from "./palette.js";
   import { handle_resume_download, resume_pdf_filename } from "./resume-download.js";
 
   // `validate_landing_data` enforces exactly one entry in `resume_links`, so
@@ -12,81 +12,72 @@
   }: { resume_link: string; profile_name: string; resume_title: string } = $props();
 </script>
 
-<HudFrame label="Resume" id="resume">
-  <div class="hud-cta">
-    <p class="hud-cta-copy">Full resume, tailored by role.</p>
-    <div class="hud-cta-links">
-      <a class="hud-cta-link" href="/{resume_link}">Resume</a>
-      <a
-        class="hud-cta-link hud-cta-link-icon"
-        href="/{resume_link}.pdf"
-        download={resume_pdf_filename(profile_name, resume_title)}
-        aria-label="Download resume PDF"
-        onclick={() => handle_resume_download(resume_link)}
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-          <path
-            d="M6 2h8l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linejoin="round"
-          />
-          <path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-          <path
-            d="M8.5 9.5h2.5M8.5 13h7M8.5 16.5h7"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-      </a>
-    </div>
-  </div>
-</HudFrame>
+<div class="cta" style="--hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};">
+  <a class="cta-link" href="/{resume_link}">Resume</a>
+  <a
+    class="cta-icon"
+    href="/{resume_link}.pdf"
+    download={resume_pdf_filename(profile_name, resume_title)}
+    aria-label="Download resume PDF"
+    onclick={() => handle_resume_download(resume_link)}
+  >
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d="M12 3v12"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M7 11l5 5 5-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path d="M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  </a>
+</div>
 
 <style>
-  .hud-cta {
+  .cta {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .hud-cta-copy {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--hud-text);
-  }
-
-  .hud-cta-links {
-    display: flex;
-    flex-wrap: wrap;
     gap: 0.75rem;
   }
 
-  .hud-cta-link {
-    display: inline-block;
-    border: 1px solid var(--hud-accent);
-    color: var(--hud-accent);
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+  .cta-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 1.875rem;
+    background: var(--hud-text);
+    color: #0a0a0b;
+    font-family: "Archivo Black", Impact, sans-serif;
+    font-weight: 400;
+    font-size: 1.0625rem;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
   }
 
-  .hud-cta-link:hover {
-    background: color-mix(in srgb, var(--hud-accent) 15%, transparent);
-  }
-
-  .hud-cta-link-icon {
+  .cta-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
-    padding: 0;
+    width: 52px;
+    height: 52px;
+    border: 1px solid #33333a;
+    color: var(--hud-secondary);
+  }
+
+  .cta-icon:hover {
+    color: var(--hud-text);
+    border-color: var(--hud-secondary);
   }
 </style>

@@ -1,10 +1,11 @@
 hero:
   name: "Tim Gunter"
   role: "VP Engineering, .Monks"
+  location: "Montreal, QC"
   tagline: |
     I build systems, and lately I build them by directing AI agents instead of typing
     every line myself.
-  status: "Montreal, QC. Currently building Odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
+  status: "Currently building Odette, a sandbox for running AI coding agents, and running this site through the same agent-directed workflow."
 
 projects:
   - id: odette
@@ -36,19 +37,24 @@ projects:
       - "Tailwind CSS"
     status: "Active"
 
-  - id: vanilla-oss
-    name: "Vanilla Forums"
+  - id: penny-royal
+    name: "Penny Royal"
     blurb: |
-      Core contributor to the open-source Vanilla Forums platform: high-traffic
-      community software running at the scale of thousands of live communities. I
-      worked on the core codebase as an employee, focused on its security,
-      extensibility, and performance.
-    repo_url: "https://github.com/vanilla"
+      A multi-tenant AI agent framework that runs on your own hardware. A local model
+      triages every inbound message and handles what it can on-device; only complex
+      reasoning escalates to a provider you choose, and that boundary is explicit.
+      Credentials are encrypted per tenant and injected at execution time, so the model
+      never sees a secret. Integrations are MCP servers, so the core never needs to
+      know what is behind one.
+    links:
+      - label: "Site"
+        url: "https://pennyroyal.io"
     stack:
-      - "PHP"
-      - "MySQL"
-      - "Community platforms"
-    status: "Former core contributor"
+      - "TypeScript"
+      - "Bun"
+      - "PostgreSQL"
+      - "MCP"
+    status: "In development"
 
   - id: ces-2026
     name: "LiveVision - CES 2026 Demo"
@@ -91,6 +97,7 @@ github:
 
 sections:
   - "hero"
-  - "projects"
-  - "resume"
+  - "divider"
+  - "commits"
+  - "work"
   - "contact"

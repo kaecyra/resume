@@ -1,10 +1,20 @@
-// Local HUD palette for the landing page's dark terminal aesthetic.
-// These tokens are intentionally kept out of `$lib/theme-palettes.ts`: that map
-// feeds the PDF pipeline for resume themes, and the landing page has neither
-// a PDF path nor a resume theme.
+// Local HUD palette for the landing page's greyscale-plus-amber "Signal"
+// design (#177). These tokens are intentionally kept out of
+// `$lib/theme-palettes.ts`: that map feeds the PDF pipeline for resume
+// themes, and the landing page has neither a PDF path nor a resume theme.
+//
+// `background`, `text`, `secondary` and `accent` are load-bearing for
+// palette.test.ts's WCAG AA contrast check; `panel`, `panel_alt` and `meta`
+// are additional surfaces/labels the redesign needs that the contrast test
+// doesn't (and isn't meant to) cover - `meta` in particular is deliberately
+// low-contrast, used only for small decorative labels like the hero
+// coordinates, never for content that needs to be read reliably.
 export const HUD_PALETTE = {
-  background: "#1a2744",
+  background: "#0a0a0b",
+  panel: "#121214",
+  panel_alt: "#151517",
+  text: "#ededec",
+  secondary: "#a8a8ad",
+  meta: "#6e6e75",
   accent: "#e87a2e",
-  text: "#f0e6d6",
-  secondary: "#8b9bb5",
 } as const;

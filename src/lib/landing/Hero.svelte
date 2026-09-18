@@ -1,0 +1,182 @@
+<script lang="ts">
+  import type { LandingHero } from "$lib/types.js";
+
+  import { split_role_badge } from "./hero-format.js";
+  import { HUD_PALETTE } from "./palette.js";
+  import ResumeCta from "./ResumeCta.svelte";
+
+  let {
+    hero,
+    resume_link,
+    profile_name,
+    resume_title,
+  }: {
+    hero: LandingHero;
+    resume_link: string;
+    profile_name: string;
+    resume_title: string;
+  } = $props();
+
+  const role = $derived(split_role_badge(hero.role));
+</script>
+
+<section
+  id="hero"
+  class="hero"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta}; --hud-accent: {HUD_PALETTE.accent};"
+>
+  <div class="hero-backdrop" aria-hidden="true"></div>
+
+  <!--
+    #177 owns this static gradient placeholder. #168 (the rotating globe)
+    mounts its canvas into this element - id and position are the contract
+    between the two nodes, so don't rename or remove #hero-globe-mount
+    without checking with that node.
+  -->
+  <div id="hero-globe-mount" class="hero-visual" aria-hidden="true"></div>
+
+  <div class="hero-scrim" aria-hidden="true"></div>
+
+  <div class="hero-topbar">
+    <span>KAECYRA</span>
+    <span>45.50&deg;N 73.57&deg;W</span>
+  </div>
+
+  <div class="hero-identity">
+    <h1 class="hero-name">{hero.name}</h1>
+    <div class="hero-badge">
+      <span class="hero-badge-tag">{role.tag}</span>
+      {#if role.label}
+        <span class="hero-badge-label">{role.label}</span>
+      {/if}
+    </div>
+  </div>
+
+  <div class="hero-foot">
+    <p class="hero-tagline">{hero.tagline}</p>
+    <p class="hero-status">{hero.status}</p>
+    <div class="hero-actions">
+      <ResumeCta {resume_link} {profile_name} {resume_title} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    min-height: 720px;
+    padding: 4rem 2.5rem 2.75rem;
+    background: var(--hud-bg);
+    color: var(--hud-text);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+  }
+
+  .hero-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 70% at 68% 48%, #17171b 0%, #0d0d0f 55%, #09090a 100%);
+  }
+
+  .hero-visual {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 760px;
+    height: 760px;
+    max-width: none;
+  }
+
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(10, 10, 11, 0.97) 0%, rgba(10, 10, 11, 0.84) 36%, rgba(10, 10, 11, 0) 64%);
+  }
+
+  .hero-topbar,
+  .hero-identity,
+  .hero-foot {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--hud-meta);
+  }
+
+  .hero-identity {
+    max-width: 40rem;
+  }
+
+  .hero-name {
+    margin: 0;
+    font-family: "Archivo Black", Impact, sans-serif;
+    font-weight: 400;
+    font-size: clamp(2.75rem, 13vw, 8.875rem);
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--hud-text);
+    overflow-wrap: normal;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.875rem;
+    margin-top: 1.625rem;
+    padding: 0.625rem 1rem;
+    background: var(--hud-accent);
+    color: var(--hud-bg);
+  }
+
+  .hero-badge-tag {
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+  }
+
+  .hero-badge-label {
+    font-family: "Archivo Black", Impact, sans-serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .hero-foot {
+    max-width: 37.5rem;
+  }
+
+  .hero-tagline {
+    margin: 0 0 0.875rem;
+    font-size: 1.1875rem;
+    line-height: 1.5;
+    color: var(--hud-secondary);
+  }
+
+  .hero-status {
+    margin: 0 0 1.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--hud-meta);
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      min-height: auto;
+      padding: 3rem 1.25rem 2.25rem;
+      gap: 3rem;
+    }
+  }
+</style>

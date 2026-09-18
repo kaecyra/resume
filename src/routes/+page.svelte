@@ -35,25 +35,32 @@
 </svelte:head>
 
 <main id="main-content" class="landing">
-  <LandingSections landing={data.landing} profile_name={data.profile_name} resume_title={data.resume_title} />
+  <LandingSections
+    landing={data.landing}
+    profile_name={data.profile_name}
+    resume_title={data.resume_title}
+    contributions_grid={data.contributions_grid}
+  />
 </main>
 
 <style>
+  /*
+   * The landing page uses its own greyscale-plus-amber palette
+   * (HUD_PALETTE in $lib/landing/palette.ts, #0a0a0b ground), not the
+   * retro resume theme's navy - every section is full-bleed, so the body
+   * background only shows during initial paint/scroll overscroll.
+   */
   :global(body) {
-    background-color: var(--color-retro-navy);
+    background-color: #0a0a0b;
   }
 
   .landing {
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
     width: 100%;
-    max-width: 48rem;
     min-width: 0;
-    margin: 0 auto;
-    background-color: var(--color-retro-navy);
-    color: var(--color-retro-cream);
-    padding: 2rem 1.5rem;
+    overflow-x: clip;
+    background-color: #0a0a0b;
   }
 </style>

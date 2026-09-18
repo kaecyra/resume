@@ -67,7 +67,7 @@ src/
   lib/
     data.ts               # Data loading and variant resolution
     landing.ts            # Landing page data loading and validation
-    landing/              # Dark HUD landing page components
+    landing/              # Landing page components (greyscale + amber "Signal" design)
     types.ts              # TypeScript type definitions
   routes/                 # SvelteKit pages
 scripts/
@@ -99,7 +99,7 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 
 ### Landing Page
 
-The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account linked in the footer. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
+The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account shown next to the commit history. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
 
 ### Sub-Variants
 

@@ -7,7 +7,8 @@ import LandingSections from "./LandingSections.svelte";
 const LANDING: LandingData = {
   hero: {
     name: "Test Person",
-    role: "Engineer",
+    role: "Engineer, Acme",
+    location: "Somewhere, QC",
     tagline: "I build things.",
     status: "Somewhere, doing stuff.",
   },
@@ -21,9 +22,13 @@ const LANDING: LandingData = {
     },
   ],
   resume_links: ["default"],
-  contact: [{ label: "Email", url: "mailto:test@example.com" }],
+  contact: [
+    { label: "Email", url: "mailto:test@example.com" },
+    { label: "LinkedIn", url: "https://linkedin.com/in/test" },
+    { label: "GitHub", url: "https://github.com/testuser" },
+  ],
   github: { user: "testuser" },
-  sections: ["hero", "projects", "resume", "contact"],
+  sections: ["hero", "divider", "commits", "work", "contact"],
 };
 
 // Deliberately different from hero.name/hero.role, to prove the download
@@ -34,7 +39,12 @@ const RESUME_TITLE = "Resolved Variant Title";
 
 function html_for(landing: LandingData): string {
   return render(LandingSections, {
-    props: { landing, profile_name: PROFILE_NAME, resume_title: RESUME_TITLE },
+    props: {
+      landing,
+      profile_name: PROFILE_NAME,
+      resume_title: RESUME_TITLE,
+      contributions_grid: null,
+    },
   }).body;
 }
 
@@ -43,8 +53,9 @@ describe("LandingSections", () => {
     const html = html_for(LANDING);
 
     expect(html).toContain("Test Person");
+    expect(html).toContain("Somewhere, QC");
     expect(html).toContain("Project A");
-    expect(html).toContain("Resume");
+    expect(html).toContain("https://linkedin.com/in/test");
     expect(html).toContain("mailto:test@example.com");
   });
 
@@ -52,14 +63,16 @@ describe("LandingSections", () => {
     const html = html_for(LANDING);
 
     const hero_index = html.indexOf("Test Person");
-    const projects_index = html.indexOf("Project A");
-    const resume_index = html.indexOf("Resume");
+    const divider_index = html.indexOf("Somewhere, QC");
+    const commits_index = html.indexOf("testuser");
+    const work_index = html.indexOf("Project A");
     const contact_index = html.indexOf("mailto:test@example.com");
 
     expect(hero_index).toBeGreaterThanOrEqual(0);
-    expect(hero_index).toBeLessThan(projects_index);
-    expect(projects_index).toBeLessThan(resume_index);
-    expect(resume_index).toBeLessThan(contact_index);
+    expect(hero_index).toBeLessThan(divider_index);
+    expect(divider_index).toBeLessThan(commits_index);
+    expect(commits_index).toBeLessThan(work_index);
+    expect(work_index).toBeLessThan(contact_index);
   });
 
   it("reverses the rendered order when landing.sections is reversed", () => {
@@ -73,8 +86,8 @@ describe("LandingSections", () => {
   });
 
   it("omits a section entirely when it is removed from landing.sections", () => {
-    const without_projects = { ...LANDING, sections: ["hero", "resume", "contact"] };
-    const html = html_for(without_projects);
+    const without_work = { ...LANDING, sections: ["hero", "commits", "contact"] };
+    const html = html_for(without_work);
 
     expect(html).not.toContain("Project A");
   });
@@ -97,5 +110,11 @@ describe("LandingSections", () => {
     const html = html_for(LANDING);
 
     expect(html.match(/<h1\b/g)?.length).toBe(1);
+  });
+
+  it("renders no slash-separated slogan anywhere on the page", () => {
+    const html = html_for(LANDING);
+
+    expect(html).not.toMatch(/\s\/\s/);
   });
 });

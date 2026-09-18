@@ -18,6 +18,7 @@ const MOCK_LANDING_DATA: LandingData = {
     name: "Test Person",
     role: "Engineer",
     tagline: "I build things.",
+    location: "Somewhere, QC",
     status: "Somewhere, currently doing stuff.",
   },
   projects: [
@@ -33,7 +34,7 @@ const MOCK_LANDING_DATA: LandingData = {
   resume_links: ["default"],
   contact: [{ label: "Email", url: "mailto:test@example.com" }],
   github: { user: "testuser" },
-  sections: ["hero", "projects", "resume", "contact"],
+  sections: ["hero", "divider", "commits", "work", "contact"],
 };
 
 function make_landing(overrides: Partial<LandingData> = {}): LandingData {
@@ -113,12 +114,12 @@ describe("validate_landing_data", () => {
 
   it("detects missing hero fields", () => {
     const landing = make_landing({
-      hero: { name: "", role: "Engineer", tagline: "x", status: "y" },
+      hero: { name: "", role: "Engineer", location: "Somewhere", tagline: "x", status: "y" },
     });
     const errors = validate_landing_data(landing, VALID_VARIANTS);
     expect(errors).toContainEqual(
       expect.objectContaining({
-        message: "hero is missing required fields (name, role, tagline, status)",
+        message: "hero is missing required fields (name, role, location, tagline, status)",
       }),
     );
   });
@@ -294,7 +295,7 @@ describe("validate_landing_data", () => {
 
   it("accumulates multiple errors from different branches", () => {
     const landing = make_landing({
-      hero: { name: "", role: "", tagline: "", status: "" },
+      hero: { name: "", role: "", location: "", tagline: "", status: "" },
       resume_links: [],
       github: { user: "" },
     });
