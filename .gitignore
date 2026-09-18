@@ -67,3 +67,4 @@ tasks/
 
 # odette
 .odette/
+.claude/overseer/
