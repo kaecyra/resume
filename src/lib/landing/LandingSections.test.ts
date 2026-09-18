@@ -36,7 +36,7 @@ describe("LandingSections", () => {
 
     expect(html).toContain("Test Person");
     expect(html).toContain("Project A");
-    expect(html).toContain("View the full resume");
+    expect(html).toContain("Resume");
     expect(html).toContain("mailto:test@example.com");
   });
 
@@ -45,7 +45,7 @@ describe("LandingSections", () => {
 
     const hero_index = html.indexOf("Test Person");
     const projects_index = html.indexOf("Project A");
-    const resume_index = html.indexOf("View the full resume");
+    const resume_index = html.indexOf("Resume");
     const contact_index = html.indexOf("mailto:test@example.com");
 
     expect(hero_index).toBeGreaterThanOrEqual(0);
@@ -76,6 +76,13 @@ describe("LandingSections", () => {
 
     expect(html).toContain('href="/default.pdf"');
     expect(html).toContain('download="Test Person - Resume - Engineer.pdf"');
+  });
+
+  it("gives the icon-only download link an accessible name and hides its SVG from assistive tech", () => {
+    const html = html_for(LANDING);
+
+    expect(html).toContain('aria-label="Download resume PDF"');
+    expect(html).toMatch(/<svg[^>]*aria-hidden="true"/);
   });
 
   it("renders exactly one h1", () => {
