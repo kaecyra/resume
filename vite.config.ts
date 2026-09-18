@@ -20,9 +20,13 @@ export default defineConfig({
     // Two projects, not one global `environment`: most tests render Svelte
     // components through `svelte/server` (SSR), which needs Svelte's
     // server-compiled output. A handful of component tests need a real DOM
-    // (see ResumeCta.test.ts) and need the `browser` resolve condition so
+    // (see *.dom.test.ts files) and need the `browser` resolve condition so
     // Svelte resolves its client build instead - setting that condition
     // globally breaks every svelte/server-based test. See #175.
+    //
+    // Membership is a naming convention, not a list of paths: a test file
+    // opts into the `dom` project by naming itself `*.dom.test.ts`. Nothing
+    // here needs editing when the next DOM test is added.
     projects: [
       {
         extends: true,
@@ -30,7 +34,7 @@ export default defineConfig({
         test: {
           name: "dom",
           environment: "happy-dom",
-          include: ["src/lib/landing/ResumeCta.test.ts"],
+          include: ["src/**/*.dom.test.ts"],
         },
       },
       {
@@ -39,7 +43,7 @@ export default defineConfig({
           name: "node",
           environment: "node",
           include: ["src/**/*.test.ts"],
-          exclude: ["src/lib/landing/ResumeCta.test.ts"],
+          exclude: ["src/**/*.dom.test.ts"],
         },
       },
     ],
