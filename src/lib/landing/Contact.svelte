@@ -4,6 +4,16 @@
   import { HUD_PALETTE } from "./palette.js";
 
   let { contact }: { contact: LandingLink[] } = $props();
+
+  // Same url-derived icon lookup as Divider.svelte, which renders the same
+  // `contact` list (#187) - duplicated rather than shared because these two
+  // components don't otherwise share a module and neither is worth adding
+  // just for this.
+  function contact_icon(url: string): string | null {
+    if (url.includes("github.com")) return "/landing/github-mark.svg";
+    if (url.includes("linkedin.com")) return "/landing/linkedin-mark.svg";
+    return null;
+  }
 </script>
 
 <section id="contact" class="contact" style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent};">
@@ -14,12 +24,18 @@
            mailto: link opens a blank tab in some browsers before handing
            off to the mail client. -->
       {@const is_mailto = item.url.startsWith("mailto:")}
+      {@const icon = contact_icon(item.url)}
       <a
         href={item.url}
         target={is_mailto ? undefined : "_blank"}
         rel={is_mailto ? undefined : "noopener noreferrer"}
-        class="contact-link">{item.label}</a
+        class="contact-link"
       >
+        {#if icon}
+          <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="contact-link-icon" />
+        {/if}
+        {item.label}
+      </a>
     {/each}
   </div>
 </section>
@@ -60,11 +76,23 @@
   }
 
   .contact-link {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in
+       +page.svelte - mono retired here (#187). This now renders a literal
+       handle/address ("@kaecyra", "guntertim", the email), so the tracking
+       tuned for mono's all-caps legibility is dropped too: positive
+       letter-spacing on mixed-case running text (especially an email
+       address) just reads as loose, not deliberate. */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     font-size: 0.9375rem;
-    letter-spacing: 0.06em;
     color: inherit;
     word-break: break-word;
+  }
+
+  .contact-link-icon {
+    display: block;
+    flex: none;
   }
 
   @media (max-width: 480px) {

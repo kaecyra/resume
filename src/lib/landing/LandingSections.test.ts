@@ -221,12 +221,41 @@ describe("LandingSections", () => {
     // opening tag, so none of them prove {item.label} actually reaches the
     // markup - an anchor left empty for every contact entry would satisfy
     // all of them.
+    // The label no longer sits immediately after the anchor's opening tag
+    // (#187 puts an optional icon, wrapped in an {#if} block's hydration
+    // markers, before it) - `[\s\S]*?` skips over that non-greedily, up to
+    // this specific anchor's own closing tag, so a wrong or missing label
+    // still fails this the same way it did before.
     const html = html_for(LANDING);
     const contact_html = html.slice(html.indexOf('id="contact"'));
 
-    expect(contact_html).toMatch(/href="mailto:test@example\.com"[^>]*>Email</);
-    expect(contact_html).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>LinkedIn</);
-    expect(contact_html).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>GitHub</);
+    expect(contact_html).toMatch(/href="mailto:test@example\.com"[^>]*>[\s\S]*? Email<\/a>/);
+    expect(contact_html).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>[\s\S]*? LinkedIn<\/a>/);
+    expect(contact_html).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>[\s\S]*? GitHub<\/a>/);
+  });
+
+  it("precedes the GitHub and LinkedIn contact links with a decorative icon, but not Email", () => {
+    // Icon choice is derived from the URL (github.com / linkedin.com), not
+    // the label - mirrors is_mailto above. The icon must not contribute its
+    // own accessible name: it sits right next to the link's own visible
+    // text, so aria-hidden plus an empty alt keeps it decorative.
+    const html = html_for(LANDING);
+    const contact_html = html.slice(html.indexOf('id="contact"'));
+
+    const github_anchor = contact_html.match(/<a[^>]*href="https:\/\/github\.com\/testuser"[^>]*>[\s\S]*?<\/a>/)?.[0];
+    const linkedin_anchor = contact_html.match(
+      /<a[^>]*href="https:\/\/linkedin\.com\/in\/test"[^>]*>[\s\S]*?<\/a>/,
+    )?.[0];
+    const mailto_anchor = contact_html.match(/<a[^>]*href="mailto:test@example\.com"[^>]*>[\s\S]*?<\/a>/)?.[0];
+
+    expect(github_anchor).toContain('src="/landing/github-mark.svg"');
+    expect(linkedin_anchor).toContain('src="/landing/linkedin-mark.svg"');
+    expect(mailto_anchor).not.toContain("<img");
+
+    for (const anchor of [github_anchor, linkedin_anchor]) {
+      expect(anchor).toMatch(/<img[^>]*alt=""/);
+      expect(anchor).toMatch(/<img[^>]*aria-hidden="true"/);
+    }
   });
 
   it("renders sections in the order given by landing.sections", () => {
@@ -268,9 +297,30 @@ describe("LandingSections", () => {
 
     // The href checks above don't prove the link *text* (item.label)
     // reaches the markup - an anchor left empty (`<a href="..."></a>`)
-    // would satisfy them too.
-    expect(divider_band).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>LinkedIn</);
-    expect(divider_band).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>GitHub</);
+    // would satisfy them too. See the equivalent Contact assertion above for
+    // why `[\s\S]*?` is needed: the label sits after an optional icon now.
+    expect(divider_band).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>[\s\S]*? LinkedIn<\/a>/);
+    expect(divider_band).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>[\s\S]*? GitHub<\/a>/);
+  });
+
+  it("precedes the divider band's GitHub and LinkedIn links with the same decorative icon Contact uses", () => {
+    // Divider renders the same `contact` list as Contact (filtered to drop
+    // mailto:), and needed the same icon treatment (#187).
+    const html = html_for(LANDING);
+    const divider_html = html.slice(html.indexOf('id="divider"'), html.indexOf('id="commits"'));
+
+    const github_anchor = divider_html.match(/<a[^>]*href="https:\/\/github\.com\/testuser"[^>]*>[\s\S]*?<\/a>/)?.[0];
+    const linkedin_anchor = divider_html.match(
+      /<a[^>]*href="https:\/\/linkedin\.com\/in\/test"[^>]*>[\s\S]*?<\/a>/,
+    )?.[0];
+
+    expect(github_anchor).toContain('src="/landing/github-mark.svg"');
+    expect(linkedin_anchor).toContain('src="/landing/linkedin-mark.svg"');
+
+    for (const anchor of [github_anchor, linkedin_anchor]) {
+      expect(anchor).toMatch(/<img[^>]*alt=""/);
+      expect(anchor).toMatch(/<img[^>]*aria-hidden="true"/);
+    }
   });
 
   it("reverses the rendered order when landing.sections is reversed", () => {

@@ -71,10 +71,12 @@
     /* Body font for the whole redesign (#177). Set here, once, so every
        section inherits it - Hero previously set this on .hero alone, which
        left Work's blurbs and Contact's link row falling through to
-       Tailwind preflight's default stack instead. Display (Archivo Black)
-       and mono (Share Tech Mono) faces stay unaffected: every heading,
-       badge, meta label and link sets its own font-family per element and
-       so doesn't inherit this. */
+       Tailwind preflight's default stack instead. Display headings
+       (Archivo Black) stay unaffected, setting their own font-family per
+       element. Share Tech Mono is retired everywhere outside the hero
+       (#187) - Hero.svelte's own HUD chrome still sets it explicitly, but
+       every other element that used to (meta labels, links, captions) now
+       inherits this body face instead of setting its own. */
     font-family: "IBM Plex Sans", system-ui, sans-serif;
   }
 </style>

@@ -124,9 +124,12 @@
   }
 
   .work-status {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Status text is multi-word mixed-case
+       phrasing ("Not yet public", "In development"), not a short all-caps
+       label, so the 0.12em tracking tuned for mono is dropped rather than
+       carried over. */
     font-size: 0.6875rem;
-    letter-spacing: 0.12em;
     white-space: nowrap;
   }
 
@@ -148,7 +151,11 @@
   }
 
   .work-stack li {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Each tag is a single short word (e.g.
+       "TypeScript") rendered as a chip/badge, so the uppercase + tracking
+       treatment tuned for the mono face is still a normal, font-agnostic
+       badge convention here and stays. */
     font-size: 0.625rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;

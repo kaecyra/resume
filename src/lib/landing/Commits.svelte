@@ -115,10 +115,12 @@
   .commits-meta {
     /* This caption is the grid's sole label (which account, what period),
        so it's content someone needs to read, not a decorative tag - it
-       uses `secondary`, not `meta`. See palette.ts. */
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+       uses `secondary`, not `meta`. See palette.ts.
+       Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Renders mixed-case running text
+       ("@kaecyra, last 12 months"), so the 0.14em tracking tuned for
+       all-caps mono legibility is dropped rather than carried over. */
     font-size: 0.75rem;
-    letter-spacing: 0.14em;
     color: var(--hud-secondary);
   }
 
@@ -149,10 +151,13 @@
   }
 
   .commits-offline {
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). This is a full sentence, not a label, so
+       the 0.08em tracking tuned for mono is dropped: positive
+       letter-spacing on running prose reads as loose rather than
+       deliberate, and gets worse the longer the line. */
     margin: 0;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.8125rem;
-    letter-spacing: 0.08em;
     color: var(--hud-secondary);
   }
 
