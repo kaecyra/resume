@@ -1,12 +1,9 @@
 <script lang="ts">
-  import { track_pdf_download } from "$lib/analytics.js";
-  import { format_markdown } from "$lib/format.js";
+  import LandingSections from "$lib/landing/LandingSections.svelte";
 
   import type { PageData } from "./$types";
 
   let { data }: { data: PageData } = $props();
-
-  const DEFAULT_VARIANT = "default";
 </script>
 
 <svelte:head>
@@ -38,26 +35,7 @@
 </svelte:head>
 
 <main id="main-content" class="landing">
-  <div class="landing-content">
-    <p class="landing-role">{data.title}</p>
-    <h1 class="landing-name">{data.profile.name}</h1>
-
-    {#if data.tagline}
-      <p class="landing-tagline">{@html format_markdown(data.tagline.trim())}</p>
-    {/if}
-
-    <div class="landing-actions">
-      <a class="landing-cta" href="/{DEFAULT_VARIANT}">View the full resume</a>
-      <a
-        class="landing-download"
-        href="/{DEFAULT_VARIANT}.pdf"
-        download="{data.profile.name} - Resume - {data.title}.pdf"
-        onclick={() => track_pdf_download({ variant: DEFAULT_VARIANT, type: "resume", slug: DEFAULT_VARIANT })}
-      >
-        Download PDF
-      </a>
-    </div>
-  </div>
+  <LandingSections landing={data.landing} profile_name={data.profile_name} resume_title={data.resume_title} />
 </main>
 
 <style>
@@ -68,77 +46,14 @@
   .landing {
     min-height: 100dvh;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 48rem;
+    min-width: 0;
+    margin: 0 auto;
     background-color: var(--color-retro-navy);
     color: var(--color-retro-cream);
     padding: 2rem 1.5rem;
-  }
-
-  .landing-content {
-    width: 100%;
-    max-width: 42rem;
-    min-width: 0;
-  }
-
-  .landing-role {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--color-retro-muted);
-    margin: 0 0 0.5rem;
-  }
-
-  .landing-name {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1.1;
-    margin: 0 0 1.5rem;
-  }
-
-  .landing-tagline {
-    font-size: 1.25rem;
-    font-weight: 600;
-    line-height: 1.4;
-    color: var(--color-retro-accent);
-    margin: 0 0 1rem;
-  }
-
-  .landing-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-  }
-
-  .landing-cta {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background-color: var(--color-retro-accent);
-    color: var(--color-retro-navy);
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 0.25rem;
-    transition: opacity 0.15s ease;
-  }
-
-  .landing-cta:hover {
-    opacity: 0.85;
-  }
-
-  .landing-download {
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-retro-accent);
-    text-decoration: underline;
-    transition: opacity 0.15s ease;
-  }
-
-  .landing-download:hover {
-    opacity: 0.7;
   }
 </style>
