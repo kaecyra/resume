@@ -91,11 +91,18 @@
        casing is meaningful, and the wide tracking that made sense for
        all-caps mono legibility just looks loose on mixed-case text, so both
        are dropped rather than carried over. */
+    /* No underline on landing-page links (owner request). An anchor with no
+       text-decoration declaration underlines by default, so this needs an
+       explicit `none` even though nothing here ever set `underline`. No
+       hover rule existed before this either, so this link still has no
+       hover response - the border-bottom above is its only affordance,
+       resting or hover. */
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
     font-size: 0.8125rem;
     color: var(--hud-bg);
+    text-decoration: none;
     /* Translucent derivation of --hud-bg, not a fresh literal - color-mix
        keeps it tied to the token instead of drifting if the token changes. */
     border-bottom: 1px solid color-mix(in srgb, var(--hud-bg) 28%, transparent);

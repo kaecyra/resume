@@ -82,11 +82,17 @@
        tuned for mono's all-caps legibility is dropped too: positive
        letter-spacing on mixed-case running text (especially an email
        address) just reads as loose, not deliberate. */
+    /* No underline on landing-page links (owner request). An anchor with no
+       text-decoration declaration underlines by default, so this needs an
+       explicit `none` even though nothing here ever set `underline`. No
+       hover rule existed before this either, so this link still has no
+       hover response. */
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
     font-size: 0.9375rem;
     color: inherit;
+    text-decoration: none;
     word-break: break-word;
   }
 

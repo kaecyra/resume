@@ -114,13 +114,13 @@
   }
 
   .work-name a {
+    /* No underline on landing-page links (owner request, post-#187) - this
+       was the underline's own hover state (swapping its colour), so it goes
+       too rather than being left dead. Nothing replaces it: this link had
+       no other hover treatment, so it now has none - see LandingSections
+       test file / task report for the full inventory. */
     color: inherit;
-    text-decoration: underline;
-    text-decoration-color: var(--hud-secondary);
-  }
-
-  .work-name a:hover {
-    text-decoration-color: currentColor;
+    text-decoration: none;
   }
 
   .work-status {
