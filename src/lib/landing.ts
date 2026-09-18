@@ -8,10 +8,12 @@ import type { ValidationError } from "./validate.js";
 
 const DATA_DIR = resolve("data");
 
-// The section ids any component built so far can render: HudHero ("hero"),
-// ProjectGrid ("projects"), ResumeCta ("resume"), HudFooter ("contact"). A
-// `sections` entry outside this set silently renders nothing once wired up.
-const KNOWN_SECTIONS = new Set(["hero", "projects", "resume", "contact"]);
+// The section ids any component built so far can render: Hero ("hero"),
+// Divider ("divider"), Commits ("commits"), Work ("work"), Contact
+// ("contact"). A `sections` entry outside this set silently renders nothing
+// once wired up. The resume CTA (#174's "resume" section) is no longer a
+// standalone section - the redesign (#177) embeds it directly in the hero.
+const KNOWN_SECTIONS = new Set(["hero", "divider", "commits", "work", "contact"]);
 
 export function load_landing_data(): LandingData {
   const raw = readFileSync(resolve(DATA_DIR, "landing.yaml"), "utf-8");
@@ -34,8 +36,14 @@ export function validate_landing_data(
     return errors;
   }
 
-  if (!landing.hero?.name || !landing.hero?.role || !landing.hero?.tagline || !landing.hero?.status) {
-    errors.push({ path, message: "hero is missing required fields (name, role, tagline, status)" });
+  if (
+    !landing.hero?.name ||
+    !landing.hero?.role ||
+    !landing.hero?.location ||
+    !landing.hero?.tagline ||
+    !landing.hero?.status
+  ) {
+    errors.push({ path, message: "hero is missing required fields (name, role, location, tagline, status)" });
   }
 
   // `Array.isArray` guards below resolve to a real array or `null`, never

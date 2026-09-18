@@ -2,6 +2,7 @@ import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
+import type { ProvisionalContributionsGrid } from "$lib/landing/contributions.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -53,10 +54,17 @@ export const load: PageServerLoad = () => {
   const person_jsonld = build_person_jsonld(data.profile, landing.hero.role, canonical_url);
   const webpage_jsonld = build_webpage_jsonld(og.title, og.description, canonical_url);
 
+  // The GitHub contribution grid's data source is #167's node, not this
+  // one (#177) - it fetches and buckets the real calendar at build time.
+  // Until that lands, there is nothing here to read, so this is always
+  // null and Commits.svelte renders its offline state for that case.
+  const contributions_grid: ProvisionalContributionsGrid | null = null;
+
   return {
     landing,
     profile_name: data.profile.name,
     resume_title: variant.title,
+    contributions_grid,
     og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
   };

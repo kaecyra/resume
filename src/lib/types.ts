@@ -146,6 +146,7 @@ export interface ResolvedResume {
 export interface LandingHero {
   name: string;
   role: string;
+  location: string;
   tagline: string;
   status: string;
 }
