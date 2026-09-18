@@ -15,7 +15,7 @@
 
   <ul class="appearances-list">
     {#each appearances as appearance (appearance.id)}
-      <li class="appearances-row" title={appearance.blurb}>
+      <li class="appearances-row">
         <span class="appearances-event">{appearance.event}</span>
         <span class="appearances-what">{appearance.what}</span>
         <span class="appearances-date">{appearance.date}</span>
