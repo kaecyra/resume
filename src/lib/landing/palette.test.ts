@@ -1,4 +1,4 @@
-import { HUD_PALETTE } from "./palette.js";
+import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
 // These helpers implement the WCAG relative-luminance/contrast formulas
 // (https://www.w3.org/TR/WCAG21/#dfn-relative-luminance), used below to
@@ -61,5 +61,38 @@ describe("HUD_PALETTE", () => {
   ] as const)("clears WCAG AA contrast (4.5:1) for %s text on the %s surface", (token, surface) => {
     const ratio = contrast_ratio(HUD_PALETTE[surface], HUD_PALETTE[token]);
     expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("CONTRIBUTION_RAMP", () => {
+  it("uses valid 6-digit hex colors for every level", () => {
+    for (const value of Object.values(CONTRIBUTION_RAMP)) {
+      expect(value).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
+  it("reuses HUD_PALETTE.edge for level_0, so an empty day reads as an unlit slot rather than a dark green", () => {
+    expect(CONTRIBUTION_RAMP.level_0).toBe(HUD_PALETTE.edge);
+  });
+
+  // Not a WCAG contrast check (see palette.ts's comment on why the ramp is
+  // exempt from the text-contrast sweep above) - this protects the
+  // property the ramp actually needs to communicate a value at a glance:
+  // each level reads as strictly brighter than the one before it. Without
+  // this, a future edit could reorder or duplicate a step and every other
+  // test in this file would stay green.
+  it("steps level_0 through level_4 in strictly increasing brightness", () => {
+    const levels = [
+      CONTRIBUTION_RAMP.level_0,
+      CONTRIBUTION_RAMP.level_1,
+      CONTRIBUTION_RAMP.level_2,
+      CONTRIBUTION_RAMP.level_3,
+      CONTRIBUTION_RAMP.level_4,
+    ];
+    const luminances = levels.map((hex) => relative_luminance(hex_to_rgb(hex)));
+
+    for (let i = 1; i < luminances.length; i++) {
+      expect(luminances[i]).toBeGreaterThan(luminances[i - 1]);
+    }
   });
 });

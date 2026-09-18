@@ -1,15 +1,15 @@
 import { render } from "svelte/server";
 
-import type { ContributionCell, ContributionGridModel } from "$lib/github.js";
+import type { ContributionCell, ContributionGridModel, ContributionWeek } from "$lib/github.js";
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import { HUD_PALETTE } from "./palette.js";
+import { CONTRIBUTION_RAMP } from "./palette.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
-function cell(level: number): ContributionCell {
-  return { date: `2026-09-${13 + level}`, count: level * 2, level };
+function cell(date: string, level: number): ContributionCell {
+  return { date, count: level * 2, level };
 }
 
 // One week carrying every ramp bucket (0-4) plus two `null` padding slots,
@@ -18,7 +18,29 @@ function cell(level: number): ContributionCell {
 const GRID: ContributionGridModel = {
   total_count: 23,
   generated_at: "2026-09-18T00:00:00.000Z",
-  weeks: [[null, cell(0), cell(1), cell(2), cell(3), cell(4), null]],
+  weeks: [[null, cell("2026-09-14", 0), cell("2026-09-15", 1), cell("2026-09-16", 2), cell("2026-09-17", 3), cell("2026-09-18", 4), null]],
+};
+
+// A week per Sunday, spanning a real year boundary (Nov 2025 -> Jan 2026),
+// so month-label placement is pinned against dates a human can check by
+// hand rather than "some labels exist". Nov has one week in range (week 0),
+// Dec spans four (weeks 1-4), Jan starts at week 5.
+function sunday_week(date: string): ContributionWeek {
+  return [cell(date, 0), null, null, null, null, null, null];
+}
+
+const YEAR_BOUNDARY_GRID: ContributionGridModel = {
+  total_count: 7,
+  generated_at: "2026-01-11T00:00:00.000Z",
+  weeks: [
+    sunday_week("2025-11-30"),
+    sunday_week("2025-12-07"),
+    sunday_week("2025-12-14"),
+    sunday_week("2025-12-21"),
+    sunday_week("2025-12-28"),
+    sunday_week("2026-01-04"),
+    sunday_week("2026-01-11"),
+  ],
 };
 
 function html_for(contributions_grid: ContributionGridModel | null): string {
@@ -41,14 +63,14 @@ describe("Commits", () => {
     expect(html).not.toContain("Commit history is offline for this build.");
   });
 
-  it("colours each real day by its level, from the empty end of the amber ramp (0) to full accent (4)", () => {
+  it("colours each real day by its level, from the empty end of the green ramp (0) to full brightness (4)", () => {
     const html = html_for(GRID);
 
-    expect(html).toContain(`background: ${HUD_PALETTE.edge};`);
-    expect(html).toContain(`background: ${HUD_PALETTE.accent}40;`);
-    expect(html).toContain(`background: ${HUD_PALETTE.accent}80;`);
-    expect(html).toContain(`background: ${HUD_PALETTE.accent}bf;`);
-    expect(html).toContain(`background: ${HUD_PALETTE.accent};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_0};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_1};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_2};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_3};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_4};`);
   });
 
   it("renders one commits-day element per grid slot, including null padding, so week columns stay aligned", () => {
@@ -63,12 +85,26 @@ describe("Commits", () => {
     expect(day_count).toBe(GRID.weeks[0].length);
   });
 
-  it("renders null padding slots hidden and without a background colour", () => {
+  it("renders null padding slots hidden, aria-hidden and without a background colour", () => {
     const html = html_for(GRID);
 
-    const pad_count = html.match(/class="commits-day commits-day-pad/g)?.length;
+    const pad_matches = html.match(/<div class="commits-day commits-day-pad[^>]*>/g) ?? [];
     const null_count = GRID.weeks[0].filter((slot) => slot === null).length;
-    expect(pad_count).toBe(null_count);
+
+    expect(pad_matches.length).toBe(null_count);
+    for (const pad of pad_matches) {
+      expect(pad).toContain('aria-hidden="true"');
+      expect(pad).not.toContain("background:");
+    }
+  });
+
+  it("renders real days as focusable buttons labelled with that day's count and date", () => {
+    const html = html_for(GRID);
+
+    // The level-4 fixture day (2026-09-18, count 8) - proves the button
+    // carries real per-day text, not a generic label.
+    expect(html).toContain('<button type="button" class="commits-day');
+    expect(html).toMatch(/aria-label="8 commits on 18 September 2026"/);
   });
 
   it("renders the caption naming the account and window, with the id the scroller labels itself from", () => {
@@ -78,18 +114,22 @@ describe("Commits", () => {
     expect(html).toMatch(/id="commits-caption"[^>]*>@testuser, last 12 months</);
   });
 
-  it("gives the grid scroller keyboard reachability (WCAG 2.1.1) via tabindex, role and aria-labelledby", () => {
+  it("gives the grid scroller keyboard reachability (WCAG 2.1.1) via tabindex, role and aria-labelledby by default", () => {
     const html = html_for(GRID);
 
     const scroller = html.match(/<div class="commits-grid-scroll[^>]*>/)?.[0];
 
+    // SSR (and any no-JS visitor) can never measure real overflow, so the
+    // scroller starts in the conservative, always-reachable state - see
+    // Commits.dom.test.ts for the JS-measured narrowing of this down once
+    // the grid is known not to overflow.
     expect(scroller).toBeDefined();
     expect(scroller).toContain('tabindex="0"');
     expect(scroller).toContain('role="group"');
     expect(scroller).toContain('aria-labelledby="commits-caption"');
   });
 
-  it("hides the grid from assistive tech, since it has no accessible summary distinct from the caption", () => {
+  it("does not hide the grid from assistive tech, since real days are now focusable with their own labels", () => {
     const html = html_for(GRID);
 
     // `commits-grid ` (trailing space), not `commits-grid[^>]*` - the
@@ -98,6 +138,43 @@ describe("Commits", () => {
     const grid = html.match(/<div class="commits-grid svelte-[^>]*>/)?.[0];
 
     expect(grid).toBeDefined();
-    expect(grid).toContain('aria-hidden="true"');
+    expect(grid).not.toContain("aria-hidden");
+  });
+
+  it("renders the info rail at its resting state (the grid total), not empty", () => {
+    const html = html_for(GRID);
+
+    expect(html).toContain('<p class="commits-rail');
+    expect(html).toMatch(/class="commits-rail[^>]*>23 commits in the last 12 months</);
+  });
+
+  describe("month labels", () => {
+    it("places one label per month change, pinned to the exact week index the month starts at", () => {
+      const html = html_for(YEAR_BOUNDARY_GRID);
+
+      const labels = [...html.matchAll(/<span class="commits-month[^>]*style="grid-column: (\d+);">([^<]+)<\/span>/g)].map(
+        (match) => ({ week_index: Number(match[1]) - 1, label: match[2] }),
+      );
+
+      // Hand-computed against YEAR_BOUNDARY_GRID's own Sunday dates above:
+      // week 0 (2025-11-30) is Nov's only week in range, week 1
+      // (2025-12-07) is Dec's first, week 5 (2026-01-04) is Jan's first.
+      expect(labels).toEqual([
+        { week_index: 0, label: "Nov" },
+        { week_index: 1, label: "Dec" },
+        { week_index: 5, label: "Jan" },
+      ]);
+    });
+
+    it("derives labels from cell dates, never a hardcoded twelve-month list, so a grid touching only two months renders only two labels", () => {
+      const html = html_for(GRID);
+
+      const labels = [...html.matchAll(/<span class="commits-month/g)];
+
+      // GRID's single week is entirely September - one month touched, one
+      // label, not twelve.
+      expect(labels).toHaveLength(1);
+      expect(html).toMatch(/<span class="commits-month[^>]*style="grid-column: 1;">Sep<\/span>/);
+    });
   });
 });
