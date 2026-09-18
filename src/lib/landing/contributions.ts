@@ -71,16 +71,50 @@ function pluralize_commits(count: number): string {
   return count === 1 ? "commit" : "commits";
 }
 
-// The info rail's text for a hovered/focused day, and the same wording a
-// screen-reader user gets from that day's own aria-label - "14 commits on
-// 3 March 2026", singular-aware at 1.
+// Each real day's aria-label wording - "14 commits on 3 March 2026",
+// singular-aware at 1. A screen-reader user gets this one flowing sentence
+// on focus, not the rail's split fields (see RailReadout below) - a
+// sentence is what a spoken announcement wants; a labelled instrument
+// reading is what a sighted/visual rail wants, and they don't have to say
+// the same thing the same way to say the same thing.
 export function format_day_summary(cell: ContributionCell): string {
   return `${cell.count} ${pluralize_commits(cell.count)} on ${DAY_MONTH_YEAR.format(to_utc_date(cell.date))}`;
 }
 
-// The info rail's resting state (nothing hovered or focused) - the same
-// total the caption already names, in the rail's own register, so the rail
-// is never empty.
-export function format_resting_summary(total_count: number): string {
-  return `${total_count} ${pluralize_commits(total_count)} in the last 12 months`;
+// The info rail's structured readout (#192 round 2: "more stylized given
+// how big the grid is") - a count and a context value as two labelled
+// fields, echoing the page's other HUD instrument rows (Hero.svelte's
+// topbar: a handle and a coordinate pair, each a static label over a
+// value) rather than one prose sentence. `count_label`/`detail_label` are
+// identical between the two variants below on purpose - a fixed label over
+// a changing value is what makes it read as an instrument, not a caption -
+// so Commits.svelte can lay both out with the same markup regardless of
+// which one is showing.
+export interface RailReadout {
+  count_label: string;
+  count_value: string;
+  detail_label: string;
+  detail_value: string;
+}
+
+// A hovered/focused day's reading.
+export function day_readout(cell: ContributionCell): RailReadout {
+  return {
+    count_label: "Commits",
+    count_value: String(cell.count),
+    detail_label: "Date",
+    detail_value: DAY_MONTH_YEAR.format(to_utc_date(cell.date)),
+  };
+}
+
+// The rail's resting state (nothing hovered or focused) - the same total
+// the caption above the grid already names, in the rail's own register, so
+// the rail is never empty.
+export function resting_readout(total_count: number): RailReadout {
+  return {
+    count_label: "Commits",
+    count_value: String(total_count),
+    detail_label: "Window",
+    detail_value: "Last 12 months",
+  };
 }

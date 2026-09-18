@@ -4,7 +4,7 @@ import type { ContributionCell, ContributionGridModel, ContributionWeek } from "
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import { CONTRIBUTION_RAMP } from "./palette.js";
+import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
@@ -141,11 +141,20 @@ describe("Commits", () => {
     expect(grid).not.toContain("aria-hidden");
   });
 
-  it("renders the info rail at its resting state (the grid total), not empty", () => {
+  it("renders the info rail at its resting state (the grid total), not empty, as two labelled fields", () => {
     const html = html_for(GRID);
 
-    expect(html).toContain('<p class="commits-rail');
-    expect(html).toMatch(/class="commits-rail[^>]*>23 commits in the last 12 months</);
+    expect(html).toContain('<dl class="commits-rail');
+    expect(html).toMatch(/class="commits-rail-label[^>]*>Commits<\/dt>\s*<dd class="commits-rail-value[^>]*>23</);
+    expect(html).toMatch(
+      /class="commits-rail-label[^>]*>Window<\/dt>\s*<dd class="commits-rail-value[^>]*>Last 12 months</,
+    );
+  });
+
+  it("gives the resting rail a neutral (non-ramp) accent, since nothing is hovered or focused yet", () => {
+    const html = html_for(GRID);
+
+    expect(html).toMatch(new RegExp(`class="commits-rail[^"]*" style="--commits-rail-accent: ${HUD_PALETTE.edge};"`));
   });
 
   describe("month labels", () => {

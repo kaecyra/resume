@@ -5,7 +5,7 @@
   import type { ContributionCell, ContributionGridModel } from "$lib/github.js";
   import type { LandingGithub } from "$lib/types.js";
 
-  import { derive_month_labels, format_day_summary, format_resting_summary } from "./contributions.js";
+  import { day_readout, derive_month_labels, format_day_summary, resting_readout } from "./contributions.js";
   import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
   let {
@@ -41,9 +41,21 @@
   // both, not a mouse-only affordance).
   let active_cell: ContributionCell | null = $state(null);
 
-  const rail_text = $derived(
-    active_cell ? format_day_summary(active_cell) : format_resting_summary(contributions_grid?.total_count ?? 0),
+  const readout = $derived(
+    active_cell ? day_readout(active_cell) : resting_readout(contributions_grid?.total_count ?? 0),
   );
+
+  // Ties the rail to the ramp visually (round 2 of #192: "let the hovered
+  // day's level tint something in the rail"), the same left-border-accent
+  // idiom Work.svelte uses to mark "the one thing being pointed at" - a
+  // decorative border swatch, not text, so this carries no WCAG text-
+  // contrast obligation (same reasoning as the ramp itself; see palette.ts).
+  // Falls back to the neutral `edge` token at rest, since nothing is being
+  // pointed at yet.
+  const rail_accent = $derived.by(() => {
+    const cell = active_cell;
+    return cell ? LEVEL_COLORS[cell.level] : HUD_PALETTE.edge;
+  });
 
   function activate(cell: ContributionCell) {
     active_cell = cell;
@@ -87,7 +99,7 @@
 <section
   id="commits"
   class="commits"
-  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --commits-glow: {CONTRIBUTION_RAMP.level_4};"
+  style="--hud-panel: {HUD_PALETTE.panel}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge}; --commits-glow: {CONTRIBUTION_RAMP.level_4};"
 >
   <div class="commits-head">
     <h2 class="commits-heading">Commits</h2>
@@ -164,14 +176,31 @@
     <!-- No aria-live here: every button above already carries its own
          aria-label with the same wording, read the moment a screen-reader
          user focuses it - an aria-live region on top would announce that
-         same sentence a second time. This paragraph is the sighted/visual
-         half of the same information (and the resting default for a mouse
-         user who hasn't touched a day yet), not a second accessible
-         channel. Always rendered (never conditionally shown) with a
-         reserved min-height in the stylesheet below, so switching between
-         the resting total and a day's figures changes text only - no
-         layout shift (#192). -->
-    <p class="commits-rail">{rail_text}</p>
+         same sentence a second time. This is the sighted/visual half of the
+         same information (and the resting default for a mouse user who
+         hasn't touched a day yet), not a second accessible channel.
+
+         A <dl> of two <dt>/<dd> fields (wrapped in a <div> each - valid
+         HTML5, the standard way to group dt/dd pairs), not a sentence: the
+         "more stylized" instrument-panel rail from round 2 of #192 reads as
+         two readouts, count and date/window, not prose. Both branches of
+         `readout` (day_readout/resting_readout, contributions.ts) always
+         produce the exact same two fields, just with different text - the
+         DOM shape never changes between the resting and hovered states, so
+         there is nothing here that *can* reflow when the content swaps; the
+         stylesheet still pins font sizes/line-heights explicitly rather
+         than leaning on that alone, in case a future edit adds a
+         conditional field. No layout shift (#192). -->
+    <dl class="commits-rail" style="--commits-rail-accent: {rail_accent};">
+      <div class="commits-rail-field">
+        <dt class="commits-rail-label">{readout.count_label}</dt>
+        <dd class="commits-rail-value">{readout.count_value}</dd>
+      </div>
+      <div class="commits-rail-field">
+        <dt class="commits-rail-label">{readout.detail_label}</dt>
+        <dd class="commits-rail-value">{readout.detail_value}</dd>
+      </div>
+    </dl>
   {:else}
     <p class="commits-offline">Commit history is offline for this build.</p>
   {/if}
@@ -290,16 +319,48 @@
 
   .commits-rail {
     margin: 0.85rem 0 0;
-    /* Two lines' worth of height, reserved unconditionally: the longest
-       realistic sentence ("365 commits on 31 December 2026") still fits on
-       one line at most viewport widths, but a narrow phone can wrap it -
-       reserving for two lines up front means that wrap never changes the
-       rail's height, so swapping between the resting total and a day's
-       figures never shifts anything below it (#192). */
-    min-height: calc(1.4em * 2);
-    line-height: 1.4;
-    font-size: 0.8125rem;
+    padding: 0.9375rem 1.375rem;
+    display: flex;
+    gap: 0.75rem 2.75rem;
+    background: var(--hud-panel-alt);
+    border: 1px solid var(--hud-edge);
+    /* The one part of this panel that changes at all between the resting
+       and hovered states - see `rail_accent` in the script above for why a
+       border, not text, carries the ramp's colour. */
+    border-left: 3px solid var(--commits-rail-accent);
+    /* Both fields' label/value line-heights are fixed below regardless of
+       which text is showing, so this height is already deterministic - see
+       the rail's own markup comment for why. Reserved explicitly anyway
+       rather than left implicit. */
+    min-height: calc(1.3 * 0.6875rem + 0.3rem + 1.3 * 1.375rem + 2 * 0.9375rem + 2px);
+  }
+
+  .commits-rail-field {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .commits-rail-label {
+    margin: 0;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     color: var(--hud-secondary);
+  }
+
+  .commits-rail-value {
+    margin: 0;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 1.375rem;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--hud-text);
+    white-space: nowrap;
   }
 
   .commits-offline {
@@ -316,6 +377,11 @@
   @media (max-width: 480px) {
     .commits {
       padding: 2rem 1.25rem 2.75rem;
+    }
+
+    .commits-rail {
+      flex-direction: column;
+      gap: 0.85rem;
     }
   }
 </style>
