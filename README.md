@@ -45,6 +45,7 @@ npm install
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
 | `npm run generate-og` | Generate Open Graph images for all variants |
+| `npm run generate-geo` | Regenerate the landing hero globe's line geometry from world-atlas |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
 | `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
 | `npm run generate-slug` | Generate a random 8-char hex slug for sub-variants |

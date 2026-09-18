@@ -1,6 +1,10 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
+  import { browser } from "$app/environment";
   import type { LandingGithub, LandingHero } from "$lib/types.js";
 
+  import { load_globe_lines, start_globe, type GlobeController } from "./globe.js";
   import { split_role_badge } from "./hero-format.js";
   import { HUD_PALETTE } from "./palette.js";
   import ResumeCta from "./ResumeCta.svelte";
@@ -20,6 +24,54 @@
   } = $props();
 
   const role = $derived(split_role_badge(hero.role));
+
+  let canvas_el: HTMLCanvasElement | undefined = $state();
+  let marker_el: HTMLDivElement | undefined = $state();
+
+  // Starts false for SSR/prerendering and for every path where the globe
+  // never actually starts drawing (no JS at all, reduced motion, no WebGL
+  // context, or the geometry fetch failing): Hero's `.hero-backdrop`
+  // radial gradient is what those visitors see, on its own. It can only
+  // flip to true once `start_globe` has actually returned a controller, so
+  // the failure mode of any of this wiring being wrong is that same static
+  // gradient staying visible, never an empty box and never a frozen
+  // flag/label sitting at the wrong spot.
+  let canvas_animating = $state(false);
+
+  // Guarded twice on purpose, matching the parked hud-canvas.ts (#168)
+  // pattern: onMount's body never runs during SSR/prerendering, but
+  // `browser` is kept as a cheap, explicit second guard so this stays safe
+  // even if the lifecycle wiring above it changes later.
+  onMount(() => {
+    if (!browser || !canvas_el) {
+      return;
+    }
+
+    const prefers_reduced_motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let controller: GlobeController | null = null;
+    let cancelled = false;
+
+    if (!prefers_reduced_motion) {
+      (async () => {
+        try {
+          const lines = await load_globe_lines();
+          if (cancelled || !canvas_el) {
+            return;
+          }
+          controller = start_globe({ canvas: canvas_el, lines, marker_el });
+          canvas_animating = controller !== null;
+        } catch {
+          // Geometry fetch or WebGL setup failed - leave canvas_animating
+          // false so the static gradient backdrop is what's shown.
+        }
+      })();
+    }
+
+    return () => {
+      cancelled = true;
+      controller?.stop();
+    };
+  });
 </script>
 
 <section
@@ -27,15 +79,21 @@
   class="hero"
   style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta}; --hud-accent: {HUD_PALETTE.accent};"
 >
+  <!--
+    Always rendered, regardless of JavaScript, reduced motion, or WebGL
+    availability - this is the one static backdrop every fallback case
+    resolves to. The globe (#178) draws on top of it once it actually
+    starts animating; it never replaces or hides this layer.
+  -->
   <div class="hero-backdrop" aria-hidden="true"></div>
 
-  <!--
-    The static gradient lives on .hero-backdrop above. This element is the
-    empty mount point #168 (the rotating globe) fills with its canvas - id
-    and position are the contract between the two nodes, so don't rename or
-    remove #hero-globe-mount without checking with that node.
-  -->
-  <div id="hero-globe-mount" class="hero-visual" aria-hidden="true"></div>
+  <div id="hero-globe-mount" class="hero-visual" aria-hidden="true">
+    <canvas bind:this={canvas_el} class="hero-globe-canvas"></canvas>
+    <div class="hero-globe-marker" class:hero-globe-marker-hidden={!canvas_animating} bind:this={marker_el}>
+      <img class="hero-globe-flag" src="/landing/canada-flag.svg" alt="" width="24" height="18" />
+      <span class="hero-globe-marker-label">MONTREAL</span>
+    </div>
+  </div>
 
   <div class="hero-scrim" aria-hidden="true"></div>
 
@@ -94,6 +152,46 @@
     width: 760px;
     height: 760px;
     max-width: none;
+  }
+
+  .hero-globe-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-globe-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /*
+   * Hidden until the globe confirms it is actually animating (see
+   * `canvas_animating` in the script block), so a wiring bug never leaves
+   * a flag/label frozen at the unpositioned (0, 0) origin.
+   */
+  .hero-globe-marker-hidden {
+    display: none;
+  }
+
+  .hero-globe-flag {
+    display: block;
+    box-shadow: 0 0 0 1px rgba(237, 237, 236, 0.35);
+  }
+
+  .hero-globe-marker-label {
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    color: var(--hud-text);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   }
 
   .hero-scrim {
