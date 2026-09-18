@@ -34,8 +34,8 @@
   const week_count = $derived(contributions_grid?.weeks.length ?? 0);
   const month_labels = $derived(contributions_grid ? derive_month_labels(contributions_grid.weeks) : []);
 
-  // Drives the info rail below the grid. `null` is the resting state (see
-  // the rail's own render below for why that shows the total rather than
+  // Drives the readout beside the heading. `null` is the resting state (see
+  // the readout's own render below for why that shows the total rather than
   // being empty) - set from a real day's mouseenter/focus, cleared on
   // mouseleave/blur, so hover and focus behave identically (#192 requires
   // both, not a mouse-only affordance).
@@ -44,18 +44,6 @@
   const readout = $derived(
     active_cell ? day_readout(active_cell) : resting_readout(contributions_grid?.total_count ?? 0),
   );
-
-  // Ties the rail to the ramp visually (round 2 of #192: "let the hovered
-  // day's level tint something in the rail"), the same left-border-accent
-  // idiom Work.svelte uses to mark "the one thing being pointed at" - a
-  // decorative border swatch, not text, so this carries no WCAG text-
-  // contrast obligation (same reasoning as the ramp itself; see palette.ts).
-  // Falls back to the neutral `edge` token at rest, since nothing is being
-  // pointed at yet.
-  const rail_accent = $derived.by(() => {
-    const cell = active_cell;
-    return cell ? LEVEL_COLORS[cell.level] : HUD_PALETTE.edge;
-  });
 
   function activate(cell: ContributionCell) {
     active_cell = cell;
@@ -99,11 +87,44 @@
 <section
   id="commits"
   class="commits"
-  style="--hud-panel: {HUD_PALETTE.panel}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge}; --commits-glow: {CONTRIBUTION_RAMP.level_4};"
+  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --commits-glow: {CONTRIBUTION_RAMP.level_4};"
 >
   <div class="commits-head">
-    <h2 class="commits-heading">Commits</h2>
-    <span id="commits-caption" class="commits-meta">@{github.user}, last 12 months</span>
+    <div class="commits-title">
+      <h2 class="commits-heading">Commits</h2>
+      <span id="commits-caption" class="commits-meta">@{github.user}, last 12 months</span>
+    </div>
+
+    {#if contributions_grid}
+      <!-- No aria-live here: every day button below already carries its own
+           aria-label with the same wording, read the moment a screen-reader
+           user focuses it - an aria-live region on top would announce that
+           same sentence a second time. This is the sighted/visual half of
+           the same information (and the resting default for a mouse user
+           who hasn't touched a day yet), not a second accessible channel.
+
+           A <dl> of two <dt>/<dd> fields (wrapped in a <div> each - valid
+           HTML5, the standard way to group dt/dd pairs), not a sentence:
+           the readout reads as two instrument values, count and
+           date/window. Both branches of `readout` (day_readout /
+           resting_readout, contributions.ts) always produce the exact same
+           two fields, just with different text - the DOM shape never
+           changes between the resting and hovered states, so there is
+           nothing here that *can* reflow when the content swaps; the
+           stylesheet still pins font sizes/line-heights explicitly rather
+           than leaning on that alone, in case a future edit adds a
+           conditional field. No layout shift (#192). -->
+      <dl class="commits-readout">
+        <div class="commits-readout-field">
+          <dt class="commits-readout-label">{readout.count_label}</dt>
+          <dd class="commits-readout-value">{readout.count_value}</dd>
+        </div>
+        <div class="commits-readout-field">
+          <dt class="commits-readout-label">{readout.detail_label}</dt>
+          <dd class="commits-readout-value">{readout.detail_value}</dd>
+        </div>
+      </dl>
+    {/if}
   </div>
 
   {#if contributions_grid}
@@ -146,7 +167,11 @@
            only children still marked aria-hidden - they aren't days. -->
       <div class="commits-grid" style="--week-count: {week_count};">
         {#each contributions_grid.weeks as week, week_index (week_index)}
-          <div class="commits-week">
+          <!-- --week drives the entry animation's per-column delay (see
+               .commits-day's animation-delay below), so the grid sweeps in
+               left to right rather than every cell appearing at once. It is
+               an index, not a duration - the stylesheet owns the timing. -->
+          <div class="commits-week" style="--week: {week_index};">
             {#each week as cell, day_index (day_index)}
               {#if cell}
                 <button
@@ -173,34 +198,19 @@
       </div>
     </div>
 
-    <!-- No aria-live here: every button above already carries its own
-         aria-label with the same wording, read the moment a screen-reader
-         user focuses it - an aria-live region on top would announce that
-         same sentence a second time. This is the sighted/visual half of the
-         same information (and the resting default for a mouse user who
-         hasn't touched a day yet), not a second accessible channel.
-
-         A <dl> of two <dt>/<dd> fields (wrapped in a <div> each - valid
-         HTML5, the standard way to group dt/dd pairs), not a sentence: the
-         "more stylized" instrument-panel rail from round 2 of #192 reads as
-         two readouts, count and date/window, not prose. Both branches of
-         `readout` (day_readout/resting_readout, contributions.ts) always
-         produce the exact same two fields, just with different text - the
-         DOM shape never changes between the resting and hovered states, so
-         there is nothing here that *can* reflow when the content swaps; the
-         stylesheet still pins font sizes/line-heights explicitly rather
-         than leaning on that alone, in case a future edit adds a
-         conditional field. No layout shift (#192). -->
-    <dl class="commits-rail" style="--commits-rail-accent: {rail_accent};">
-      <div class="commits-rail-field">
-        <dt class="commits-rail-label">{readout.count_label}</dt>
-        <dd class="commits-rail-value">{readout.count_value}</dd>
-      </div>
-      <div class="commits-rail-field">
-        <dt class="commits-rail-label">{readout.detail_label}</dt>
-        <dd class="commits-rail-value">{readout.detail_value}</dd>
-      </div>
-    </dl>
+    <!-- aria-hidden: this is a colour key for the ramp, and every day
+         button above already states its own count in words. Spelling the
+         ramp out again for a screen reader would be describing a legend
+         for colours that reader never sees. Swatches are painted from
+         LEVEL_COLORS, the same array the cells use, so the key cannot
+         drift from what the grid actually renders. -->
+    <div class="commits-legend" aria-hidden="true">
+      <span>Less</span>
+      {#each LEVEL_COLORS as color, level (level)}
+        <i class="commits-legend-step" style="background: {color};"></i>
+      {/each}
+      <span>More</span>
+    </div>
   {:else}
     <p class="commits-offline">Commit history is offline for this build.</p>
   {/if}
@@ -217,8 +227,16 @@
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 0.5rem 1.5rem;
+    gap: 1rem 2rem;
     margin-bottom: 1.25rem;
+  }
+
+  .commits-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem 1.5rem;
+    min-width: 0;
   }
 
   .commits-heading {
@@ -298,6 +316,42 @@
     padding: 0;
     border-radius: 2px;
     cursor: pointer;
+    /* Staggered left to right off --week (set per column in the markup
+       above), so the year reads as filling in rather than switching on.
+       `backwards`, not `both`: it holds the from-state through the delay
+       (without it every cell paints at full opacity first, then restarts),
+       but releases the property once the animation ends. `both` would keep
+       applying opacity: 1 at animation-origin precedence, which outranks
+       normal declarations and would stop the hover dim below ever taking
+       effect. */
+    animation: commits-cell-in 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+    animation-delay: calc(var(--week) * 9ms);
+    transition: opacity 0.14s;
+  }
+
+  @keyframes commits-cell-in {
+    from {
+      opacity: 0;
+      transform: scaleY(0.15);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Pointing at one day dims the rest, so the day being read is the lit one.
+     :focus-within carries the same effect to the keyboard, since #192 holds
+     hover and focus to parity - a mouse-only version of this would make the
+     grid harder to read for exactly the visitors who navigate it by Tab. */
+  .commits-grid:hover .commits-day,
+  .commits-grid:focus-within .commits-day {
+    opacity: 0.45;
+  }
+
+  .commits-grid .commits-day:hover,
+  .commits-grid .commits-day:focus-visible {
+    opacity: 1;
   }
 
   .commits-day:hover,
@@ -317,50 +371,70 @@
     visibility: hidden;
   }
 
-  .commits-rail {
-    margin: 0.85rem 0 0;
-    padding: 0.9375rem 1.375rem;
+  .commits-readout {
+    /* No fill, no border, no accent bar: the readout is type on the
+       section's own ground. Its weight comes from the size jump between
+       label and value, which is what makes an instrument reading feel
+       substantial - a container drawn around it does not. */
+    margin: 0;
     display: flex;
-    gap: 0.75rem 2.75rem;
-    background: var(--hud-panel-alt);
-    border: 1px solid var(--hud-edge);
-    /* The one part of this panel that changes at all between the resting
-       and hovered states - see `rail_accent` in the script above for why a
-       border, not text, carries the ramp's colour. */
-    border-left: 3px solid var(--commits-rail-accent);
+    flex-wrap: wrap;
+    gap: 0.75rem 2.25rem;
     /* Both fields' label/value line-heights are fixed below regardless of
        which text is showing, so this height is already deterministic - see
-       the rail's own markup comment for why. Reserved explicitly anyway
+       the readout's own markup comment for why. Reserved explicitly anyway
        rather than left implicit. */
-    min-height: calc(1.3 * 0.6875rem + 0.3rem + 1.3 * 1.375rem + 2 * 0.9375rem + 2px);
+    min-height: calc(1.3 * 0.6875rem + 0.25rem + 1.3 * 1.5rem);
   }
 
-  .commits-rail-field {
+  .commits-readout-field {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.25rem;
     min-width: 0;
   }
 
-  .commits-rail-label {
+  .commits-readout-label {
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). All-caps at this size still wants a
+       little tracking to stay legible, but far less than the 0.16em tuned
+       for mono's wider default fit. */
     margin: 0;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.6875rem;
     line-height: 1.3;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--hud-secondary);
   }
 
-  .commits-rail-value {
+  .commits-readout-value {
     margin: 0;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 1.375rem;
+    font-size: 1.5rem;
     line-height: 1.3;
-    letter-spacing: 0.01em;
+    /* What mono was actually buying here: digits on a fixed advance, so the
+       value does not jitter as it swaps between days of different counts.
+       tabular-nums gets that from the body face directly, with no second
+       typeface on the page. */
+    font-variant-numeric: tabular-nums;
     color: var(--hud-text);
     white-space: nowrap;
+  }
+
+  .commits-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.85rem;
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--hud-secondary);
+  }
+
+  .commits-legend-step {
+    width: 0.6875rem;
+    height: 0.6875rem;
+    border-radius: 2px;
   }
 
   .commits-offline {
@@ -379,9 +453,25 @@
       padding: 2rem 1.25rem 2.75rem;
     }
 
-    .commits-rail {
+    .commits-readout {
       flex-direction: column;
       gap: 0.85rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .commits-day {
+      animation: none;
+      transition: none;
+    }
+
+    /* The dim is motion too - an opacity change that sweeps across the grid
+       as the pointer moves. Reading a day must not depend on it, so at this
+       setting every cell simply stays lit and the hover glow (above) is the
+       only thing marking the pointed-at day. */
+    .commits-grid:hover .commits-day,
+    .commits-grid:focus-within .commits-day {
+      opacity: 1;
     }
   }
 </style>

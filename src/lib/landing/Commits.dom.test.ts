@@ -1,6 +1,6 @@
 // A `*.dom.test.ts` file (see vite.config.ts): covers the parts of #192
 // that only exist once real event listeners are attached - hover/focus
-// driving the info rail, and the scroller's mount-time overflow
+// driving the readout, and the scroller's mount-time overflow
 // measurement - none of which svelte/server (Commits.test.ts) can exercise,
 // since SSR never runs onMount or attaches DOM event handlers. See #175 for
 // why this needs its own project/environment.
@@ -10,7 +10,6 @@ import type { ContributionGridModel } from "$lib/github.js";
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
@@ -34,77 +33,61 @@ function render_commits() {
   return render(Commits, { props: { github: GITHUB, contributions_grid: GRID } });
 }
 
-// The rail is two <dt>/<dd> fields (round 2 of #192), not one sentence -
+// The readout is two <dt>/<dd> fields (round 2 of #192), not one sentence -
 // read each field's label and value text separately rather than the whole
 // element's flattened textContent, so a test failure says which field
 // changed rather than just "the string differs somewhere".
-function rail_fields(container: HTMLElement): { label: string; value: string }[] {
-  return [...container.querySelectorAll(".commits-rail-field")].map((field) => ({
-    label: field.querySelector(".commits-rail-label")?.textContent ?? "",
-    value: field.querySelector(".commits-rail-value")?.textContent ?? "",
+function readout_fields(container: HTMLElement): { label: string; value: string }[] {
+  return [...container.querySelectorAll(".commits-readout-field")].map((field) => ({
+    label: field.querySelector(".commits-readout-label")?.textContent ?? "",
+    value: field.querySelector(".commits-readout-value")?.textContent ?? "",
   }));
-}
-
-function rail_accent(container: HTMLElement): string {
-  return container.querySelector<HTMLElement>(".commits-rail")?.style.getPropertyValue("--commits-rail-accent") ?? "";
 }
 
 describe("Commits (DOM)", () => {
   it("shows the resting total before anything is hovered or focused, as two labelled fields", () => {
     const { container } = render_commits();
 
-    expect(rail_fields(container)).toEqual([
+    expect(readout_fields(container)).toEqual([
       { label: "Commits", value: "23" },
       { label: "Window", value: "Last 12 months" },
     ]);
   });
 
-  it("updates the rail on hover and reverts to the resting total on mouseleave", async () => {
+  it("updates the readout on hover and reverts to the resting total on mouseleave", async () => {
     const { container, getByLabelText } = render_commits();
     const day = getByLabelText("14 commits on 15 September 2026");
 
     await fireEvent.mouseEnter(day);
-    expect(rail_fields(container)).toEqual([
+    expect(readout_fields(container)).toEqual([
       { label: "Commits", value: "14" },
       { label: "Date", value: "15 September 2026" },
     ]);
 
     await fireEvent.mouseLeave(day);
-    expect(rail_fields(container)).toEqual([
+    expect(readout_fields(container)).toEqual([
       { label: "Commits", value: "23" },
       { label: "Window", value: "Last 12 months" },
     ]);
   });
 
-  it("updates the rail on focus and reverts to the resting total on blur, so keyboard users get the same info hover gives mouse users", async () => {
+  it("updates the readout on focus and reverts to the resting total on blur, so keyboard users get the same info hover gives mouse users", async () => {
     const { container, getByLabelText } = render_commits();
     const day = getByLabelText("2 commits on 16 September 2026");
 
     await fireEvent.focus(day);
-    expect(rail_fields(container)).toEqual([
+    expect(readout_fields(container)).toEqual([
       { label: "Commits", value: "2" },
       { label: "Date", value: "16 September 2026" },
     ]);
 
     await fireEvent.blur(day);
-    expect(rail_fields(container)).toEqual([
+    expect(readout_fields(container)).toEqual([
       { label: "Commits", value: "23" },
       { label: "Window", value: "Last 12 months" },
     ]);
   });
 
-  it("tints the rail's accent border with the hovered day's own ramp level, and reverts to the neutral edge tone on mouseleave", async () => {
-    const { container, getByLabelText } = render_commits();
-    const day = getByLabelText("14 commits on 15 September 2026"); // level 4
-
-    expect(rail_accent(container)).toBe(HUD_PALETTE.edge);
-
-    await fireEvent.mouseEnter(day);
-    expect(rail_accent(container)).toBe(CONTRIBUTION_RAMP.level_4);
-
-    await fireEvent.mouseLeave(day);
-    expect(rail_accent(container)).toBe(HUD_PALETTE.edge);
-  });
 
   it("renders every real day as a real <button>, so it is reachable by Tab without any extra wiring", () => {
     const { getByLabelText } = render_commits();

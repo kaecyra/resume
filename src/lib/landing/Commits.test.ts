@@ -1,10 +1,12 @@
+import { readFileSync } from "node:fs";
+
 import { render } from "svelte/server";
 
 import type { ContributionCell, ContributionGridModel, ContributionWeek } from "$lib/github.js";
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
+import { CONTRIBUTION_RAMP } from "./palette.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
@@ -141,20 +143,42 @@ describe("Commits", () => {
     expect(grid).not.toContain("aria-hidden");
   });
 
-  it("renders the info rail at its resting state (the grid total), not empty, as two labelled fields", () => {
+  it("renders the readout at its resting state (the grid total), not empty, as two labelled fields", () => {
     const html = html_for(GRID);
 
-    expect(html).toContain('<dl class="commits-rail');
-    expect(html).toMatch(/class="commits-rail-label[^>]*>Commits<\/dt>\s*<dd class="commits-rail-value[^>]*>23</);
+    expect(html).toContain('<dl class="commits-readout');
+    expect(html).toMatch(/class="commits-readout-label[^>]*>Commits<\/dt>\s*<dd class="commits-readout-value[^>]*>23</);
     expect(html).toMatch(
-      /class="commits-rail-label[^>]*>Window<\/dt>\s*<dd class="commits-rail-value[^>]*>Last 12 months</,
+      /class="commits-readout-label[^>]*>Window<\/dt>\s*<dd class="commits-readout-value[^>]*>Last 12 months</,
     );
   });
 
-  it("gives the resting rail a neutral (non-ramp) accent, since nothing is hovered or focused yet", () => {
+  it("paints the legend's swatches from CONTRIBUTION_RAMP, so the key and the grid can never drift apart", () => {
     const html = html_for(GRID);
 
-    expect(html).toMatch(new RegExp(`class="commits-rail[^"]*" style="--commits-rail-accent: ${HUD_PALETTE.edge};"`));
+    const swatches = [...html.matchAll(/class="commits-legend-step[^>]*style="background: ([^;]+);"/g)].map(
+      (match) => match[1],
+    );
+
+    expect(swatches).toEqual([
+      CONTRIBUTION_RAMP.level_0,
+      CONTRIBUTION_RAMP.level_1,
+      CONTRIBUTION_RAMP.level_2,
+      CONTRIBUTION_RAMP.level_3,
+      CONTRIBUTION_RAMP.level_4,
+    ]);
+  });
+
+  it("hides the legend from assistive tech, since every day's aria-label already says the count in words", () => {
+    const html = html_for(GRID);
+
+    expect(html).toMatch(/<div class="commits-legend[^>]*aria-hidden="true"/);
+  });
+
+  it("stamps each week with its own column index, which is what staggers the grid's entry animation", () => {
+    const html = html_for(GRID);
+
+    expect(html).toMatch(/class="commits-week[^>]*style="--week: 0;"/);
   });
 
   describe("month labels", () => {
@@ -185,5 +209,18 @@ describe("Commits", () => {
       expect(labels).toHaveLength(1);
       expect(html).toMatch(/<span class="commits-month[^>]*style="grid-column: 1;">Sep<\/span>/);
     });
+  });
+
+  // Reads the component's own source rather than its output: Svelte extracts
+  // scoped <style> to a separate stylesheet, so a font-family declaration
+  // never appears in the rendered HTML and no amount of DOM assertion can
+  // see it. This is not a style-police test - #187 retired Share Tech Mono
+  // everywhere outside the hero, #194 reintroduced it here on the readout's
+  // label and value, and nothing failed. This is the check that would have
+  // caught it.
+  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
+    const source = readFileSync(new URL("./Commits.svelte", import.meta.url), "utf8");
+
+    expect(source).not.toContain("Share Tech Mono");
   });
 });
