@@ -68,14 +68,33 @@ describe("LandingSections", () => {
   });
 
   it("wires a project's links entry into a real href on the rendered card", () => {
-    // Round 3 extracted and tested project_link() itself, but every fixture
-    // project here previously had neither repo_url nor links, so the
-    // {#if link} branch in Work.svelte (~line 34) that turns the result
+    // project_link() itself is extracted and tested separately, but every
+    // fixture project here previously had neither repo_url nor links, so
+    // the {#if link} branch in Work.svelte (~line 34) that turns the result
     // into an <a href> was never exercised by a render. proj-b (added
     // above) carries a links entry to close that gap.
     const html = html_for(LANDING);
 
     expect(html).toContain('href="https://example.com"');
+  });
+
+  it("omits target/rel from a mailto: contact link but keeps them on an https: one", () => {
+    const html = html_for(LANDING);
+
+    // Scoped to the Contact section itself (id="contact" onward) - Divider
+    // also renders the LinkedIn href unconditionally with target/rel, so an
+    // unscoped match wouldn't prove Contact's own is_mailto conditional.
+    const contact_html = html.slice(html.indexOf('id="contact"'));
+    const mailto_anchor = contact_html.match(/<a[^>]*href="mailto:test@example.com"[^>]*>/)?.[0];
+    const linkedin_anchor = contact_html.match(/<a[^>]*href="https:\/\/linkedin\.com\/in\/test"[^>]*>/)?.[0];
+
+    expect(mailto_anchor).toBeDefined();
+    expect(mailto_anchor).not.toContain("target=");
+    expect(mailto_anchor).not.toContain("rel=");
+
+    expect(linkedin_anchor).toBeDefined();
+    expect(linkedin_anchor).toContain('target="_blank"');
+    expect(linkedin_anchor).toContain('rel="noopener noreferrer"');
   });
 
   it("renders sections in the order given by landing.sections", () => {

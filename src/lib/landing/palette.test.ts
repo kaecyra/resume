@@ -45,7 +45,7 @@ describe("HUD_PALETTE", () => {
     },
   );
 
-  // Round-2 review gap: the checks above prove each token is readable
+  // The checks above prove each token is readable
   // against `background`, but body copy in Hero.svelte and Commits.svelte
   // is set in `secondary` against whichever surface it actually sits on
   // (`background` for the hero, `panel` for Commits) - not always

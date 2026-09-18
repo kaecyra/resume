@@ -2,6 +2,7 @@ import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
+import type { ContributionsGrid } from "$lib/landing/contributions.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -57,7 +58,7 @@ export const load: PageServerLoad = () => {
   // one (#177) - it fetches and buckets the real calendar at build time.
   // Until that lands, there is nothing here to read, so this is always
   // null and Commits.svelte renders its offline state for that case.
-  const contributions_grid = null;
+  const contributions_grid: ContributionsGrid | null = null;
 
   return {
     landing,

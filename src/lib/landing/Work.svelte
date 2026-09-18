@@ -115,10 +115,12 @@
 
   .work-name a {
     color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--hud-secondary);
   }
 
   .work-name a:hover {
-    text-decoration: underline;
+    text-decoration-color: currentColor;
   }
 
   .work-status {
