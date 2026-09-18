@@ -26,8 +26,16 @@ const LANDING: LandingData = {
   sections: ["hero", "projects", "resume", "contact"],
 };
 
+// Deliberately different from hero.name/hero.role, to prove the download
+// filename comes from these props (resume.yaml's profile name and the
+// linked variant's title) rather than from landing.hero.
+const PROFILE_NAME = "Resolved Profile";
+const RESUME_TITLE = "Resolved Variant Title";
+
 function html_for(landing: LandingData): string {
-  return render(LandingSections, { props: { landing } }).body;
+  return render(LandingSections, {
+    props: { landing, profile_name: PROFILE_NAME, resume_title: RESUME_TITLE },
+  }).body;
 }
 
 describe("LandingSections", () => {
@@ -71,11 +79,11 @@ describe("LandingSections", () => {
     expect(html).not.toContain("Project A");
   });
 
-  it("wires the resume CTA's download link to the resume PDF with a filename built from hero", () => {
+  it("wires the resume CTA's download link to the resume PDF with a filename built from profile_name/resume_title", () => {
     const html = html_for(LANDING);
 
     expect(html).toContain('href="/default.pdf"');
-    expect(html).toContain('download="Test Person - Resume - Engineer.pdf"');
+    expect(html).toContain('download="Resolved Profile - Resume - Resolved Variant Title.pdf"');
   });
 
   it("gives the icon-only download link an accessible name and hides its SVG from assistive tech", () => {

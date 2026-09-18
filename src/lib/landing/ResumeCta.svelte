@@ -1,13 +1,15 @@
 <script lang="ts">
-  import type { LandingHero } from "$lib/types.js";
-
   import HudFrame from "./HudFrame.svelte";
   import { handle_resume_download, resume_pdf_filename, resume_pdf_href } from "./resume-download.js";
 
   // `validate_landing_data` enforces exactly one entry in `resume_links`, so
   // this takes that single variant directly. Supporting more than one would
   // need real per-variant CTA labels here, not just a loop.
-  let { resume_link, hero }: { resume_link: string; hero: LandingHero } = $props();
+  let {
+    resume_link,
+    profile_name,
+    resume_title,
+  }: { resume_link: string; profile_name: string; resume_title: string } = $props();
 </script>
 
 <HudFrame label="Resume" id="resume">
@@ -18,7 +20,7 @@
       <a
         class="hud-cta-link hud-cta-link-icon"
         href={resume_pdf_href(resume_link)}
-        download={resume_pdf_filename(hero)}
+        download={resume_pdf_filename(profile_name, resume_title)}
         aria-label="Download resume PDF"
         onclick={() => handle_resume_download(resume_link)}
       >

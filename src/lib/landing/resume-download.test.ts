@@ -1,7 +1,5 @@
 import { vi } from "vitest";
 
-import type { LandingHero } from "$lib/types.js";
-
 vi.mock("$lib/analytics.js", () => ({
   track_pdf_download: vi.fn(),
 }));
@@ -10,13 +8,6 @@ import { track_pdf_download } from "$lib/analytics.js";
 
 import { handle_resume_download, resume_pdf_filename, resume_pdf_href } from "./resume-download.js";
 
-const HERO: LandingHero = {
-  name: "Test Person",
-  role: "Engineer",
-  tagline: "I build things.",
-  status: "Somewhere.",
-};
-
 describe("resume_pdf_href", () => {
   it("builds the PDF path for the given resume variant", () => {
     expect(resume_pdf_href("default")).toBe("/default.pdf");
@@ -24,8 +15,13 @@ describe("resume_pdf_href", () => {
 });
 
 describe("resume_pdf_filename", () => {
-  it("composes the download filename from the hero's name and role", () => {
-    expect(resume_pdf_filename(HERO)).toBe("Test Person - Resume - Engineer.pdf");
+  // Same template as src/routes/[variant=variant]/+page.svelte's download
+  // attribute (`${data.resume.profile.name} - Resume - ${data.resume.title}.pdf`),
+  // so the same PDF offers an identical filename from either route.
+  it("composes the download filename from the profile name and resume title, matching the variant route's format", () => {
+    expect(resume_pdf_filename("Tim Gunter", "Chief Technology Officer")).toBe(
+      "Tim Gunter - Resume - Chief Technology Officer.pdf",
+    );
   });
 });
 

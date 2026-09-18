@@ -1,6 +1,6 @@
 import { env } from "$env/dynamic/public";
 
-import { list_variants, load_resume_data } from "$lib/data.js";
+import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 
@@ -18,6 +18,11 @@ export const load: PageServerLoad = () => {
   }
 
   const data = load_resume_data();
+  // The CTA links to this variant (validate_landing_data enforces exactly
+  // one entry in resume_links), so its title is what the PDF download
+  // filename uses below - the same title the variant route itself uses for
+  // that file, not the landing hero's role.
+  const variant = load_variant(landing.resume_links[0]);
 
   const base_url = env.PUBLIC_BASE_URL ?? "";
   const canonical_url = base_url || null;
@@ -47,6 +52,8 @@ export const load: PageServerLoad = () => {
 
   return {
     landing,
+    profile_name: data.profile.name,
+    resume_title: variant.title,
     og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
   };

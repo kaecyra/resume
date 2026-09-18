@@ -35,7 +35,7 @@
 </svelte:head>
 
 <main id="main-content" class="landing">
-  <LandingSections landing={data.landing} />
+  <LandingSections landing={data.landing} profile_name={data.profile_name} resume_title={data.resume_title} />
 </main>
 
 <style>

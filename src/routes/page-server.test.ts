@@ -70,6 +70,17 @@ describe("landing data wiring", () => {
     expect(result.landing.resume_links).toEqual(["default"]);
   });
 
+  it("sources the PDF filename pieces from resume.yaml and the linked variant, not from landing.hero", async () => {
+    const result = await run_load();
+
+    // The default variant's title is "Chief Technology Officer" (see
+    // data/variants/default.yaml) - distinct from landing.hero.role, which
+    // proves this isn't accidentally reading the hero block instead.
+    expect(result.resume_title).toBe("Chief Technology Officer");
+    expect(result.resume_title).not.toBe(result.landing.hero.role);
+    expect(result.profile_name).toBe(result.landing.hero.name);
+  });
+
   it("throws an error listing every validation message for a malformed document", async () => {
     const bad_landing: LandingData = {
       hero: { name: "", role: "", tagline: "", status: "" },
