@@ -4,15 +4,17 @@
 // themes, and the landing page has neither a PDF path nor a resume theme.
 //
 // `background`, `text`, `secondary` and `accent` are load-bearing for
-// palette.test.ts's WCAG AA contrast check; `panel`, `panel_alt` and `meta`
-// are additional surfaces/labels the redesign needs that the contrast test
-// doesn't (and isn't meant to) cover - `meta` in particular is deliberately
-// low-contrast, used only for small decorative labels like the hero
-// coordinates, never for content that needs to be read reliably.
+// palette.test.ts's WCAG AA contrast check; `panel`, `panel_alt`, `meta` and
+// `edge` are additional surfaces the redesign needs that the contrast test
+// doesn't (and isn't meant to) cover - `meta` is deliberately low-contrast,
+// used only for small decorative labels like the hero coordinates, never for
+// content that needs to be read reliably, and `edge` is a border/divider
+// colour, not text, so legibility doesn't apply to it either.
 export const HUD_PALETTE = {
   background: "#0a0a0b",
   panel: "#121214",
   panel_alt: "#151517",
+  edge: "#33333a",
   text: "#ededec",
   secondary: "#a8a8ad",
   meta: "#6e6e75",

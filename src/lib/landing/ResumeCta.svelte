@@ -12,7 +12,10 @@
   }: { resume_link: string; profile_name: string; resume_title: string } = $props();
 </script>
 
-<div class="cta" style="--hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};">
+<div
+  class="cta"
+  style="--hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge};"
+>
   <a class="cta-link" href="/{resume_link}">Resume</a>
   <a
     class="cta-icon"
@@ -72,7 +75,7 @@
     min-height: 44px;
     width: 52px;
     height: 52px;
-    border: 1px solid #33333a;
+    border: 1px solid var(--hud-edge);
     color: var(--hud-secondary);
   }
 

@@ -5,11 +5,6 @@
 
   let { projects }: { projects: LandingProject[] } = $props();
 
-  // A grey, non-accent border for every card but the featured (first)
-  // project keeps the accent colour meaningful (it marks the one thing
-  // being pointed at) instead of decorating every card equally.
-  const GREY_EDGE = "#33333a";
-
   function project_link(project: LandingProject): { label: string; url: string } | null {
     if (project.repo_url) {
       return { label: "Repo", url: project.repo_url };
@@ -30,7 +25,10 @@
 
   <div class="work-grid">
     {#each projects as project, index (project.id)}
-      {@const edge = index === 0 ? HUD_PALETTE.accent : GREY_EDGE}
+      <!-- A grey, non-accent border for every card but the featured (first)
+           project keeps the accent colour meaningful (it marks the one
+           thing being pointed at) instead of decorating every card equally. -->
+      {@const edge = index === 0 ? HUD_PALETTE.accent : HUD_PALETTE.edge}
       {@const link = project_link(project)}
       <article class="work-card" class:work-card-featured={index === 0} style="border-left-color: {edge};">
         <div class="work-card-header">
