@@ -29,7 +29,7 @@
   <meta name="twitter:description" content={data.og.description} />
   <meta name="twitter:image" content={data.og.image} />
 
-  <meta name="theme-color" content="#1a2744" />
+  <meta name="theme-color" content={HUD_PALETTE.background} />
 
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}

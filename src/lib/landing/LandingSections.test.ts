@@ -2,6 +2,7 @@ import { render } from "svelte/server";
 
 import type { LandingData } from "$lib/types.js";
 
+import type { ProvisionalContributionsGrid } from "./contributions.js";
 import LandingSections from "./LandingSections.svelte";
 import { HUD_PALETTE } from "./palette.js";
 
@@ -46,13 +47,13 @@ const LANDING: LandingData = {
 const PROFILE_NAME = "Resolved Profile";
 const RESUME_TITLE = "Resolved Variant Title";
 
-function html_for(landing: LandingData): string {
+function html_for(landing: LandingData, contributions_grid: ProvisionalContributionsGrid | null = null): string {
   return render(LandingSections, {
     props: {
       landing,
       profile_name: PROFILE_NAME,
       resume_title: RESUME_TITLE,
-      contributions_grid: null,
+      contributions_grid,
     },
   }).body;
 }
@@ -66,6 +67,22 @@ describe("LandingSections", () => {
     expect(html).toContain("Project A");
     expect(html).toContain("https://linkedin.com/in/test");
     expect(html).toContain("mailto:test@example.com");
+  });
+
+  it("forwards contributions_grid through to Commits, reaching the rendered day colours", () => {
+    // Commits.test.ts proves Commits.svelte renders a non-null grid's day
+    // colours in isolation. Nothing proved this component actually forwards
+    // its own contributions_grid prop down to Commits rather than, say,
+    // hardcoding null on the element - #167's seam only works end to end if
+    // this wiring holds.
+    const grid: ProvisionalContributionsGrid = [
+      { days: [{ color: "#111111" }, { color: "#222222" }] },
+    ];
+    const html = html_for(LANDING, grid);
+
+    expect(html).not.toContain("Commit history is offline for this build.");
+    expect(html).toContain("background: #111111;");
+    expect(html).toContain("background: #222222;");
   });
 
   it("wires a project's links entry into a real href on the rendered card", () => {

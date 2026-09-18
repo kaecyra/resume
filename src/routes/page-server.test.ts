@@ -16,7 +16,7 @@ vi.mock("$lib/landing.js", async (import_original) => {
   return { ...actual, load_landing_data: vi.fn(actual.load_landing_data) };
 });
 
-import { load_variant } from "$lib/data.js";
+import { load_resume_data, load_variant } from "$lib/data.js";
 import { load_landing_data } from "$lib/landing.js";
 
 import { load } from "./+page.server.js";
@@ -82,15 +82,75 @@ describe("landing data wiring", () => {
   });
 
   it("sources the PDF filename pieces from resume.yaml and the linked variant, not from landing.hero", async () => {
+    // data/landing.yaml's hero.name and data/resume.yaml's profile.name are
+    // both "Tim Gunter" today, so comparing profile_name against
+    // result.landing.hero.name (as this test used to) would pass whichever
+    // of the two +page.server.ts actually reads it from - an assertion that
+    // can't fail is not a guard. Overriding load_landing_data here gives
+    // hero.name a value distinct from the real resume.yaml profile name, so
+    // the two sources can't coincide by accident.
+    const distinguishable_landing: LandingData = {
+      hero: {
+        name: "Distinguishable Landing Hero",
+        role: "Independent",
+        location: "Nowhere",
+        tagline: "A landing tagline unlike any variant summary or tagline.",
+        status: "Testing.",
+      },
+      projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      resume_links: ["default"],
+      contact: [{ label: "Email", url: "mailto:test@example.com" }],
+      github: { user: "testuser" },
+      sections: ["hero", "divider", "commits", "work", "contact"],
+    };
+    vi.mocked(load_landing_data).mockReturnValueOnce(distinguishable_landing);
+
     const result = await run_load();
 
     // Compare against the linked variant's own title rather than a literal,
     // so retitling data/variants/default.yaml doesn't break this test; the
     // `not.toBe(hero.role)` below is what actually catches a reversion to
     // sourcing this from the hero block instead of the variant.
-    expect(result.resume_title).toBe(load_variant(result.landing.resume_links[0]).title);
-    expect(result.resume_title).not.toBe(result.landing.hero.role);
-    expect(result.profile_name).toBe(result.landing.hero.name);
+    const variant_title = load_variant("default").title;
+    expect(result.resume_title).toBe(variant_title);
+    expect(result.resume_title).not.toBe(distinguishable_landing.hero.role);
+
+    const real_profile_name = load_resume_data().profile.name;
+    expect(result.profile_name).toBe(real_profile_name);
+    expect(result.profile_name).not.toBe(distinguishable_landing.hero.name);
+  });
+
+  it("sources og.title and og.description from landing.hero, not from resume.yaml's profile name or the linked variant's title/summary", async () => {
+    mock_env.PUBLIC_BASE_URL = "https://example.com";
+
+    const distinguishable_landing: LandingData = {
+      hero: {
+        name: "Distinguishable Landing Hero",
+        role: "Independent",
+        location: "Nowhere",
+        tagline: "A landing tagline unlike any variant summary or tagline.",
+        status: "Testing.",
+      },
+      projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      resume_links: ["default"],
+      contact: [{ label: "Email", url: "mailto:test@example.com" }],
+      github: { user: "testuser" },
+      sections: ["hero", "divider", "commits", "work", "contact"],
+    };
+    vi.mocked(load_landing_data).mockReturnValueOnce(distinguishable_landing);
+
+    const result = await run_load();
+
+    const real_profile_name = load_resume_data().profile.name;
+    const variant = load_variant("default");
+
+    expect(result.og.title).toBe(distinguishable_landing.hero.name);
+    expect(result.og.title).not.toBe(real_profile_name);
+    expect(result.og.title).not.toBe(variant.title);
+
+    expect(result.og.description).toBe(distinguishable_landing.hero.tagline);
+    expect(result.og.description).not.toBe(variant.summary);
+    expect(result.og.description).not.toBe(variant.tagline);
   });
 
   it("derives the OG image from the linked resume variant, not a hardcoded default", async () => {
