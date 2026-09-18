@@ -1,21 +1,27 @@
 import { render } from "svelte/server";
 
+import type { ContributionCell, ContributionGridModel } from "$lib/github.js";
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import type { ProvisionalContributionsGrid } from "./contributions.js";
+import { HUD_PALETTE } from "./palette.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
-// Two weeks of two days is enough to exercise both the outer `{#each}` over
-// weeks and the inner `{#each}` over days, and to prove each day's own
-// colour (not just the first) reaches the markup.
-const GRID: ProvisionalContributionsGrid = [
-  { days: [{ color: "#111111" }, { color: "#222222" }] },
-  { days: [{ color: "#333333" }, { color: "#444444" }] },
-];
+function cell(level: number): ContributionCell {
+  return { date: `2026-09-${13 + level}`, count: level * 2, level };
+}
 
-function html_for(contributions_grid: ProvisionalContributionsGrid | null): string {
+// One week carrying every ramp bucket (0-4) plus two `null` padding slots,
+// so a single fixture exercises the level-to-colour ramp end to end and the
+// padding path, without needing a second grid.
+const GRID: ContributionGridModel = {
+  total_count: 23,
+  generated_at: "2026-09-18T00:00:00.000Z",
+  weeks: [[null, cell(0), cell(1), cell(2), cell(3), cell(4), null]],
+};
+
+function html_for(contributions_grid: ContributionGridModel | null): string {
   return render(Commits, {
     props: { github: GITHUB, contributions_grid },
   }).body;
@@ -29,12 +35,24 @@ describe("Commits", () => {
     expect(html).not.toContain("commits-day");
   });
 
-  it("renders one commits-day element per day, in every week, with that day's colour", () => {
+  it("does not render the offline state when contributions_grid is present", () => {
     const html = html_for(GRID);
 
-    for (const color of ["#111111", "#222222", "#333333", "#444444"]) {
-      expect(html).toContain(`background: ${color};`);
-    }
+    expect(html).not.toContain("Commit history is offline for this build.");
+  });
+
+  it("colours each real day by its level, from the empty end of the amber ramp (0) to full accent (4)", () => {
+    const html = html_for(GRID);
+
+    expect(html).toContain(`background: ${HUD_PALETTE.edge};`);
+    expect(html).toContain(`background: ${HUD_PALETTE.accent}40;`);
+    expect(html).toContain(`background: ${HUD_PALETTE.accent}80;`);
+    expect(html).toContain(`background: ${HUD_PALETTE.accent}bf;`);
+    expect(html).toContain(`background: ${HUD_PALETTE.accent};`);
+  });
+
+  it("renders one commits-day element per grid slot, including null padding, so week columns stay aligned", () => {
+    const html = html_for(GRID);
 
     // `class="commits-day` (no closing quote in the pattern), not an exact
     // match on the full class attribute - Svelte appends its own scoping
@@ -42,13 +60,15 @@ describe("Commits", () => {
     // block's selectors, so the rendered attribute is never just
     // `class="commits-day"`.
     const day_count = html.match(/class="commits-day/g)?.length;
-    expect(day_count).toBe(4);
+    expect(day_count).toBe(GRID.weeks[0].length);
   });
 
-  it("does not render the offline state when contributions_grid is present", () => {
+  it("renders null padding slots hidden and without a background colour", () => {
     const html = html_for(GRID);
 
-    expect(html).not.toContain("Commit history is offline for this build.");
+    const pad_count = html.match(/class="commits-day commits-day-pad/g)?.length;
+    const null_count = GRID.weeks[0].filter((slot) => slot === null).length;
+    expect(pad_count).toBe(null_count);
   });
 
   it("renders the caption naming the account and window, with the id the scroller labels itself from", () => {
@@ -69,7 +89,7 @@ describe("Commits", () => {
     expect(scroller).toContain('aria-labelledby="commits-caption"');
   });
 
-  it("hides the colour-only grid from assistive tech, since it has no accessible summary of its own", () => {
+  it("hides the grid from assistive tech, since it has no accessible summary distinct from the caption", () => {
     const html = html_for(GRID);
 
     // `commits-grid ` (trailing space), not `commits-grid[^>]*` - the

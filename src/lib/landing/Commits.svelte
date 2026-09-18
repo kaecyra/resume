@@ -1,13 +1,31 @@
 <script lang="ts">
+  import type { ContributionGridModel } from "$lib/github.js";
   import type { LandingGithub } from "$lib/types.js";
 
-  import type { ProvisionalContributionsGrid } from "./contributions.js";
   import { HUD_PALETTE } from "./palette.js";
 
   let {
     github,
     contributions_grid,
-  }: { github: LandingGithub; contributions_grid: ProvisionalContributionsGrid | null } = $props();
+  }: { github: LandingGithub; contributions_grid: ContributionGridModel | null } = $props();
+
+  // `ContributionGridModel` (src/lib/github.ts) carries each real day's
+  // ramp bucket as `level: number` (0-4), not a colour - the ramp's own
+  // maths (which quartile a count falls into) lives there, out of this
+  // component. This is the one place that turns a level into a colour, so
+  // there is exactly one ramp definition to keep in sync with the "Signal"
+  // amber accent. Index 0 is a day with zero contributions (still a real
+  // day - rendered, just at the empty end of the ramp); indices 1-4 step
+  // `accent` up through increasing opacity to full strength at the
+  // calendar's own max (see bucket_level in github.ts for why the top
+  // bucket is relative to the calendar's max, not an absolute count).
+  const LEVEL_COLORS = [
+    HUD_PALETTE.edge,
+    `${HUD_PALETTE.accent}40`,
+    `${HUD_PALETTE.accent}80`,
+    `${HUD_PALETTE.accent}bf`,
+    HUD_PALETTE.accent,
+  ];
 </script>
 
 <section
@@ -35,21 +53,29 @@
          doesn't recognize this pattern. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div class="commits-grid-scroll" tabindex="0" role="group" aria-labelledby="commits-caption">
-      <!-- aria-hidden, not an aria-label: this grid has no contribution
-           *numbers* to summarise, only colours (ProvisionalContributionsGrid
-           is color-per-day and nothing else), so any aria-label written here
-           would be fabricated. The caption above is the whole accessible
-           story for now. #167 owns the underlying contribution data and is
-           the node that can add a real summary and lift this aria-hidden.
-           (It's also why aria-hidden lives here and not on the scroller:
-           nesting a focusable element inside an aria-hidden subtree is a documented
-           anti-pattern that axe flags - the scroller carries the
-           tabindex/role, this inner grid carries no focusable children.) -->
+      <!-- aria-hidden, not an aria-label: a per-day summary here would just
+           restate the calendar visually ("mostly empty, a cluster in
+           October"), which isn't information distinct from the grid itself,
+           and a single aggregate number is already the caption above's job
+           if it ever gets one. The caption is the whole accessible story for
+           this grid. (It's also why aria-hidden lives here and not on the
+           scroller: nesting a focusable element inside an aria-hidden
+           subtree is a documented anti-pattern that axe flags - the
+           scroller carries the tabindex/role, this inner grid carries no
+           focusable children.) -->
       <div class="commits-grid" aria-hidden="true">
-        {#each contributions_grid as week, week_index (week_index)}
+        {#each contributions_grid.weeks as week, week_index (week_index)}
           <div class="commits-week">
-            {#each week.days as day, day_index (day_index)}
-              <div class="commits-day" style="background: {day.color};"></div>
+            {#each week as cell, day_index (day_index)}
+              {#if cell}
+                <div class="commits-day" style="background: {LEVEL_COLORS[cell.level]};"></div>
+              {:else}
+                <!-- A null slot pads the first/last week when the calendar
+                     doesn't start on a Sunday or end on a Saturday (see
+                     build_contribution_grid in github.ts) - it holds the
+                     column's width without drawing a day that doesn't exist. -->
+                <div class="commits-day commits-day-pad"></div>
+              {/if}
             {/each}
           </div>
         {/each}
@@ -116,6 +142,10 @@
   .commits-day {
     width: 14px;
     height: 14px;
+  }
+
+  .commits-day-pad {
+    visibility: hidden;
   }
 
   .commits-offline {
