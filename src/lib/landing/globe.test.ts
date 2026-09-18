@@ -338,6 +338,53 @@ describe("transform_segments", () => {
     expect(positions).toHaveLength(segments.length * 2 * 2);
     expect(depths).toHaveLength(segments.length * 2);
   });
+
+  it("writes results into the caller's out buffers themselves, not just the returned object", () => {
+    // Reads `out.positions`/`out.depths` directly rather than the returned
+    // object - start_globe's draw() loop only ever looks at the buffers it
+    // already holds a reference to, so a version that allocates fresh
+    // arrays instead of writing into `out` (still returning correct values)
+    // would pass a return-value-only assertion while leaving the real
+    // per-frame buffers untouched.
+    const out = { positions: new Float32Array(4).fill(-999), depths: new Float32Array(2).fill(-999) };
+    transform_segments(segments, 0, 0, 1, 1, out);
+    expect(Array.from(out.positions)).toEqual([0, 0, 1, 0]);
+    expect(Array.from(out.depths)).toEqual([1, 0]);
+  });
+
+  it("overwrites the front of a reused out buffer on a later call with fewer segments, leaving no stale tail data from the first", () => {
+    const larger: [Vec3, Vec3][] = [
+      [
+        [0, 0, 1],
+        [1, 0, 0],
+      ],
+      [
+        [0, 1, 0],
+        [-1, 0, 0],
+      ],
+    ];
+    const smaller: [Vec3, Vec3][] = [
+      [
+        [0, 0, 1],
+        [1, 0, 0],
+      ],
+    ];
+    const out = { positions: new Float32Array(8), depths: new Float32Array(4) };
+
+    // First call: rotated, fills the whole (larger) buffer.
+    transform_segments(larger, 0.7, 0.3, 1, 1, out);
+    // Second call: fewer segments, zero rotation - only the front two
+    // vertices should be touched.
+    transform_segments(smaller, 0, 0, 1, 1, out);
+
+    // Zero rotation on [0,0,1] projects straight through: depth 1, x=0, y=0.
+    // If the second call left out untouched (e.g. by allocating its own
+    // fresh, correctly-sized arrays instead of writing into `out`), these
+    // front entries would still carry the first call's rotated, non-zero
+    // values instead.
+    expect(Array.from(out.positions.slice(0, 4))).toEqual([0, 0, 1, 0]);
+    expect(Array.from(out.depths.slice(0, 2))).toEqual([1, 0]);
+  });
 });
 
 describe("build_color_buffer", () => {
@@ -352,6 +399,36 @@ describe("build_color_buffer", () => {
     expect(Array.from(colors.slice(4, 8))).toEqual([1, 0, 0, front]);
     expect(Array.from(colors.slice(8, 12))).toEqual([0, 1, 0, back]);
     expect(Array.from(colors.slice(12, 16))).toEqual([0, 1, 0, back]);
+  });
+
+  it("writes results into the caller's out buffer itself, not just the returned array", () => {
+    // Same rationale as transform_segments's equivalent test: draw() only
+    // ever reads the buffer it already holds a reference to, so a version
+    // that allocates a fresh array instead of writing into `out` (while
+    // still returning correct values) needs a direct read of `out` to be
+    // caught.
+    const depths = new Float32Array([1, 1, -1, -1]);
+    const out = new Float32Array(16).fill(-999);
+    build_color_buffer(depths, 2, [1, 0, 0], [0, 1, 0], out);
+    const front = Math.fround(line_alpha(1));
+    expect(Array.from(out.slice(0, 4))).toEqual([1, 0, 0, front]);
+  });
+
+  it("overwrites the front of a reused out buffer on a later call with fewer vertices, leaving no stale tail data from the first", () => {
+    const larger_depths = new Float32Array([1, 1, -1, -1]);
+    const smaller_depths = new Float32Array([-1, -1]);
+    const out = new Float32Array(16);
+
+    // First call: front two vertices are world_rgb at front alpha.
+    build_color_buffer(larger_depths, 2, [1, 0, 0], [0, 1, 0], out);
+    // Second call: fewer vertices, all past the (zero) world/canada
+    // boundary - the front vertex should flip to canada_rgb at back alpha.
+    build_color_buffer(smaller_depths, 0, [1, 0, 0], [0, 1, 0], out);
+
+    const back = Math.fround(line_alpha(-1));
+    // If the second call left `out` untouched, this would still read the
+    // first call's stale world_rgb + front alpha instead.
+    expect(Array.from(out.slice(0, 4))).toEqual([0, 1, 0, back]);
   });
 });
 

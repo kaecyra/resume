@@ -1,7 +1,10 @@
 // Regenerates the wireframe globe's line geometry from Natural Earth's 110m
-// country polygons, shipped by the `world-atlas` package. Ported from the
-// working prototype at `.cc-scratch/design/build/extract.mjs` (#178) -
-// typed, and split into named, individually testable pure functions.
+// country polygons, shipped by the `world-atlas` package. Ported from a
+// throwaway Node script that first proved out loading world-atlas's
+// TopoJSON, extracting the world and Canada ring coordinates, and
+// simplifying them to a lon/lat string payload (#178) - never itself
+// committed to this repo - typed here and split into named, individually
+// testable pure functions.
 //
 // Run with `npm run generate-geo` whenever world-atlas is upgraded or the
 // simplification tolerances change. The committed output at
