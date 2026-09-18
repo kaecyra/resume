@@ -183,6 +183,59 @@ describe("build_globe_lines", () => {
   });
 });
 
+describe("build_globe_lines re-splits at the antimeridian after simplification (SHOULD 2, round 3)", () => {
+  // Drives the bug through the real pipeline (feature()/rings_of()/
+  // encode_rings(), at the actual WORLD_TOLERANCE_DEG=0.55) rather than
+  // calling simplify_ring/split_at_antimeridian by hand: encode_rings's
+  // post-simplify `split_at_antimeridian(simplified)` call is what this
+  // pins, and hand-calling the units never exercises encode_rings' own
+  // ordering of them.
+  //
+  // Ring: [-170,0] -> [-30,60] -> [100,21] -> [170,0]. No original
+  // consecutive pair spans more than 180 degrees of longitude (140, 130,
+  // 70), so the pre-simplify split leaves it untouched. [100,21] sits
+  // almost exactly on the line from [-30,60] to [170,0] (well inside 0.55
+  // degrees), so Douglas-Peucker drops it - leaving [-30,60] and [170,0]
+  // newly adjacent, 200 degrees apart. With the post-simplify re-split
+  // present, that 3-point simplified ring gets split at the new seam and
+  // both halves are dropped by the MIN_RING_POINTS filter, so this ring
+  // contributes nothing to the output. Delete the re-split and the whole
+  // 3-point simplified ring is encoded as one piece instead - a ring
+  // segment spanning the antimeridian, which assert_no_antimeridian_span
+  // (run unconditionally inside build_globe_lines) then throws on.
+  const ANTIMERIDIAN_RING: Ring = [
+    [-170, 0],
+    [-30, 60],
+    [100, 21],
+    [170, 0],
+  ];
+
+  function fixture_topology_with_ring(ring: Ring): Topology {
+    return {
+      type: "Topology",
+      arcs: [ring, [[10, 10], [11, 10], [11, 11], [10, 11], [10, 10]]],
+      objects: {
+        countries: {
+          type: "GeometryCollection",
+          geometries: [
+            { type: "Polygon", arcs: [[0]], properties: { name: "Testland" } },
+            { type: "Polygon", arcs: [[1]], properties: { name: "Canada" } },
+          ],
+        },
+      },
+    };
+  }
+
+  it("does not throw, and the degenerate ring contributes no output once re-split and MIN_RING_POINTS-filtered", () => {
+    const topology = fixture_topology_with_ring(ANTIMERIDIAN_RING);
+    let lines: ReturnType<typeof build_globe_lines> | undefined;
+    expect(() => {
+      lines = build_globe_lines(topology);
+    }).not.toThrow();
+    expect(lines?.world).toEqual([]);
+  });
+});
+
 describe("build_globe_still_svg", () => {
   it("renders an SVG with a distinct path layer per color for world and Canada geometry", () => {
     const svg = build_globe_still_svg({

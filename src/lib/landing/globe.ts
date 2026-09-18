@@ -3,8 +3,16 @@
 // them to a <canvas>. Mirrors the split in the parked hud-canvas.ts (#168):
 // the maths is plain functions over plain data, tested directly in
 // globe.test.ts. A real WebGL context is still not available under vitest
-// (see #175), so the drawing itself - and only the drawing itself - stays
-// untested; everything that decides *what* to draw does not.
+// (see #175), so the drawing itself - the inside of draw()'s ctx.bufferData/
+// drawArrays calls and the marker element's per-frame writes - stays
+// untested. start_globe's controller *decisions* (when it schedules or
+// cancels a frame, what stop() releases) are pinned separately in
+// globe.test.ts's "start_globe controller lifecycle" describe block,
+// against a hand-built gl stub and stubbed window/document/rAF/
+// IntersectionObserver globals - see SHOULD 3 in the #178 round-3 review,
+// which is what corrected this comment: those decisions used to be lumped
+// in with "everything that decides what to draw" and implied covered, when
+// nothing asserted them at all.
 
 import { HUD_PALETTE } from "./palette.js";
 
@@ -444,6 +452,11 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
 
   const program = create_program(ctx);
   if (!program) {
+    // Symmetric with the success path's teardown (see stop(), below): a
+    // failed link still leaves a live context sitting on the canvas with
+    // nothing to release it, which counts against the same browser-wide
+    // WebGL context budget as a context that started drawing successfully.
+    ctx.getExtension("WEBGL_lose_context")?.loseContext();
     return null;
   }
 
