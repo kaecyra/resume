@@ -35,6 +35,7 @@ import type { MultiPolygon, Polygon } from "geojson";
 import {
   build_ring_segments,
   line_alpha,
+  MONTREAL_START_SPIN_RAD,
   project_to_screen,
   SPHERE_FILL_RATIO,
   tilt_radians,
@@ -64,9 +65,12 @@ const STILL_OUTPUT_PATH = resolve("static", "landing", "globe-still.svg");
 // `.hero-visual` box, so it drops in as a 1:1 backdrop with no rescaling.
 const STILL_VIEWBOX_PX = 760;
 const STILL_CENTER_PX = STILL_VIEWBOX_PX / 2;
-// Spin at the moment the still is "frozen" - zero, matching the animating
-// globe's own first frame (rotation_angle(0, ...) === 0).
-const STILL_SPIN_RAD = 0;
+// Spin at the moment the still is "frozen" - MONTREAL_START_SPIN_RAD,
+// matching the animating globe's own first frame (globe_spin_at(0, ...) ===
+// MONTREAL_START_SPIN_RAD; see globe.ts's start_globe). Keeping this tied to
+// that constant rather than a literal is what keeps the still and the
+// canvas's first frame from disagreeing - see the module comment above.
+const STILL_SPIN_RAD = MONTREAL_START_SPIN_RAD;
 // Segments are grouped into one <path> per (layer, quantized opacity)
 // bucket rather than emitted as one element each, so the file stays a
 // build artefact-sized handful of KB instead of one element per line

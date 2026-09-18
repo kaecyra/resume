@@ -4,7 +4,14 @@
   import { browser } from "$app/environment";
   import type { LandingGithub, LandingHero } from "$lib/types.js";
 
-  import { GLOBE_STILL_URL, load_globe_lines, start_globe, type GlobeController } from "./globe.js";
+  import {
+    GLOBE_STILL_URL,
+    load_globe_lines,
+    MONTREAL_LAT,
+    MONTREAL_LON,
+    start_globe,
+    type GlobeController,
+  } from "./globe.js";
   import { split_role_badge } from "./hero-format.js";
   import { HUD_PALETTE } from "./palette.js";
   import ResumeCta from "./ResumeCta.svelte";
@@ -24,6 +31,14 @@
   } = $props();
 
   const role = $derived(split_role_badge(hero.role));
+
+  // Derived from globe.ts's MONTREAL_LON/MONTREAL_LAT rather than typed out
+  // here a second time, so this topbar chrome can never drift out of sync
+  // with the globe's own marker coordinates. Rendered longitude drops the
+  // sign and reads "W" - MONTREAL_LON is always negative (west) here, so
+  // Math.abs is just undoing that sign for display, not a general-purpose
+  // conversion.
+  const montreal_coords = `${MONTREAL_LAT.toFixed(2)}°N ${Math.abs(MONTREAL_LON).toFixed(2)}°W`;
 
   let canvas_el: HTMLCanvasElement | undefined = $state();
   let marker_el: HTMLDivElement | undefined = $state();
@@ -147,8 +162,9 @@
   <div class="hero-topbar">
     <span>{github.user}</span>
     <!-- Fixed presentational chrome (Montreal), not content - not worth a
-         second one-off schema field on `hero`. -->
-    <span>45.50&deg;N 73.57&deg;W</span>
+         second one-off schema field on `hero`. Derived from globe.ts's
+         MONTREAL_LAT/MONTREAL_LON (see montreal_coords above). -->
+    <span>{montreal_coords}</span>
   </div>
 
   <div class="hero-identity">

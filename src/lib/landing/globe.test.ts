@@ -2,6 +2,7 @@ import {
   build_color_buffer,
   build_ring_segments,
   densify_ring,
+  globe_spin_at,
   hex_to_rgb01,
   line_alpha,
   line_segments,
@@ -12,6 +13,8 @@ import {
   MARKER_FADE_END_Z,
   MARKER_FADE_START_Z,
   MAX_SEGMENT_ANGLE_RAD,
+  MONTREAL_LON,
+  MONTREAL_START_SPIN_RAD,
   montreal_marker,
   parse_ring,
   project_to_screen,
@@ -295,19 +298,50 @@ describe("project_to_screen", () => {
   });
 });
 
+describe("MONTREAL_START_SPIN_RAD", () => {
+  it("is the negative of MONTREAL_LON, in radians - derived from the constant, not a hand-tuned number", () => {
+    expect(MONTREAL_START_SPIN_RAD).toBeCloseTo(-(MONTREAL_LON * Math.PI) / 180, 12);
+  });
+});
+
+describe("globe_spin_at", () => {
+  it("starts at MONTREAL_START_SPIN_RAD when elapsed is zero - the globe's actual first frame", () => {
+    expect(globe_spin_at(0, ROTATION_MS_PER_TURN)).toBeCloseTo(MONTREAL_START_SPIN_RAD, 9);
+  });
+
+  it("still advances by rotation_angle's own amount as elapsed grows - speed/direction untouched by the offset", () => {
+    const elapsed = ROTATION_MS_PER_TURN / 4;
+    const before = globe_spin_at(0, ROTATION_MS_PER_TURN);
+    const after = globe_spin_at(elapsed, ROTATION_MS_PER_TURN);
+    expect(after - before).toBeCloseTo(rotation_angle(elapsed, ROTATION_MS_PER_TURN), 9);
+  });
+});
+
 describe("montreal_marker", () => {
   it("is fully visible when Montreal's longitude faces the viewer", () => {
-    // Montreal sits at lon -73.57; spinning by +73.57 degrees brings that
-    // meridian to lon=0, which faces the viewer at tilt=0.
-    const spin_rad = (73.57 * Math.PI) / 180;
-    const marker = montreal_marker(spin_rad, 0, 100, 0, 0);
+    // MONTREAL_START_SPIN_RAD is exactly this relationship (-lon in
+    // radians): spinning by it brings Montreal's meridian to lon=0, which
+    // faces the viewer at tilt=0.
+    const marker = montreal_marker(MONTREAL_START_SPIN_RAD, 0, 100, 0, 0);
     expect(marker.opacity).toBe(1);
   });
 
   it("is fully hidden when Montreal has rotated to the far side", () => {
-    const spin_rad = (73.57 * Math.PI) / 180 + Math.PI;
+    const spin_rad = MONTREAL_START_SPIN_RAD + Math.PI;
     const marker = montreal_marker(spin_rad, 0, 100, 0, 0);
     expect(marker.opacity).toBe(0);
+  });
+
+  it("lands on the horizontal centre of the canvas at the globe's starting spin and its usual viewing tilt (#188)", () => {
+    // This is the first-paint behaviour #188 asks for: at MONTREAL_START_SPIN_RAD
+    // (what start_globe's very first frame uses) and the fixed TILT_DEG
+    // viewing tilt, the marker's x lands on the given screen center - proof
+    // by projection, not by eyeballing a screenshot.
+    const center_x = 250;
+    const center_y = 250;
+    const marker = montreal_marker(MONTREAL_START_SPIN_RAD, tilt_radians(), 200, center_x, center_y);
+    expect(marker.x).toBeCloseTo(center_x, 9);
+    expect(marker.opacity).toBe(1);
   });
 });
 

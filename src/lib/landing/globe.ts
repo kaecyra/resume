@@ -31,10 +31,10 @@ export const ROTATION_MS_PER_TURN = 120_000;
 // Fixed viewing tilt: leans the northern hemisphere toward the camera.
 export const TILT_DEG = 18;
 
-// Montreal, matching the coordinates already printed in Hero.svelte's
-// topbar ("45.50N 73.57W").
-export const MONTREAL_LON = -73.57;
-export const MONTREAL_LAT = 45.5;
+// YUL - Montreal's airport, not downtown. Hero.svelte's topbar derives its
+// printed coordinates from these same constants, so they can't drift apart.
+export const MONTREAL_LON = -73.7481;
+export const MONTREAL_LAT = 45.4657;
 
 // Great-circle subdivision step: no chord drawn between two adjacent
 // vertices spans more than this angle, so a long simplified segment (a
@@ -244,6 +244,32 @@ export interface MontrealMarker {
 }
 
 const MONTREAL_UNIT = lonlat_to_unit_vector(MONTREAL_LON, MONTREAL_LAT);
+
+// Spin offset that puts the Montreal point centred and facing the viewer at
+// spin_rad=0's usual position - i.e. the value `start_globe` adds to
+// `rotation_angle`'s output so the very first frame opens on Montreal
+// instead of an arbitrary longitude.
+//
+// rotate_y (see `to_view_space`) sends a unit vector's x-coordinate from
+// cos(lat)*sin(lon) to cos(lat)*sin(lon + spin_rad); that's zero - dead
+// centre, since tilt (rotate_x) never touches x - exactly when
+// spin_rad = -lon (mod pi), and picking spin_rad = -lon specifically (not
+// -lon + pi) lands the point's view-space z at +cos(lat), the near side
+// rather than the far one. So the offset is simply -lon in radians, derived
+// from MONTREAL_LON rather than a hand-tuned number: if the constant ever
+// moves, this moves with it.
+export const MONTREAL_START_SPIN_RAD = -to_radians(MONTREAL_LON);
+
+// Spin for a given elapsed time, phase-shifted by MONTREAL_START_SPIN_RAD:
+// the same rotation_angle the globe always used, just starting from
+// Montreal centred (elapsed=0) instead of spin=0. Speed and direction are
+// unchanged - rotation_angle still does all of that - this only moves where
+// the clock starts. Split out as its own pure function (rather than left
+// inline in start_globe's frame()) so the phase shift itself is directly
+// testable, the same way every other piece of this module's maths is.
+export function globe_spin_at(elapsed_ms: number, ms_per_turn: number): number {
+  return rotation_angle(elapsed_ms, ms_per_turn) + MONTREAL_START_SPIN_RAD;
+}
 
 // Where the Montreal marker sits on screen, and how visible it is, at a
 // given spin angle. A pure function of the same rotation the shader uses,
@@ -550,7 +576,7 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
     if (!running || !hero_visible || !tab_visible) {
       return;
     }
-    draw(rotation_angle(ts - start_ms, ROTATION_MS_PER_TURN));
+    draw(globe_spin_at(ts - start_ms, ROTATION_MS_PER_TURN));
     raf_id = requestAnimationFrame(frame);
   }
 
