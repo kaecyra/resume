@@ -74,17 +74,19 @@
   }
 
   .appearances-what {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Mixed-case descriptive text ("LiveVision
+       talk"), not a short all-caps label, so the 0.08em tracking tuned for
+       mono is dropped rather than carried over. */
     font-size: 0.8125rem;
-    letter-spacing: 0.08em;
     color: var(--hud-secondary);
     flex: 2 1 16rem;
   }
 
   .appearances-date {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Same reasoning as .appearances-what above: mixed-case text ("March
+       2026"), mono retired (#187), tracking dropped with it. */
     font-size: 0.8125rem;
-    letter-spacing: 0.08em;
     color: var(--hud-secondary);
     white-space: nowrap;
     margin-left: auto;

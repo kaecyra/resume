@@ -114,19 +114,30 @@
   }
 
   .work-name a {
+    /* No underline on landing-page links (owner request, post-#187) - this
+       was the underline's own hover state (swapping its colour), so it goes
+       too rather than being left dead. */
     color: inherit;
-    text-decoration: underline;
-    text-decoration-color: var(--hud-secondary);
+    text-decoration: none;
   }
 
   .work-name a:hover {
-    text-decoration-color: currentColor;
+    /* Colour-change hover to replace the underline's lost affordance.
+       --hud-secondary is already exposed on this section (used by
+       .work-blurb) and gives ~7.7:1 against the card background
+       (--hud-panel-alt, the same on every card, featured or not), clearing
+       AA with room to spare while still reading as a real shift off the
+       near-white --hud-text these headings inherit at rest. */
+    color: var(--hud-secondary);
   }
 
   .work-status {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Status text is multi-word mixed-case
+       phrasing ("Not yet public", "In development"), not a short all-caps
+       label, so the 0.12em tracking tuned for mono is dropped rather than
+       carried over. */
     font-size: 0.6875rem;
-    letter-spacing: 0.12em;
     white-space: nowrap;
   }
 
@@ -148,7 +159,11 @@
   }
 
   .work-stack li {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
+       - mono retired here (#187). Each tag is a single short word (e.g.
+       "TypeScript") rendered as a chip/badge, so the uppercase + tracking
+       treatment tuned for the mono face is still a normal, font-agnostic
+       badge convention here and stays. */
     font-size: 0.625rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;

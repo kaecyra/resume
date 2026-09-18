@@ -10,6 +10,18 @@
   // Filtering out mailto: links here, rather than adding a second data
   // field, keeps `contact` the single source of truth for every link.
   const social_links = $derived(contact.filter((item) => !item.url.startsWith("mailto:")));
+
+  // The icon is derived from the URL, not the label - same reasoning as
+  // filtering social_links above: `contact` stays the single source of
+  // truth, with no extra "which icon" field to keep in sync by hand. Email
+  // has no icon (mailto: never reaches this list). Returns null rather than
+  // a fallback icon so an unrecognised provider degrades to text-only,
+  // matching the {#if icon} guard below.
+  function contact_icon(url: string): string | null {
+    if (url.includes("github.com")) return "/landing/github-mark.svg";
+    if (url.includes("linkedin.com")) return "/landing/linkedin-mark.svg";
+    return null;
+  }
 </script>
 
 <!-- Deliberately a `div`, not a `section`: Divider has no heading of its own
@@ -23,12 +35,18 @@
 <div
   id="divider"
   class="divider"
-  style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background};"
+  style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background}; --hud-edge: {HUD_PALETTE.edge};"
 >
   <span class="divider-location">{hero.location}</span>
   <div class="divider-links">
     {#each social_links as item (item.url)}
-      <a href={item.url} target="_blank" rel="noopener noreferrer" class="divider-link">{item.label}</a>
+      {@const icon = contact_icon(item.url)}
+      <a href={item.url} target="_blank" rel="noopener noreferrer" class="divider-link">
+        {#if icon}
+          <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="divider-link-icon" />
+        {/if}
+        {item.label}
+      </a>
     {/each}
   </div>
 </div>
@@ -49,7 +67,10 @@
   }
 
   .divider-location {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in
+       +page.svelte - the mono face is retired here (#187), but this is
+       still a short all-caps label, so the uppercase/tracking treatment
+       tuned for it reads fine on a proportional face too and stays. */
     font-size: 0.8125rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -63,15 +84,37 @@
   }
 
   .divider-link {
-    font-family: "Share Tech Mono", ui-monospace, monospace;
+    /* Inherits the body face (IBM Plex Sans) from .landing in
+       +page.svelte. Unlike .divider-location above, this now renders a
+       literal handle/label (#187: "@kaecyra", "guntertim") - text-transform:
+       uppercase would visibly shout it in caps, which is wrong once the
+       casing is meaningful, and the wide tracking that made sense for
+       all-caps mono legibility just looks loose on mixed-case text, so both
+       are dropped rather than carried over. */
+    /* No underline on landing-page links (owner request). An anchor with no
+       text-decoration declaration underlines by default, so this needs an
+       explicit `none`. The border-bottom this rule used to carry was a line
+       drawn under the link text - visually an underline by another name, so
+       it's gone too, not just the text-decoration property; the padding
+       that existed only to clear that border went with it. Hover recovers
+       the lost affordance as a colour change instead: --hud-edge on the
+       light divider band (background #ededec) is ~10.7:1 against it, a
+       clearly visible, comfortably legible shift off --hud-bg. */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     font-size: 0.8125rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
     color: var(--hud-bg);
-    /* Translucent derivation of --hud-bg, not a fresh literal - color-mix
-       keeps it tied to the token instead of drifting if the token changes. */
-    border-bottom: 1px solid color-mix(in srgb, var(--hud-bg) 28%, transparent);
-    padding-bottom: 2px;
+    text-decoration: none;
+  }
+
+  .divider-link:hover {
+    color: var(--hud-edge);
+  }
+
+  .divider-link-icon {
+    display: block;
+    flex: none;
   }
 
   @media (max-width: 480px) {

@@ -54,6 +54,9 @@
   }
 
   .cta-link {
+    /* No underline on landing-page links (owner request). An anchor with no
+       text-decoration declaration underlines by default, so this needs an
+       explicit `none`. */
     display: inline-flex;
     align-items: center;
     min-height: 52px;
@@ -65,6 +68,7 @@
     font-size: 1.0625rem;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+    text-decoration: none;
   }
 
   .cta-icon {

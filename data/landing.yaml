@@ -79,11 +79,11 @@ resume_links:
   - "default"
 
 contact:
-  - label: "Email"
+  - label: "tim.applied@kaizenize.com"
     url: "mailto:tim.applied@kaizenize.com"
-  - label: "LinkedIn"
+  - label: "guntertim"
     url: "https://linkedin.com/in/guntertim"
-  - label: "GitHub"
+  - label: "@kaecyra"
     url: "https://github.com/kaecyra"
 
 github:
