@@ -12,7 +12,6 @@ const LANDING: LandingData = {
     role: "Engineer, Acme",
     location: "Somewhere, QC",
     tagline: "I build things.",
-    status: "Somewhere, doing stuff.",
   },
   projects: [
     {
@@ -320,7 +319,7 @@ describe("LandingSections", () => {
     expect(divider_band).not.toMatch(/\s\/\s/);
   });
 
-  it("splits hero.role into the badge's tag and label spans, and renders the tagline/status/handle", () => {
+  it("splits hero.role into the badge's tag and label spans, and renders the tagline/handle", () => {
     // Scoped to the hero section only (id="hero" up to id="divider") - the
     // point is to prove *this* markup carries each piece, not just that the
     // strings appear somewhere on the page.
@@ -337,7 +336,6 @@ describe("LandingSections", () => {
     expect(hero_html).toMatch(/class="hero-badge-label[^"]*">Acme</);
 
     expect(hero_html).toContain(LANDING.hero.tagline);
-    expect(hero_html).toContain(LANDING.hero.status);
 
     // The topbar handle - angle-bracket-anchored so this can't be satisfied
     // by "testuser" appearing inside an href elsewhere on the page (e.g.
