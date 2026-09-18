@@ -57,7 +57,7 @@ npm install
 ```
 data/
   resume.yaml             # All resume content
-  landing.yaml            # Landing page content (hero, projects, resume links, contact)
+  landing.yaml            # Landing page content (hero, projects, appearances, resume links, contact)
   variants/               # Variant manifests for tailored output
     cto-a.yaml
     cto-b.yaml
@@ -100,7 +100,7 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 
 ### Landing Page
 
-The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account shown next to the commit history. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
+The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), a list of conference/event appearances (`appearances`), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account shown next to the commit history. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
 
 The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [flag-icons](https://github.com/lipis/flag-icons) project, MIT licensed; the upstream license notice is reproduced in a comment at the top of the file.
 

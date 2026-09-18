@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { LandingData } from "$lib/types.js";
 
+  import Appearances from "./Appearances.svelte";
   import Commits from "./Commits.svelte";
   import Contact from "./Contact.svelte";
   import type { ProvisionalContributionsGrid } from "./contributions.js";
@@ -41,6 +42,8 @@
     <Commits github={landing.github} {contributions_grid} />
   {:else if section === "work"}
     <Work projects={landing.projects} />
+  {:else if section === "appearances"}
+    <Appearances appearances={landing.appearances} />
   {:else if section === "contact"}
     <Contact contact={landing.contact} />
   {/if}
