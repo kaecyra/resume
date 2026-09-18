@@ -44,4 +44,20 @@ describe("HUD_PALETTE", () => {
       expect(ratio).toBeGreaterThanOrEqual(4.5);
     },
   );
+
+  // Round-2 review gap: the checks above prove each token is readable
+  // against `background`, but body copy in Hero.svelte and Commits.svelte
+  // is set in `secondary` against whichever surface it actually sits on
+  // (`background` for the hero, `panel` for Commits) - not always
+  // `background`. Check the token against the surface it's rendered on,
+  // not just the page default. `meta` is deliberately excluded: it's
+  // documented in palette.ts as sub-4.5:1 and decorative-label-only, never
+  // body copy.
+  it.each([
+    ["secondary", "background"],
+    ["secondary", "panel"],
+  ] as const)("clears WCAG AA contrast (4.5:1) for %s text on the %s surface", (token, surface) => {
+    const ratio = contrast_ratio(HUD_PALETTE[surface], HUD_PALETTE[token]);
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
 });

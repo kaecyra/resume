@@ -13,7 +13,7 @@
 <div
   id="commits"
   class="commits"
-  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-meta: {HUD_PALETTE.meta};"
+  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta};"
 >
   <div class="commits-head">
     <h2 class="commits-heading">Commits</h2>
@@ -56,7 +56,7 @@
     margin: 0;
     font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
-    font-size: 2.75rem;
+    font-size: clamp(1.75rem, 8vw, 2.75rem);
     line-height: 0.9;
     letter-spacing: -0.03em;
     text-transform: uppercase;
@@ -97,7 +97,7 @@
     font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.8125rem;
     letter-spacing: 0.08em;
-    color: var(--hud-meta);
+    color: var(--hud-secondary);
   }
 
   @media (max-width: 480px) {

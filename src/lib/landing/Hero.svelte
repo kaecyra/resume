@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { LandingHero } from "$lib/types.js";
+  import type { LandingGithub, LandingHero } from "$lib/types.js";
 
   import { split_role_badge } from "./hero-format.js";
   import { HUD_PALETTE } from "./palette.js";
@@ -7,11 +7,13 @@
 
   let {
     hero,
+    github,
     resume_link,
     profile_name,
     resume_title,
   }: {
     hero: LandingHero;
+    github: LandingGithub;
     resume_link: string;
     profile_name: string;
     resume_title: string;
@@ -38,7 +40,9 @@
   <div class="hero-scrim" aria-hidden="true"></div>
 
   <div class="hero-topbar">
-    <span>KAECYRA</span>
+    <span>{github.user}</span>
+    <!-- Fixed presentational chrome (Montreal), not content - not worth a
+         second one-off schema field on `hero`. -->
     <span>45.50&deg;N 73.57&deg;W</span>
   </div>
 
@@ -107,11 +111,14 @@
 
   .hero-topbar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    row-gap: 0.5rem;
     font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
+    text-transform: uppercase;
     color: var(--hud-meta);
   }
 
@@ -128,7 +135,8 @@
     letter-spacing: -0.04em;
     text-transform: uppercase;
     color: var(--hud-text);
-    overflow-wrap: normal;
+    /* Natural word wrap - deliberately not the prototype's hardcoded
+       Tim<br>Gunter break. */
   }
 
   .hero-badge {
@@ -145,6 +153,7 @@
     font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.6875rem;
     letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
   .hero-badge-label {
@@ -152,6 +161,7 @@
     font-weight: 400;
     font-size: 1.25rem;
     letter-spacing: -0.01em;
+    text-transform: uppercase;
   }
 
   .hero-foot {
@@ -169,7 +179,7 @@
     margin: 0 0 1.75rem;
     font-size: 0.9375rem;
     line-height: 1.5;
-    color: var(--hud-meta);
+    color: var(--hud-secondary);
   }
 
   @media (max-width: 640px) {

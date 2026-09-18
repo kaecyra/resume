@@ -78,6 +78,13 @@ describe("LandingSections", () => {
     expect(divider_index).toBeLessThan(commits_index);
     expect(commits_index).toBeLessThan(work_index);
     expect(work_index).toBeLessThan(contact_index);
+
+    // Divider filters out mailto: links (Contact renders them instead).
+    // Asserted directly here, not just inferred from ordering - dropping
+    // that filter wouldn't move any of the indexes above, so it would pass
+    // silently without this check.
+    const divider_band = html.slice(divider_index, commits_index);
+    expect(divider_band).not.toContain("mailto:");
   });
 
   it("reverses the rendered order when landing.sections is reversed", () => {

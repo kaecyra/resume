@@ -5,12 +5,15 @@
 
   let { projects }: { projects: LandingProject[] } = $props();
 
-  function project_link(project: LandingProject): { label: string; url: string } | null {
+  function project_link(project: LandingProject): string | null {
     if (project.repo_url) {
-      return { label: "Repo", url: project.repo_url };
+      return project.repo_url;
     }
     if (project.links?.length) {
-      return project.links[0];
+      // `links` is a validated array and can hold more than one entry;
+      // rendering only the first is deliberate (one entry exists today),
+      // not a bug. Revisit if a project ever ships with multiple links.
+      return project.links[0].url;
     }
     return null;
   }
@@ -41,7 +44,7 @@
         <div class="work-card-header">
           <h3 class="work-name">
             {#if link}
-              <a href={link.url} target="_blank" rel="noopener noreferrer">{project.name}</a>
+              <a href={link} target="_blank" rel="noopener noreferrer">{project.name}</a>
             {:else}
               {project.name}
             {/if}

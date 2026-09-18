@@ -34,7 +34,7 @@
 
 {#each landing.sections as section (section)}
   {#if section === "hero"}
-    <Hero hero={landing.hero} {resume_link} {profile_name} {resume_title} />
+    <Hero hero={landing.hero} github={landing.github} {resume_link} {profile_name} {resume_title} />
   {:else if section === "divider"}
     <Divider hero={landing.hero} contact={landing.contact} />
   {:else if section === "commits"}
