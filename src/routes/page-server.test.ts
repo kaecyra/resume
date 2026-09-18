@@ -16,6 +16,7 @@ vi.mock("$lib/landing.js", async (import_original) => {
   return { ...actual, load_landing_data: vi.fn(actual.load_landing_data) };
 });
 
+import { load_variant } from "$lib/data.js";
 import { load_landing_data } from "$lib/landing.js";
 
 import { load } from "./+page.server.js";
@@ -73,12 +74,30 @@ describe("landing data wiring", () => {
   it("sources the PDF filename pieces from resume.yaml and the linked variant, not from landing.hero", async () => {
     const result = await run_load();
 
-    // The default variant's title is "Chief Technology Officer" (see
-    // data/variants/default.yaml) - distinct from landing.hero.role, which
-    // proves this isn't accidentally reading the hero block instead.
-    expect(result.resume_title).toBe("Chief Technology Officer");
+    // Compare against the linked variant's own title rather than a literal,
+    // so retitling data/variants/default.yaml doesn't break this test; the
+    // `not.toBe(hero.role)` below is what actually catches a reversion to
+    // sourcing this from the hero block instead of the variant.
+    expect(result.resume_title).toBe(load_variant(result.landing.resume_links[0]).title);
     expect(result.resume_title).not.toBe(result.landing.hero.role);
     expect(result.profile_name).toBe(result.landing.hero.name);
+  });
+
+  it("derives the OG image from the linked resume variant, not a hardcoded default", async () => {
+    mock_env.PUBLIC_BASE_URL = "https://example.com";
+    const linked_to_cto_a: LandingData = {
+      hero: { name: "Test Person", role: "Engineer", tagline: "I build things.", status: "Somewhere." },
+      projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      resume_links: ["cto-a"],
+      contact: [{ label: "Email", url: "mailto:test@example.com" }],
+      github: { user: "testuser" },
+      sections: ["hero", "projects", "resume", "contact"],
+    };
+    vi.mocked(load_landing_data).mockReturnValueOnce(linked_to_cto_a);
+
+    const result = await run_load();
+
+    expect(result.og.image).toBe("https://example.com/og/cto-a.png");
   });
 
   it("throws an error listing every validation message for a malformed document", async () => {

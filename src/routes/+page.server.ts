@@ -31,17 +31,20 @@ export const load: PageServerLoad = () => {
   // null; the landing page is not a variant route, so we supply its own
   // canonical url (the bare site root) here instead. Title and description
   // are overridden too: build_og_metadata's defaults would be byte-identical
-  // to the /default variant page (same name, same title, same tagline), and
-  // two indexed URLs with identical metadata is a duplicate-content signal.
-  // The landing page leads with the person and what they build rather than
-  // the CTO role pitch, so its title and description are sourced from
-  // data/landing.yaml's hero (name, tagline) instead of the /default
-  // variant's title and summary.
+  // to the linked variant's own page (same name, same title, same tagline),
+  // and two indexed URLs with identical metadata is a duplicate-content
+  // signal. The landing page leads with the person and what they build
+  // rather than the role pitch, so its title and description are sourced
+  // from data/landing.yaml's hero (name, tagline) instead of the variant's
+  // title and summary. The OG image itself does reuse the linked variant's
+  // generated card (scripts/generate-og-images.ts renders one PNG per
+  // variant via list_variants()), since the landing page has no OG image of
+  // its own.
   const og = {
     ...build_og_metadata(
       landing.hero.name, landing.hero.role,
       landing.hero.tagline,
-      base_url, "default",
+      base_url, landing.resume_links[0],
     ),
     title: landing.hero.name,
     url: canonical_url,

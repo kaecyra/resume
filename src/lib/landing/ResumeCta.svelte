@@ -1,6 +1,6 @@
 <script lang="ts">
   import HudFrame from "./HudFrame.svelte";
-  import { handle_resume_download, resume_pdf_filename, resume_pdf_href } from "./resume-download.js";
+  import { handle_resume_download, resume_pdf_filename } from "./resume-download.js";
 
   // `validate_landing_data` enforces exactly one entry in `resume_links`, so
   // this takes that single variant directly. Supporting more than one would
@@ -19,7 +19,7 @@
       <a class="hud-cta-link" href="/{resume_link}">Resume</a>
       <a
         class="hud-cta-link hud-cta-link-icon"
-        href={resume_pdf_href(resume_link)}
+        href="/{resume_link}.pdf"
         download={resume_pdf_filename(profile_name, resume_title)}
         aria-label="Download resume PDF"
         onclick={() => handle_resume_download(resume_link)}

@@ -6,13 +6,7 @@ vi.mock("$lib/analytics.js", () => ({
 
 import { track_pdf_download } from "$lib/analytics.js";
 
-import { handle_resume_download, resume_pdf_filename, resume_pdf_href } from "./resume-download.js";
-
-describe("resume_pdf_href", () => {
-  it("builds the PDF path for the given resume variant", () => {
-    expect(resume_pdf_href("default")).toBe("/default.pdf");
-  });
-});
+import { handle_resume_download, resume_pdf_filename } from "./resume-download.js";
 
 describe("resume_pdf_filename", () => {
   // Same template as src/routes/[variant=variant]/+page.svelte's download

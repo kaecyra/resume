@@ -1,9 +1,5 @@
 import { track_pdf_download } from "$lib/analytics.js";
 
-export function resume_pdf_href(resume_link: string): string {
-  return `/${resume_link}.pdf`;
-}
-
 // Matches the filename the variant route builds at
 // src/routes/[variant=variant]/+page.svelte: `${profile.name} - Resume -
 // ${resume.title}.pdf`. Both routes serve the same PDF for a given variant,
