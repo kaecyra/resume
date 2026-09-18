@@ -1,5 +1,6 @@
 <script lang="ts">
   import LandingSections from "$lib/landing/LandingSections.svelte";
+  import { HUD_PALETTE } from "$lib/landing/palette.js";
 
   import type { PageData } from "./$types";
 
@@ -34,7 +35,7 @@
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
 </svelte:head>
 
-<main id="main-content" class="landing">
+<main id="main-content" class="landing" style="--hud-bg: {HUD_PALETTE.background};">
   <LandingSections
     landing={data.landing}
     profile_name={data.profile_name}
@@ -49,6 +50,11 @@
    * (HUD_PALETTE in $lib/landing/palette.ts, #0a0a0b ground), not the
    * retro resume theme's navy - every section is full-bleed, so the body
    * background only shows during initial paint/scroll overscroll.
+   *
+   * This one stays a literal: :global(body) targets the document body,
+   * which this component doesn't render an element for, so there's nowhere
+   * to attach a style attribute carrying the HUD_PALETTE.background value
+   * as a CSS var. Keep it in sync with HUD_PALETTE.background by hand.
    */
   :global(body) {
     background-color: #0a0a0b;
@@ -61,6 +67,6 @@
     width: 100%;
     min-width: 0;
     overflow-x: clip;
-    background-color: #0a0a0b;
+    background-color: var(--hud-bg);
   }
 </style>

@@ -64,7 +64,12 @@ describe("LandingSections", () => {
 
     const hero_index = html.indexOf("Test Person");
     const divider_index = html.indexOf("Somewhere, QC");
-    const commits_index = html.indexOf("testuser");
+    // Anchored on the offline-state copy Commits.svelte renders (this
+    // fixture's contributions_grid is null), not "testuser" - that string
+    // also appears in Divider's GitHub link (from the contact fixture),
+    // which renders earlier in the document and would mask a Commits
+    // section that never rendered at all.
+    const commits_index = html.indexOf("Commit history is offline for this build.");
     const work_index = html.indexOf("Project A");
     const contact_index = html.indexOf("mailto:test@example.com");
 

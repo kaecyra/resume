@@ -14,7 +14,7 @@
 
 <div
   class="cta"
-  style="--hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge};"
 >
   <a class="cta-link" href="/{resume_link}">Resume</a>
   <a
@@ -59,7 +59,7 @@
     min-height: 52px;
     padding: 0 1.875rem;
     background: var(--hud-text);
-    color: #0a0a0b;
+    color: var(--hud-bg);
     font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
     font-size: 1.0625rem;
@@ -71,8 +71,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
     width: 52px;
     height: 52px;
     border: 1px solid var(--hud-edge);

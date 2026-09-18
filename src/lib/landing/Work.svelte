@@ -19,7 +19,7 @@
 <div
   id="work"
   class="work"
-  style="--hud-bg: {HUD_PALETTE.background}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-accent: {HUD_PALETTE.accent};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-accent: {HUD_PALETTE.accent}; --hud-chip-bg: {HUD_PALETTE.chip_bg}; --hud-chip-text: {HUD_PALETTE.chip_text};"
 >
   <h2 class="work-heading">Work</h2>
 
@@ -29,6 +29,13 @@
            project keeps the accent colour meaningful (it marks the one
            thing being pointed at) instead of decorating every card equally. -->
       {@const edge = index === 0 ? HUD_PALETTE.accent : HUD_PALETTE.edge}
+      <!-- `edge` is a border/divider colour (see palette.ts), not text - on
+           the #151517 card background it fails contrast for every
+           non-featured card. The status text uses `edge` on the featured
+           card (where edge is accent, matching the border) and `secondary`
+           everywhere else, so the accent stays meaningful while every
+           status stays readable. -->
+      {@const status_color = index === 0 ? edge : HUD_PALETTE.secondary}
       {@const link = project_link(project)}
       <article class="work-card" class:work-card-featured={index === 0} style="border-left-color: {edge};">
         <div class="work-card-header">
@@ -39,7 +46,7 @@
               {project.name}
             {/if}
           </h3>
-          <span class="work-status" style="color: {edge};">{project.status}</span>
+          <span class="work-status" style="color: {status_color};">{project.status}</span>
         </div>
 
         <p class="work-blurb">{project.blurb}</p>
@@ -151,8 +158,8 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.3125rem 0.5625rem;
-    background: #1d1d21;
-    color: #8a8a92;
+    background: var(--hud-chip-bg);
+    color: var(--hud-chip-text);
   }
 
   @media (max-width: 700px) {

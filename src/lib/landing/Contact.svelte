@@ -10,14 +10,26 @@
   <h2 class="contact-heading">Let's talk</h2>
   <div class="contact-links">
     {#each contact as item (item.url)}
-      <a href={item.url} target="_blank" rel="noopener noreferrer" class="contact-link">{item.label}</a>
+      <!-- Same mailto: check Divider.svelte uses - target="_blank" on a
+           mailto: link opens a blank tab in some browsers before handing
+           off to the mail client. -->
+      {@const is_mailto = item.url.startsWith("mailto:")}
+      <a
+        href={item.url}
+        target={is_mailto ? undefined : "_blank"}
+        rel={is_mailto ? undefined : "noopener noreferrer"}
+        class="contact-link">{item.label}</a
+      >
     {/each}
   </div>
 </div>
 
 <style>
   .contact {
-    margin-top: 4.5rem;
+    /* No outer margin here - every other landing section (Hero, Divider,
+       Commits, Work) already owns its own bottom padding, so the gap above
+       Contact comes from whichever section precedes it in landing.sections
+       instead of assuming Contact always follows Work. */
     padding: 3.5rem 2.5rem;
     display: flex;
     flex-wrap: wrap;
