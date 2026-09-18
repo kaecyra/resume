@@ -374,4 +374,30 @@ describe("validate_landing_data", () => {
     expect(messages).toContainEqual(expect.stringContaining("resume_links must contain"));
     expect(messages).toContainEqual(expect.stringContaining("github.user is required"));
   });
+
+  // These two go through js-yaml's real parser rather than a TypeScript cast,
+  // so the wrong-typed collection is the actual shape `yaml.load` produces
+  // from a YAML mapping written where a sequence belongs - not a shape the
+  // type system would let anyone construct by hand.
+  describe("using the real YAML parser", () => {
+    it("does not throw and reports one error for an empty document", () => {
+      const parsed = yaml.load("") as unknown as LandingData;
+      expect(parsed).toBeUndefined();
+      expect(() => validate_landing_data(parsed, VALID_VARIANTS)).not.toThrow();
+      const errors = validate_landing_data(parsed, VALID_VARIANTS);
+      expect(errors).toEqual([
+        expect.objectContaining({ message: expect.stringContaining("must contain a document") }),
+      ]);
+    });
+
+    it("does not throw when projects is written as a YAML mapping instead of a sequence", () => {
+      const source = yaml.dump({ ...MOCK_LANDING_DATA, projects: { odette: { name: "oops" } } });
+      const parsed = yaml.load(source) as unknown as LandingData;
+      expect(() => validate_landing_data(parsed, VALID_VARIANTS)).not.toThrow();
+      const errors = validate_landing_data(parsed, VALID_VARIANTS);
+      expect(errors).toContainEqual(
+        expect.objectContaining({ message: "projects must be an array" }),
+      );
+    });
+  });
 });

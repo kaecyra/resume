@@ -1,3 +1,5 @@
+import yaml from "js-yaml";
+
 import type { SubVariantManifest, VariantManifest } from "./types.js";
 import { validate_sub_variant, build_master_ids, type ValidationError } from "./validate.js";
 
@@ -115,6 +117,88 @@ describe("validate_sub_variant", () => {
     expect(messages).toContainEqual(expect.stringContaining("missing required job metadata"));
     expect(messages).toContainEqual(expect.stringContaining("not found in master data"));
     expect(messages).toContainEqual(expect.stringContaining("cover_letter.body must be non-empty"));
+  });
+
+  // A sub-variant YAML file with `skills:` written as a mapping instead of a
+  // sequence used to throw here: `sub[field] as string[] | undefined` casts
+  // straight past the wrong runtime shape, and the for-of loop over it
+  // throws instead of producing a validation error - the same defect
+  // pattern #171 exists to close off in landing.ts.
+  it("does not throw and reports an error when skills is a map instead of an array", () => {
+    const sub = make_sub({ skills: { "skill-a": true } as unknown as never });
+    expect(() =>
+      validate_sub_variant("cto", "abcd1234", sub, VALID_VARIANTS, MASTER_IDS, PARENT_VARIANT),
+    ).not.toThrow();
+    const errors = validate_sub_variant(
+      "cto",
+      "abcd1234",
+      sub,
+      VALID_VARIANTS,
+      MASTER_IDS,
+      PARENT_VARIANT,
+    );
+    expect(errors).toContainEqual(expect.objectContaining({ message: "skills must be an array" }));
+  });
+
+  it("does not throw and reports an error when employment_overrides is a map instead of an array", () => {
+    const sub = make_sub({
+      employment_overrides: { "emp-a": {} } as unknown as never,
+    });
+    expect(() =>
+      validate_sub_variant("cto", "abcd1234", sub, VALID_VARIANTS, MASTER_IDS, PARENT_VARIANT),
+    ).not.toThrow();
+    const errors = validate_sub_variant(
+      "cto",
+      "abcd1234",
+      sub,
+      VALID_VARIANTS,
+      MASTER_IDS,
+      PARENT_VARIANT,
+    );
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "employment_overrides must be an array" }),
+    );
+  });
+
+  it("does not throw when cover_letter.body is a wrong-typed value instead of a string", () => {
+    const sub = make_sub({ cover_letter: { body: 12345 as unknown as string } });
+    expect(() =>
+      validate_sub_variant("cto", "abcd1234", sub, VALID_VARIANTS, MASTER_IDS, PARENT_VARIANT),
+    ).not.toThrow();
+    const errors = validate_sub_variant(
+      "cto",
+      "abcd1234",
+      sub,
+      VALID_VARIANTS,
+      MASTER_IDS,
+      PARENT_VARIANT,
+    );
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "cover_letter.body must be non-empty" }),
+    );
+  });
+
+  // Same "real parser" rigor as landing.test.ts: the wrong-typed field comes
+  // from js-yaml's own output for a mapping written where a sequence
+  // belongs, not from a TypeScript cast a real sub-variant file could never
+  // produce.
+  it("does not throw when a real YAML document has domains written as a mapping", () => {
+    const source = yaml.dump({ ...make_sub(), domains: { "domain-a": true } });
+    const sub = yaml.load(source) as SubVariantManifest;
+    expect(() =>
+      validate_sub_variant("cto", "abcd1234", sub, VALID_VARIANTS, MASTER_IDS, PARENT_VARIANT),
+    ).not.toThrow();
+    const errors = validate_sub_variant(
+      "cto",
+      "abcd1234",
+      sub,
+      VALID_VARIANTS,
+      MASTER_IDS,
+      PARENT_VARIANT,
+    );
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "domains must be an array" }),
+    );
   });
 });
 
