@@ -142,3 +142,38 @@ export interface ResolvedResume {
   languages: Language[];
   courses: Course[];
 }
+
+export interface LandingHero {
+  name: string;
+  role: string;
+  tagline: string;
+  status: string;
+}
+
+export interface LandingLink {
+  label: string;
+  url: string;
+}
+
+export interface LandingProject {
+  id: string;
+  name: string;
+  blurb: string;
+  repo_url?: string;
+  stack: string[];
+  links?: LandingLink[];
+  status: string;
+}
+
+export interface LandingGithub {
+  user: string;
+}
+
+export interface LandingData {
+  hero: LandingHero;
+  projects: LandingProject[];
+  resume_links: string[];
+  contact: LandingLink[];
+  github: LandingGithub;
+  sections: string[];
+}
