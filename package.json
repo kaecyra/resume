@@ -16,6 +16,7 @@
     "generate-pdf": "tsx scripts/generate-pdf.ts",
     "linkedin": "tsx scripts/linkedin-export.ts",
     "generate-icons": "tsx scripts/generate-apple-touch-icon.ts",
+    "generate-geo": "tsx scripts/build-geo.ts",
     "generate-slug": "tsx scripts/generate-slug.ts",
     "validate-sub-variants": "tsx scripts/validate-sub-variants.ts"
   },
@@ -25,9 +26,12 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/svelte": "^5.3.1",
+    "@types/geojson": "^7946.0.16",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.2",
     "@types/qrcode": "^1.5.6",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
     "@vitest/coverage-v8": "^4.0.18",
     "happy-dom": "^20.14.5",
     "pdf-lib": "^1.17.1",
@@ -35,10 +39,12 @@
     "svelte": "^5.50.1",
     "svelte-check": "^4.3.6",
     "tailwindcss": "^4.1.18",
+    "topojson-client": "^3.1.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "world-atlas": "^2.0.2"
   },
   "dependencies": {
     "js-yaml": "^4.1.1",

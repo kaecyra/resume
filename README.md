@@ -45,6 +45,7 @@ npm install
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
 | `npm run generate-og` | Generate Open Graph images for all variants |
+| `npm run generate-geo` | Regenerate the landing hero globe's line geometry from world-atlas |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
 | `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
 | `npm run generate-slug` | Generate a random 8-char hex slug for sub-variants |
@@ -100,6 +101,8 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 ### Landing Page
 
 The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account shown next to the commit history. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
+
+The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [flag-icons](https://github.com/lipis/flag-icons) project, MIT licensed; the upstream license notice is reproduced in a comment at the top of the file.
 
 ### Sub-Variants
 
