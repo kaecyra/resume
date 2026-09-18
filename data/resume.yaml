@@ -76,7 +76,7 @@ field_deployments:
     venue: "CES 2026"
     date: "2026-01"
     description: |
-      Conceived, architected, assembled and executed a live, on-prem technical demo at CES 2026, showcasing a fully operational computer vision pipeline operating on feeds from an NFL game. Successfully secured capex for DGX Spark/Lenovo Neo infrastructure and managed a fast-moving delivery team to prove the economic and operational viability of AI-native media workflows to global C-suite stakeholders.
+      Conceived, architected, assembled and executed a live technical demo at CES 2026, showcasing a fully operational computer vision pipeline operating on feeds from an NFL game. The system was designed to run entirely on-prem, with no cloud requirement and no cloud fallback, down to a local Kubernetes image registry so the cluster could boot without connectivity. Successfully secured capex for DGX Spark/Lenovo Neo infrastructure and managed a fast-moving delivery team to prove the economic and operational viability of AI-native media workflows to global C-suite stakeholders.
 
   - id: vanilla-oss
     category: "Open Source"
