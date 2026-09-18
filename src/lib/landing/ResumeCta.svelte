@@ -71,6 +71,17 @@
     text-decoration: none;
   }
 
+  .cta-link:hover {
+    /* .cta-icon:hover (below) already responds; this control sat inert
+       next to it until now (#182). Unlike the text-only links elsewhere on
+       the page, .cta-link is a filled control (--hud-text background,
+       --hud-bg text), so a foreground colour swap would fight the fill -
+       dimming the background to --hud-secondary instead keeps --hud-bg
+       text readable on top and echoes .cta-icon:hover's own move to
+       --hud-secondary just below. */
+    background: var(--hud-secondary);
+  }
+
   .cta-icon {
     display: inline-flex;
     align-items: center;

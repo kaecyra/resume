@@ -31,11 +31,24 @@
 
   <meta name="theme-color" content={HUD_PALETTE.background} />
 
+  <!-- Sets --hud-bg once at :root so both html/body (for the :global(body)
+       rule below) and .landing (which reads the same inherited var) track
+       HUD_PALETTE.background from one place, instead of a literal hex
+       copied by hand into a second spot - see the :global(body) comment
+       below for why body can't just take a style attribute directly.
+       {@html}, not a literal <style> tag: Svelte's compiler special-cases
+       a literal <style> element (even inside <svelte:head>) as its
+       component-scoped stylesheet and doesn't evaluate expressions inside
+       it, so `{...}` here would render as literal, uninterpolated text
+       instead of CSS. Same reason the jsonld <script> tags below go
+       through {@html} rather than a literal <script> tag. -->
+  {@html `<style>:root { --hud-bg: ${HUD_PALETTE.background}; }</style>`}
+
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
   {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
 </svelte:head>
 
-<main id="main-content" class="landing" style="--hud-bg: {HUD_PALETTE.background};">
+<main id="main-content" class="landing">
   <LandingSections
     landing={data.landing}
     profile_name={data.profile_name}
@@ -51,13 +64,18 @@
    * retro resume theme's navy - every section is full-bleed, so the body
    * background only shows during initial paint/scroll overscroll.
    *
-   * This one stays a literal: :global(body) targets the document body,
-   * which this component doesn't render an element for, so there's nowhere
-   * to attach a style attribute carrying the HUD_PALETTE.background value
-   * as a CSS var. Keep it in sync with HUD_PALETTE.background by hand.
+   * :global(body) targets the document body, which this component doesn't
+   * render an element for, so there's nowhere here to attach a style
+   * attribute carrying HUD_PALETTE.background as a CSS var. Instead, the
+   * <style> tag rendered through <svelte:head> above sets --hud-bg once on
+   * :root; html/body inherit it like any other custom property, so this
+   * reads the same value .landing uses below rather than a second literal
+   * kept in sync by hand - the theme-color meta tag above shipped exactly
+   * that kind of stale hardcoded hex once already (the pre-redesign
+   * #1a2744; see page.dom.test.ts), which is what this is avoiding.
    */
   :global(body) {
-    background-color: #0a0a0b;
+    background-color: var(--hud-bg);
   }
 
   .landing {

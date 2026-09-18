@@ -360,6 +360,22 @@ describe("LandingSections", () => {
     expect(html.match(/<h1\b/g)?.length).toBe(1);
   });
 
+  it("renders the divider and contact link rows as list markup, not bare divs", () => {
+    // Screen readers announce a `<ul>`'s item count and each item's position
+    // - a `<div>` row of links gives none of that (#182). Scoped per-section
+    // so a passing divider-links match can't paper over a still-missing
+    // contact-links one, or vice versa.
+    const html = html_for(LANDING);
+    const divider_html = html.slice(html.indexOf('id="divider"'), html.indexOf('id="commits"'));
+    const contact_html = html.slice(html.indexOf('id="contact"'));
+
+    expect(divider_html).toMatch(/<ul class="divider-links[^"]*">/);
+    expect(divider_html.match(/<li>/g)?.length).toBe(2);
+
+    expect(contact_html).toMatch(/<ul class="contact-links[^"]*">/);
+    expect(contact_html.match(/<li>/g)?.length).toBe(3);
+  });
+
   it("renders no slash-separated slogan in the divider band", () => {
     const html = html_for(LANDING);
     const divider_index = html.indexOf("Somewhere, QC");
