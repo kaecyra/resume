@@ -163,7 +163,6 @@
 
   <div class="hero-foot">
     <p class="hero-tagline">{hero.tagline}</p>
-    <p class="hero-status">{hero.status}</p>
     <ResumeCta {resume_link} {profile_name} {resume_title} />
   </div>
 </section>
@@ -195,15 +194,23 @@
    * `.hero-globe-marker-layer` shares this exact box so the marker (a
    * sibling placed after `.hero-scrim` in the DOM - see the markup above)
    * lands in the same place without needing its own coordinate math.
+   *
+   * Deliberately larger than the hero and pinned near the top rather than
+   * vertically centred (#185): `top: -50px` crops a small strip off the
+   * top, and the 960px box left to run past the hero's bottom edge crops
+   * roughly 20% off the bottom (960 - 50 top-crop - ~720 visible height
+   * for a hero at its 720px min-height). `.hero`'s `overflow: hidden`
+   * (above) is what actually does the cropping - this box is intentionally
+   * bigger than the space it renders into. `right: 60px` pulls it in from
+   * the edge instead of bleeding past it.
    */
   .hero-visual,
   .hero-globe-marker-layer {
     position: absolute;
-    right: -40px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 760px;
-    height: 760px;
+    right: 60px;
+    top: -50px;
+    width: 960px;
+    height: 960px;
     max-width: none;
   }
 
@@ -345,15 +352,8 @@
   }
 
   .hero-tagline {
-    margin: 0 0 0.875rem;
-    font-size: 1.1875rem;
-    line-height: 1.5;
-    color: var(--hud-secondary);
-  }
-
-  .hero-status {
     margin: 0 0 1.75rem;
-    font-size: 0.9375rem;
+    font-size: 1.1875rem;
     line-height: 1.5;
     color: var(--hud-secondary);
   }

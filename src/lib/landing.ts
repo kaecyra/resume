@@ -41,10 +41,9 @@ export function validate_landing_data(
     !landing.hero?.name ||
     !landing.hero?.role ||
     !landing.hero?.location ||
-    !landing.hero?.tagline ||
-    !landing.hero?.status
+    !landing.hero?.tagline
   ) {
-    errors.push({ path, message: "hero is missing required fields (name, role, location, tagline, status)" });
+    errors.push({ path, message: "hero is missing required fields (name, role, location, tagline)" });
   }
 
   // `Array.isArray` guards below resolve to a real array or `null`, never

@@ -95,7 +95,6 @@ describe("landing data wiring", () => {
         role: "Independent",
         location: "Nowhere",
         tagline: "A landing tagline unlike any variant summary or tagline.",
-        status: "Testing.",
       },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
       appearances: [],
@@ -130,7 +129,6 @@ describe("landing data wiring", () => {
         role: "Independent",
         location: "Nowhere",
         tagline: "A landing tagline unlike any variant summary or tagline.",
-        status: "Testing.",
       },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
       appearances: [],
@@ -158,7 +156,7 @@ describe("landing data wiring", () => {
   it("derives the OG image from the linked resume variant, not a hardcoded default", async () => {
     mock_env.PUBLIC_BASE_URL = "https://example.com";
     const linked_to_cto_a: LandingData = {
-      hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "I build things.", status: "Somewhere." },
+      hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "I build things." },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
       appearances: [],
       resume_links: ["cto-a"],
@@ -175,7 +173,7 @@ describe("landing data wiring", () => {
 
   it("throws an error listing every validation message for a malformed document", async () => {
     const bad_landing: LandingData = {
-      hero: { name: "", role: "", location: "", tagline: "", status: "" },
+      hero: { name: "", role: "", location: "", tagline: "" },
       projects: [],
       appearances: [],
       resume_links: [],
@@ -192,7 +190,7 @@ describe("landing data wiring", () => {
 
     expect(caught).toBeInstanceOf(Error);
     const message = (caught as Error).message;
-    expect(message).toContain("hero is missing required fields (name, role, location, tagline, status)");
+    expect(message).toContain("hero is missing required fields (name, role, location, tagline)");
     expect(message).toContain("resume_links must contain exactly one entry");
     expect(message).toContain("github.user is required");
     expect(message).toContain('section "made-up-section" is not a known section');

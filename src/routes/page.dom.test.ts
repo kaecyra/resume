@@ -21,7 +21,6 @@ const LANDING: LandingData = {
     role: "Engineer",
     location: "Somewhere",
     tagline: "I build things.",
-    status: "Somewhere, doing stuff.",
   },
   projects: [],
   appearances: [],

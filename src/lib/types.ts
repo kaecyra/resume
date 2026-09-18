@@ -148,7 +148,6 @@ export interface LandingHero {
   role: string;
   location: string;
   tagline: string;
-  status: string;
 }
 
 export interface LandingLink {
