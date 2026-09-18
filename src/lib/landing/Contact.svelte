@@ -54,7 +54,10 @@
     margin: 0;
     font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
-    font-size: clamp(2rem, 6vw, 3.25rem);
+    /* Raised to .work-heading's ceiling: the close is the second of the two
+       headings that lead (#199's loud-quiet-loud rhythm), so it matches
+       Work rather than sitting between Work and the quiet sections. */
+    font-size: clamp(2.5rem, 8vw, 4rem);
     line-height: 0.9;
     letter-spacing: -0.03em;
     text-transform: uppercase;

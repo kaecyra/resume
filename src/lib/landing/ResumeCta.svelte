@@ -57,6 +57,8 @@
     /* No underline on landing-page links (owner request). An anchor with no
        text-decoration declaration underlines by default, so this needs an
        explicit `none`. */
+    position: relative;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     min-height: 52px;
@@ -80,6 +82,37 @@
        text readable on top and echoes .cta-icon:hover's own move to
        --hud-secondary just below. */
     background: var(--hud-secondary);
+  }
+
+  /*
+   * Shine sweep (#196): a skewed light band that crosses the button on
+   * hover. rgba(255, 255, 255, ...) rather than a token - the fill it
+   * crosses is already --hud-text (near-white), so this is a highlight
+   * relative to that fill, not a themed colour with a token of its own.
+   * The sweep is a hover-triggered transition, not a looping animation, so
+   * reduced motion drops it outright below rather than just disabling a
+   * loop.
+   */
+  .cta-link::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 42%;
+    transform: skewX(-18deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transition: left 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  .cta-link:hover::after {
+    left: 120%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-link::after {
+      display: none;
+    }
   }
 
   .cta-icon {

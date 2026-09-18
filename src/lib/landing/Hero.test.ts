@@ -77,4 +77,43 @@ describe("Hero SSR/no-JS output", () => {
     const html = html_for();
     expect(html).toContain("45.47°N 73.75°W");
   });
+
+  // #196's marker second line reuses montreal_coords (the same value the
+  // topbar test above pins) rather than re-deriving it - if that reuse ever
+  // regressed into a fresh, drifted computation, this would catch it too.
+  it("renders the marker's second line with the YUL code and the shared montreal_coords", () => {
+    const html = html_for();
+    expect(html).toMatch(/class="hero-globe-marker-coords[^"]*">YUL · 45\.47°N 73\.75°W</);
+  });
+
+  // #196: the staged-arrival word split only ever happens client-side (see
+  // Hero.dom.test.ts) - SSR keeps the name as one plain, contiguous text
+  // node. This is load-bearing for LandingSections.test.ts, which asserts
+  // the rendered page contains the literal name string as a substring; a
+  // per-word split would break that string up with markup and fail it
+  // silently in a file this lane doesn't own.
+  it("renders the hero name as plain contiguous text, not pre-split into staged-reveal spans", () => {
+    const html = html_for();
+    // Svelte's SSR output wraps {#if} branches in HTML comment markers
+    // (`<!--[!-->...<!--]-->`), so the match tolerates those rather than
+    // requiring the name immediately after the opening tag.
+    expect(html).toMatch(/<h1 class="hero-name[^"]*">(?:<!--.*?-->)?Test Person(?:<!--.*?-->)?<\/h1>/);
+    expect(html).not.toContain("hero-name-line");
+  });
+
+  // #196: decorative additions that should render regardless of JS/motion -
+  // exactly one of each, and aria-hidden since neither carries information
+  // a reader depends on.
+  it("renders exactly one hero-glow layer, aria-hidden", () => {
+    const html = html_for();
+    const matches = html.match(/<div class="hero-glow\b[^"]*" aria-hidden="true">/g);
+    expect(matches?.length).toBe(1);
+  });
+
+  it("renders the scroll cue with its sweep bar, aria-hidden", () => {
+    const html = html_for();
+    expect(html).toMatch(/<div class="hero-scrollcue\b[^"]*" aria-hidden="true">/);
+    expect(html).toContain('class="hero-scrollcue-bar');
+    expect(html).toContain("Scroll");
+  });
 });

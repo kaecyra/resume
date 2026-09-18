@@ -137,16 +137,24 @@ describe("LandingSections", () => {
     expect(html).not.toMatch(/<a[^>]*>Project A</);
   });
 
-  it("marks only the first project as the featured card", () => {
-    // Work.svelte's index === 0 check (~line 31) decides both the featured
-    // border colour and the status text colour; with two fixture projects
-    // both sides of that branch render in one pass, so a flipped condition
-    // or a dropped class:work-card-featured shows up here.
+  it("marks only the first project as the featured card, and the rest as recessed", () => {
+    // Work.svelte's index === 0 check decides the featured/secondary split,
+    // the featured amber rail and the status text colour; with two fixture
+    // projects both sides of that branch render in one pass, so a flipped
+    // condition or a dropped class:work-card-featured shows up here.
+    //
+    // Secondary cards deliberately have no left rail at all since #197 put
+    // them on the elevation ladder - they are recessed into the ground with
+    // a hairline top edge instead, so the grey `border-left-color` this
+    // used to assert is gone by design rather than by regression. What
+    // replaces it as the check is that exactly one card carries the amber
+    // rail and the other is marked recessed.
     const html = html_for(LANDING);
 
     expect(html.match(/work-card-featured/g)?.length).toBe(1);
+    expect(html.match(/work-card-secondary/g)?.length).toBe(1);
     expect(html).toContain(`border-left-color: ${HUD_PALETTE.accent};`);
-    expect(html).toContain(`border-left-color: ${HUD_PALETTE.edge};`);
+    expect(html).not.toContain(`border-left-color: ${HUD_PALETTE.edge};`);
     expect(html).toContain(`color: ${HUD_PALETTE.secondary};`);
   });
 

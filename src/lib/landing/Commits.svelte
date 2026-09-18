@@ -243,7 +243,13 @@
     margin: 0;
     font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
-    font-size: clamp(1.75rem, 8vw, 2.75rem);
+    /* Deliberately quiet, well under .work-heading's 4rem ceiling (#199's
+       loud-quiet-loud rhythm). The display face was doing the same gesture
+       at nearly the same size in five places, so no heading led. Work and
+       the closing call are the two that land; Commits and Appearances step
+       back so they can. The readout beside this heading carries the
+       section's weight instead. */
+    font-size: clamp(1.5rem, 4vw, 2rem);
     line-height: 0.9;
     letter-spacing: -0.03em;
     text-transform: uppercase;
