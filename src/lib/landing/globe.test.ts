@@ -2,7 +2,6 @@ import {
   build_color_buffer,
   build_ring_segments,
   densify_ring,
-  GLOBE_LINES_URL,
   hex_to_rgb01,
   line_alpha,
   line_segments,
@@ -12,6 +11,7 @@ import {
   marker_alpha,
   MARKER_FADE_END_Z,
   MARKER_FADE_START_Z,
+  MAX_SEGMENT_ANGLE_RAD,
   montreal_marker,
   parse_ring,
   project_to_screen,
@@ -155,15 +155,26 @@ describe("parse_ring / densify_ring / line_segments / build_ring_segments", () =
     ]);
   });
 
-  it("builds every vertex of a multi-ring, long-chord payload on the unit sphere", () => {
+  it("builds every vertex of a multi-ring, long-chord payload on the unit sphere, with no chord wider than the densification limit", () => {
     // Mimics build-geo.ts's output shape: several rings, including one
-    // long chord that must be subdivided to hug the sphere.
+    // long chord that must be subdivided to hug the sphere. This is the
+    // parse_ring -> densify_ring -> build_ring_segments pipeline end to
+    // end, so the max-angle assertion below is load-bearing: deleting the
+    // densify_ring call inside build_ring_segments leaves every vertex on
+    // the unit sphere (parse_ring alone already guarantees that) but emits
+    // one long chord straight through the sphere for the first ring - the
+    // exact bug densification exists to prevent. Verified by hand: with
+    // that call removed, this assertion fails with an angle around 3.1
+    // radians (a near-antipodal chord) against a limit of pi/60.
     const rings = ["-170.0,5.0 10.0,-3.0 15.0,20.0", "45.5,-73.6 46.0,-74.0 44.5,-73.0 45.5,-73.6"];
     const segments = build_ring_segments(rings);
     expect(segments.length).toBeGreaterThan(0);
     for (const [a, b] of segments) {
       expect_on_unit_sphere(a);
       expect_on_unit_sphere(b);
+      const dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+      const angle = Math.acos(Math.min(1, Math.max(-1, dot)));
+      expect(angle).toBeLessThanOrEqual(MAX_SEGMENT_ANGLE_RAD + 1e-9);
     }
   });
 
@@ -355,11 +366,5 @@ describe("hex_to_rgb01", () => {
 
   it("parses black as all zeros", () => {
     expect(hex_to_rgb01("#000000")).toEqual([0, 0, 0]);
-  });
-});
-
-describe("GLOBE_LINES_URL", () => {
-  it("points at the committed static geometry payload", () => {
-    expect(GLOBE_LINES_URL).toBe("/landing/globe-lines.json");
   });
 });

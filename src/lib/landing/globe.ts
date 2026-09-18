@@ -255,17 +255,22 @@ export function montreal_marker(
 // Transforms every segment endpoint into clip-space xy (still on the unit
 // sphere's projection, before the caller's fill-ratio/aspect scaling) plus
 // its view-space depth. `aspect_x`/`aspect_y` let the caller keep the
-// sphere circular on a non-square viewport.
+// sphere circular on a non-square viewport. `out`, when given, is written
+// into and returned in place of allocating fresh arrays - the geometry's
+// vertex count is static per draw call, so a per-frame caller (start_globe)
+// can allocate once and reuse the same buffers every frame instead of
+// allocating ~200 KB of short-lived Float32Arrays 60 times a second.
 export function transform_segments(
   segments: readonly Segment[],
   spin_rad: number,
   tilt_rad: number,
   aspect_x: number,
   aspect_y: number,
+  out?: { positions: Float32Array; depths: Float32Array },
 ): { positions: Float32Array; depths: Float32Array } {
   const vertex_count = segments.length * 2;
-  const positions = new Float32Array(vertex_count * 2);
-  const depths = new Float32Array(vertex_count);
+  const positions = out?.positions ?? new Float32Array(vertex_count * 2);
+  const depths = out?.depths ?? new Float32Array(vertex_count);
   let p = 0;
   let d = 0;
   for (const [a, b] of segments) {
@@ -281,14 +286,17 @@ export function transform_segments(
 
 // Builds the per-vertex RGBA color buffer for a transformed frame: vertices
 // before `world_vertex_count` are colored `world_rgb`, the rest
-// `canada_rgb` - alpha comes from `line_alpha` at that vertex's depth.
+// `canada_rgb` - alpha comes from `line_alpha` at that vertex's depth. `out`
+// behaves the same way as in `transform_segments`: reuse a caller-owned
+// buffer instead of allocating a fresh one every call.
 export function build_color_buffer(
   depths: Float32Array,
   world_vertex_count: number,
   world_rgb: readonly [number, number, number],
   canada_rgb: readonly [number, number, number],
+  out?: Float32Array,
 ): Float32Array {
-  const colors = new Float32Array(depths.length * 4);
+  const colors = out ?? new Float32Array(depths.length * 4);
   for (let i = 0; i < depths.length; i++) {
     const rgb = i < world_vertex_count ? world_rgb : canada_rgb;
     const alpha = line_alpha(depths[i]);
@@ -310,6 +318,13 @@ export function hex_to_rgb01(hex: string): [number, number, number] {
 }
 
 export const GLOBE_LINES_URL = "/landing/globe-lines.json";
+
+// The still fallback (see scripts/build-geo.ts) - a pre-rendered SVG of the
+// same projection at the same tilt, shown by Hero.svelte until the canvas
+// confirms it's actually animating. Covers the reduced-motion, no-WebGL and
+// no-JS cases: reduced-motion and no-WebGL never flip `canvas_animating` to
+// true, and no-JS never runs the script that would.
+export const GLOBE_STILL_URL = "/landing/globe-still.svg";
 
 // Fetches and parses the committed geometry payload (see
 // scripts/build-geo.ts). A thin passthrough to `fetch`/`JSON.parse` with no
@@ -358,16 +373,33 @@ function create_program(gl: WebGLRenderingContext): WebGLProgram | null {
   const vertex_shader = compile_shader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
   const fragment_shader = compile_shader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
   if (!vertex_shader || !fragment_shader) {
+    if (vertex_shader) gl.deleteShader(vertex_shader);
+    if (fragment_shader) gl.deleteShader(fragment_shader);
     return null;
   }
   const program = gl.createProgram();
   if (!program) {
+    gl.deleteShader(vertex_shader);
+    gl.deleteShader(fragment_shader);
     return null;
   }
   gl.attachShader(program, vertex_shader);
   gl.attachShader(program, fragment_shader);
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  const linked = gl.getProgramParameter(program, gl.LINK_STATUS) as boolean;
+
+  // Once linking is done (successfully or not), the shaders are no longer
+  // needed as separate objects - gl.deleteShader here just flags them for
+  // deletion, which actually happens once they're detached (below, on
+  // failure) or the program itself is deleted (on stop() - see
+  // start_globe). This is the standard release point after a successful
+  // link that the previous version of this function skipped entirely.
+  gl.deleteShader(vertex_shader);
+  gl.deleteShader(fragment_shader);
+
+  if (!linked) {
+    gl.detachShader(program, vertex_shader);
+    gl.detachShader(program, fragment_shader);
     gl.deleteProgram(program);
     return null;
   }
@@ -403,8 +435,14 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   if (!gl) {
     return null;
   }
+  // TypeScript can't carry the `!gl` narrowing above into the nested
+  // function declarations below (size_canvas, draw, frame, ...), so without
+  // this binding every `gl` use inside them would need a `!` assertion.
+  // One non-null binding here fixes that properly: closures see `ctx`'s
+  // non-null type directly.
+  const ctx: WebGLRenderingContext = gl;
 
-  const program = create_program(gl);
+  const program = create_program(ctx);
   if (!program) {
     return null;
   }
@@ -412,60 +450,77 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   const world_segments = build_ring_segments(lines.world);
   const canada_segments = build_ring_segments(lines.canada);
   const all_segments = [...world_segments, ...canada_segments];
+  const vertex_count = all_segments.length * 2;
   const world_vertex_count = world_segments.length * 2;
   const world_rgb = hex_to_rgb01(HUD_PALETTE.secondary);
   const canada_rgb = hex_to_rgb01(HUD_PALETTE.accent);
 
-  const position_buffer = gl.createBuffer();
-  const color_buffer = gl.createBuffer();
-  const position_location = gl.getAttribLocation(program, "a_position");
-  const color_location = gl.getAttribLocation(program, "a_color");
+  // The geometry is static once built, so its transformed buffers are
+  // allocated exactly once here and written in place every frame (see
+  // `draw`) instead of allocating fresh Float32Arrays 60 times a second.
+  const positions = new Float32Array(vertex_count * 2);
+  const depths = new Float32Array(vertex_count);
+  const colors = new Float32Array(vertex_count * 4);
 
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  gl.clearColor(0, 0, 0, 0);
+  const position_buffer = ctx.createBuffer();
+  const color_buffer = ctx.createBuffer();
+  const position_location = ctx.getAttribLocation(program, "a_position");
+  const color_location = ctx.getAttribLocation(program, "a_color");
+
+  ctx.enable(ctx.BLEND);
+  ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
+  ctx.clearColor(0, 0, 0, 0);
 
   const tilt = tilt_radians();
   const start_ms = performance.now();
 
+  // Cached from the canvas's own getBoundingClientRect() - only size_canvas
+  // (called on mount and on resize, which already has a listener) touches
+  // layout. draw() runs every frame and reads these instead of calling
+  // getBoundingClientRect() itself, which would force a synchronous
+  // style/layout flush on every single frame.
+  let cached_width = 0;
+  let cached_height = 0;
+
   function size_canvas() {
     const rect = canvas.getBoundingClientRect();
+    cached_width = rect.width;
+    cached_height = rect.height;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.max(1, Math.round(rect.width * dpr));
     canvas.height = Math.max(1, Math.round(rect.height * dpr));
-    gl!.viewport(0, 0, canvas.width, canvas.height);
+    ctx.viewport(0, 0, canvas.width, canvas.height);
   }
   size_canvas();
   window.addEventListener("resize", size_canvas);
 
   function draw(spin_rad: number) {
-    const rect = canvas.getBoundingClientRect();
-    const min_dimension = Math.min(rect.width, rect.height) || 1;
-    const aspect_x = rect.width > 0 ? (min_dimension / rect.width) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
-    const aspect_y = rect.height > 0 ? (min_dimension / rect.height) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
+    const min_dimension = Math.min(cached_width, cached_height) || 1;
+    const aspect_x = cached_width > 0 ? (min_dimension / cached_width) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
+    const aspect_y = cached_height > 0 ? (min_dimension / cached_height) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
 
-    const { positions, depths } = transform_segments(all_segments, spin_rad, tilt, aspect_x, aspect_y);
-    const colors = build_color_buffer(depths, world_vertex_count, world_rgb, canada_rgb);
+    transform_segments(all_segments, spin_rad, tilt, aspect_x, aspect_y, { positions, depths });
+    build_color_buffer(depths, world_vertex_count, world_rgb, canada_rgb, colors);
 
-    gl!.clear(gl!.COLOR_BUFFER_BIT);
+    ctx.clear(ctx.COLOR_BUFFER_BIT);
 
-    gl!.useProgram(program);
+    ctx.useProgram(program);
 
-    gl!.bindBuffer(gl!.ARRAY_BUFFER, position_buffer);
-    gl!.bufferData(gl!.ARRAY_BUFFER, positions, gl!.DYNAMIC_DRAW);
-    gl!.enableVertexAttribArray(position_location);
-    gl!.vertexAttribPointer(position_location, 2, gl!.FLOAT, false, 0, 0);
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, position_buffer);
+    ctx.bufferData(ctx.ARRAY_BUFFER, positions, ctx.DYNAMIC_DRAW);
+    ctx.enableVertexAttribArray(position_location);
+    ctx.vertexAttribPointer(position_location, 2, ctx.FLOAT, false, 0, 0);
 
-    gl!.bindBuffer(gl!.ARRAY_BUFFER, color_buffer);
-    gl!.bufferData(gl!.ARRAY_BUFFER, colors, gl!.DYNAMIC_DRAW);
-    gl!.enableVertexAttribArray(color_location);
-    gl!.vertexAttribPointer(color_location, 4, gl!.FLOAT, false, 0, 0);
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, color_buffer);
+    ctx.bufferData(ctx.ARRAY_BUFFER, colors, ctx.DYNAMIC_DRAW);
+    ctx.enableVertexAttribArray(color_location);
+    ctx.vertexAttribPointer(color_location, 4, ctx.FLOAT, false, 0, 0);
 
-    gl!.drawArrays(gl!.LINES, 0, depths.length);
+    ctx.drawArrays(ctx.LINES, 0, depths.length);
 
     if (marker_el) {
       const radius_px = (min_dimension / 2) * SPHERE_FILL_RATIO;
-      const marker = montreal_marker(spin_rad, tilt, radius_px, rect.width / 2, rect.height / 2);
+      const marker = montreal_marker(spin_rad, tilt, radius_px, cached_width / 2, cached_height / 2);
       marker_el.style.transform = `translate(${marker.x}px, ${marker.y}px) translate(-50%, -50%)`;
       marker_el.style.opacity = String(marker.opacity);
     }
@@ -527,6 +582,20 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
       intersection_observer.disconnect();
       document.removeEventListener("visibilitychange", on_visibility_change);
       window.removeEventListener("resize", size_canvas);
+
+      // Symmetric with setup: release the GPU-side handles, not just the
+      // JS-side ones above. The landing page is one route among several
+      // under client-side routing, so every navigation away and back
+      // creates a fresh context; browsers cap live WebGL contexts at
+      // roughly 8-16 and drop the oldest one when that's exceeded, and
+      // relying on GC to eventually reclaim these is not timed to that.
+      // Left unreleased, enough round trips silently exhaust the budget:
+      // getContext("webgl") starts returning null, start_globe returns
+      // null, and the globe just stops appearing with no error anywhere.
+      ctx.deleteBuffer(position_buffer);
+      ctx.deleteBuffer(color_buffer);
+      ctx.deleteProgram(program);
+      ctx.getExtension("WEBGL_lose_context")?.loseContext();
     },
   };
 }

@@ -4,7 +4,7 @@
   import { browser } from "$app/environment";
   import type { LandingGithub, LandingHero } from "$lib/types.js";
 
-  import { load_globe_lines, start_globe, type GlobeController } from "./globe.js";
+  import { GLOBE_STILL_URL, load_globe_lines, start_globe, type GlobeController } from "./globe.js";
   import { split_role_badge } from "./hero-format.js";
   import { HUD_PALETTE } from "./palette.js";
   import ResumeCta from "./ResumeCta.svelte";
@@ -30,12 +30,14 @@
 
   // Starts false for SSR/prerendering and for every path where the globe
   // never actually starts drawing (no JS at all, reduced motion, no WebGL
-  // context, or the geometry fetch failing): Hero's `.hero-backdrop`
-  // radial gradient is what those visitors see, on its own. It can only
-  // flip to true once `start_globe` has actually returned a controller, so
-  // the failure mode of any of this wiring being wrong is that same static
-  // gradient staying visible, never an empty box and never a frozen
-  // flag/label sitting at the wrong spot.
+  // context, or the geometry fetch failing): the pre-rendered
+  // `.hero-globe-still` SVG (same projection, same tilt, built by
+  // scripts/build-geo.ts) is what those visitors see. It can only flip to
+  // true once `start_globe` has actually returned a controller, so the
+  // failure mode of any of this wiring being wrong is that same static
+  // image staying visible, never an empty box and never a frozen
+  // flag/label sitting at the wrong spot. Flipping back to false (reduced
+  // motion toggled on mid-session) brings the still back too.
   let canvas_animating = $state(false);
 
   // Guarded twice on purpose, matching the parked hud-canvas.ts (#168)
@@ -47,28 +49,43 @@
       return;
     }
 
-    const prefers_reduced_motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motion_query = window.matchMedia("(prefers-reduced-motion: reduce)");
     let controller: GlobeController | null = null;
     let cancelled = false;
 
-    if (!prefers_reduced_motion) {
+    // Bidirectional prefers-reduced-motion handling is more machinery than
+    // this warrants, but the direction that matters for accessibility - a
+    // visitor switching *to* reduce mid-session - is cheap to honour: stop
+    // the globe and fall back to the still, same as if it had never
+    // started.
+    function on_motion_change(event: MediaQueryListEvent) {
+      if (event.matches) {
+        controller?.stop();
+        controller = null;
+        canvas_animating = false;
+      }
+    }
+    motion_query.addEventListener("change", on_motion_change);
+
+    if (!motion_query.matches) {
       (async () => {
         try {
           const lines = await load_globe_lines();
-          if (cancelled || !canvas_el) {
+          if (cancelled || !canvas_el || motion_query.matches) {
             return;
           }
           controller = start_globe({ canvas: canvas_el, lines, marker_el });
           canvas_animating = controller !== null;
         } catch {
           // Geometry fetch or WebGL setup failed - leave canvas_animating
-          // false so the static gradient backdrop is what's shown.
+          // false so the static still image is what's shown.
         }
       })();
     }
 
     return () => {
       cancelled = true;
+      motion_query.removeEventListener("change", on_motion_change);
       controller?.stop();
     };
   });
@@ -81,21 +98,51 @@
 >
   <!--
     Always rendered, regardless of JavaScript, reduced motion, or WebGL
-    availability - this is the one static backdrop every fallback case
-    resolves to. The globe (#178) draws on top of it once it actually
-    starts animating; it never replaces or hides this layer.
+    availability - the base layer every other layer composites over. It
+    never gets hidden or replaced.
   -->
   <div class="hero-backdrop" aria-hidden="true"></div>
 
-  <div id="hero-globe-mount" class="hero-visual" aria-hidden="true">
+  <div class="hero-visual" aria-hidden="true">
+    <!--
+      The still (scripts/build-geo.ts's `build_globe_still_svg`) is the
+      real backdrop for every path that isn't the animating canvas: reduced
+      motion, no WebGL context, and no JS at all (SSR ships this markup
+      with `canvas_animating` at its default `false`, so this is what a
+      no-JS visitor sees - the canvas next to it stays empty since nothing
+      ever draws into it). It's only hidden once `canvas_animating` proves
+      the canvas is genuinely drawing, so exactly one of the two is ever
+      visible - never both, never neither.
+    -->
+    <img
+      class="hero-globe-still"
+      class:hero-globe-still-hidden={canvas_animating}
+      src={GLOBE_STILL_URL}
+      alt=""
+      width="760"
+      height="760"
+    />
     <canvas bind:this={canvas_el} class="hero-globe-canvas"></canvas>
+  </div>
+
+  <div class="hero-scrim" aria-hidden="true"></div>
+
+  <!--
+    A sibling of `.hero-visual` placed after `.hero-scrim` (rather than
+    nested inside it) so it paints above the scrim while the globe lines
+    stay behind it - the scrim's fade is what lets `hero-name` read cleanly
+    over the wireframe, but the flag/label were made DOM elements
+    specifically to stay legible, and under the scrim they washed out for
+    most of each rotation. It shares `.hero-visual`'s exact box so the
+    marker's canvas-relative coordinates (see globe.ts's `montreal_marker`)
+    still land in the same place.
+  -->
+  <div class="hero-globe-marker-layer" aria-hidden="true">
     <div class="hero-globe-marker" class:hero-globe-marker-hidden={!canvas_animating} bind:this={marker_el}>
       <img class="hero-globe-flag" src="/landing/canada-flag.svg" alt="" width="24" height="18" />
       <span class="hero-globe-marker-label">MONTREAL</span>
     </div>
   </div>
-
-  <div class="hero-scrim" aria-hidden="true"></div>
 
   <div class="hero-topbar">
     <span>{github.user}</span>
@@ -144,7 +191,13 @@
     background: radial-gradient(70% 70% at 68% 48%, #17171b 0%, #0d0d0f 55%, #09090a 100%);
   }
 
-  .hero-visual {
+  /*
+   * `.hero-globe-marker-layer` shares this exact box so the marker (a
+   * sibling placed after `.hero-scrim` in the DOM - see the markup above)
+   * lands in the same place without needing its own coordinate math.
+   */
+  .hero-visual,
+  .hero-globe-marker-layer {
     position: absolute;
     right: -40px;
     top: 50%;
@@ -154,11 +207,26 @@
     max-width: none;
   }
 
+  .hero-globe-marker-layer {
+    pointer-events: none;
+  }
+
+  .hero-globe-still,
   .hero-globe-canvas {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+
+  /*
+   * Hidden once the canvas confirms it's actually animating (see
+   * `canvas_animating` in the script block). Until then - reduced motion,
+   * no WebGL context, or no JS at all - this still is the only thing
+   * drawing into `.hero-visual`; the canvas next to it stays transparent.
+   */
+  .hero-globe-still-hidden {
+    display: none;
   }
 
   .hero-globe-marker {

@@ -15,10 +15,12 @@
 // generate-apple-touch-icon.ts's output is regenerated on demand, just
 // checked in rather than produced fresh on every build.
 //
-// There is no pre-rendered still image for the reduced-motion/no-WebGL/
-// no-JS fallback cases: Hero.svelte already carries a `.hero-backdrop`
-// radial-gradient layer for the landing redesign (#177), and that is the
-// static backdrop those cases fall back to - see Hero.svelte.
+// This also emits static/landing/globe-still.svg: a pre-rendered projection
+// of the same geometry, at the same tilt, used as the reduced-motion/no-
+// WebGL/no-JS backdrop (see Hero.svelte). It reuses globe.ts's pure
+// to_view_space/project_to_screen/build_ring_segments rather than
+// reimplementing the projection, so the still can never silently drift out
+// of sync with what the animating canvas draws.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -27,7 +29,18 @@ import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import type { MultiPolygon, Polygon } from "geojson";
 
-type Ring = [number, number][];
+import {
+  build_ring_segments,
+  line_alpha,
+  project_to_screen,
+  SPHERE_FILL_RATIO,
+  tilt_radians,
+  to_view_space,
+  type Segment,
+} from "../src/lib/landing/globe.js";
+import { HUD_PALETTE } from "../src/lib/landing/palette.js";
+
+export type Ring = [number, number][];
 
 export interface GlobeLines {
   world: string[];
@@ -42,6 +55,20 @@ const ANTIMERIDIAN_SPAN_DEG = 180;
 
 const TOPOLOGY_PATH = resolve("node_modules", "world-atlas", "countries-110m.json");
 const OUTPUT_PATH = resolve("static", "landing", "globe-lines.json");
+const STILL_OUTPUT_PATH = resolve("static", "landing", "globe-still.svg");
+
+// The still is rendered at the same square footprint as Hero.svelte's
+// `.hero-visual` box, so it drops in as a 1:1 backdrop with no rescaling.
+const STILL_VIEWBOX_PX = 760;
+const STILL_CENTER_PX = STILL_VIEWBOX_PX / 2;
+// Spin at the moment the still is "frozen" - zero, matching the animating
+// globe's own first frame (rotation_angle(0, ...) === 0).
+const STILL_SPIN_RAD = 0;
+// Segments are grouped into one <path> per (layer, quantized opacity)
+// bucket rather than emitted as one element each, so the file stays a
+// build artefact-sized handful of KB instead of one element per line
+// segment.
+const STILL_OPACITY_STEP = 0.05;
 
 // Perpendicular distance from `point` to the line through `a`-`b`, in the
 // flat lon/lat plane. Good enough here: the distortion it ignores is far
@@ -86,6 +113,9 @@ export function simplify_ring(points: Ring, tolerance_deg: number): Ring {
 // clear across the map at +/-180 degrees longitude. Split wherever a
 // consecutive pair spans more than 180 degrees of longitude so nothing does.
 export function split_at_antimeridian(ring: Ring): Ring[] {
+  if (ring.length === 0) {
+    return [];
+  }
   const pieces: Ring[] = [];
   let current: Ring = [ring[0]];
   for (let i = 1; i < ring.length; i++) {
@@ -108,20 +138,28 @@ function rings_of(geometry: Polygon | MultiPolygon): Ring[] {
 }
 
 // Simplifies, splits at the seam, rounds to one decimal place, and encodes
-// each ring as a single "lon,lat lon,lat ..." string.
+// each ring as a single "lon,lat lon,lat ..." string. Splits at the seam
+// twice - once before simplification (on the original points) and once
+// after (on whatever simplify_ring hands back) - because dropping interior
+// points can form a new consecutive pair that spans the antimeridian even
+// when no original pair did. Re-running the split on the simplified output
+// makes the invariant hold by construction rather than relying solely on
+// assert_no_antimeridian_span to catch it after the fact.
 function encode_rings(rings: Ring[], tolerance_deg: number): string[] {
   const encoded: string[] = [];
   for (const ring of rings) {
     for (const piece of split_at_antimeridian(ring)) {
       const simplified = simplify_ring(piece, tolerance_deg);
-      if (simplified.length < MIN_RING_POINTS) {
-        continue;
+      for (const final_piece of split_at_antimeridian(simplified)) {
+        if (final_piece.length < MIN_RING_POINTS) {
+          continue;
+        }
+        encoded.push(
+          final_piece
+            .map(([lon, lat]) => `${lon.toFixed(COORDINATE_PRECISION)},${lat.toFixed(COORDINATE_PRECISION)}`)
+            .join(" "),
+        );
       }
-      encoded.push(
-        simplified
-          .map(([lon, lat]) => `${lon.toFixed(COORDINATE_PRECISION)},${lat.toFixed(COORDINATE_PRECISION)}`)
-          .join(" "),
-      );
     }
   }
   return encoded;
@@ -148,15 +186,26 @@ export function assert_no_antimeridian_span(rings: string[], label: string): voi
 export function build_globe_lines(topology: Topology): GlobeLines {
   const countries = feature(topology, topology.objects.countries as never);
   const world_rings: string[] = [];
-  let canada_rings: string[] = [];
+  const canada_rings: string[] = [];
+  let found_canada = false;
 
   for (const country of countries.features) {
     const rings = rings_of(country.geometry as Polygon | MultiPolygon);
     if (country.properties?.name === "Canada") {
-      canada_rings = encode_rings(rings, CANADA_TOLERANCE_DEG);
+      found_canada = true;
+      canada_rings.push(...encode_rings(rings, CANADA_TOLERANCE_DEG));
     } else {
       world_rings.push(...encode_rings(rings, WORLD_TOLERANCE_DEG));
     }
+  }
+
+  // A silent name-match failure (a world-atlas upgrade renaming or
+  // restructuring the Canada feature) would otherwise leave canada_rings
+  // empty, pass assert_no_antimeridian_span vacuously, and write a
+  // valid-looking file whose accent layer just never renders. Fail loudly
+  // instead.
+  if (!found_canada) {
+    throw new Error('No country named "Canada" found in the world-atlas topology - the accent layer would be empty');
   }
 
   assert_no_antimeridian_span(world_rings, "world");
@@ -169,6 +218,56 @@ function point_count(rings: string[]): number {
   return rings.reduce((total, ring) => total + ring.split(" ").length, 0);
 }
 
+function quantize_opacity(value: number): number {
+  return Math.round(value / STILL_OPACITY_STEP) * STILL_OPACITY_STEP;
+}
+
+// Projects one layer's segments at the still's fixed spin/tilt and groups
+// them into one <path> per quantized opacity bucket, so the far hemisphere
+// still reads as faint rather than fully opaque without emitting one SVG
+// element per line segment.
+function build_still_layer(segments: readonly Segment[], tilt_rad: number, stroke: string): string {
+  const radius_px = STILL_CENTER_PX * SPHERE_FILL_RATIO;
+  const buckets = new Map<number, string[]>();
+
+  for (const [a, b] of segments) {
+    const view_a = to_view_space(a, STILL_SPIN_RAD, tilt_rad);
+    const view_b = to_view_space(b, STILL_SPIN_RAD, tilt_rad);
+    const screen_a = project_to_screen(view_a, radius_px, STILL_CENTER_PX, STILL_CENTER_PX);
+    const screen_b = project_to_screen(view_b, radius_px, STILL_CENTER_PX, STILL_CENTER_PX);
+    const opacity = quantize_opacity(line_alpha((view_a[2] + view_b[2]) / 2));
+
+    const moves = buckets.get(opacity) ?? [];
+    moves.push(`M${screen_a.x.toFixed(2)},${screen_a.y.toFixed(2)} L${screen_b.x.toFixed(2)},${screen_b.y.toFixed(2)}`);
+    buckets.set(opacity, moves);
+  }
+
+  const paths = [...buckets.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(
+      ([opacity, moves]) =>
+        `<path d="${moves.join(" ")}" stroke="${stroke}" stroke-opacity="${opacity.toFixed(2)}" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>`,
+    );
+
+  return paths.join("\n  ");
+}
+
+// Renders the same projection the animating canvas draws - same tilt, same
+// `build_ring_segments` densification, same per-vertex depth alpha - as a
+// static SVG, for the reduced-motion/no-WebGL/no-JS fallback paths that
+// never get a live WebGL context.
+export function build_globe_still_svg(lines: GlobeLines): string {
+  const tilt = tilt_radians();
+  const world_layer = build_still_layer(build_ring_segments(lines.world), tilt, HUD_PALETTE.secondary);
+  const canada_layer = build_still_layer(build_ring_segments(lines.canada), tilt, HUD_PALETTE.accent);
+
+  return `<svg viewBox="0 0 ${STILL_VIEWBOX_PX} ${STILL_VIEWBOX_PX}" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  ${world_layer}
+  ${canada_layer}
+</svg>
+`;
+}
+
 function main(): void {
   const topology = JSON.parse(readFileSync(TOPOLOGY_PATH, "utf-8")) as Topology;
   const lines = build_globe_lines(topology);
@@ -176,11 +275,22 @@ function main(): void {
 
   writeFileSync(OUTPUT_PATH, json);
 
+  const still_svg = build_globe_still_svg(lines);
+  writeFileSync(STILL_OUTPUT_PATH, still_svg);
+
   console.log(
     `world: ${lines.world.length} rings / ${point_count(lines.world)} points, ` +
       `canada: ${lines.canada.length} rings / ${point_count(lines.canada)} points, ` +
       `${(json.length / 1024).toFixed(1)} KB -> ${OUTPUT_PATH}`,
   );
+  console.log(`still: ${(still_svg.length / 1024).toFixed(1)} KB -> ${STILL_OUTPUT_PATH}`);
 }
 
-main();
+// Guards the side-effecting entry point so importing this module - from
+// scripts/build-geo.test.ts, or transitively from anything else - never
+// regenerates the committed artefacts. Matches both invocation shapes this
+// script actually runs under: `tsx scripts/build-geo.ts` (npm run
+// generate-geo) and direct execution.
+if (process.argv[1]?.endsWith("build-geo.ts")) {
+  main();
+}
