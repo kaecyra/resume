@@ -77,6 +77,20 @@ describe("LandingSections", () => {
     const html = html_for(LANDING);
 
     expect(html).toContain('href="https://example.com"');
+
+    // The href check above doesn't prove the anchor carries the project's
+    // name - only proj-a (the {:else} branch) is asserted by name
+    // elsewhere in this file, so an empty anchor here
+    // (`<a href="...">`) would otherwise stay green.
+    expect(html).toMatch(/href="https:\/\/example\.com"[^>]*>Project B</);
+
+    // The {:else} side of that same {#if link} (~line 34): proj-a has
+    // neither repo_url nor links, so project_link() returns null and its
+    // name should render as plain text, not inside an anchor. Widening the
+    // condition to always take the {#if} branch leaves "Project A" in the
+    // output (still caught by other checks) but wraps it in a link, which
+    // none of those checks would notice without this.
+    expect(html).not.toMatch(/<a[^>]*>Project A</);
   });
 
   it("marks only the first project as the featured card", () => {
@@ -90,6 +104,26 @@ describe("LandingSections", () => {
     expect(html).toContain(`border-left-color: ${HUD_PALETTE.accent};`);
     expect(html).toContain(`border-left-color: ${HUD_PALETTE.edge};`);
     expect(html).toContain(`color: ${HUD_PALETTE.secondary};`);
+  });
+
+  it("renders each project's blurb, stack chips and status text", () => {
+    // The existing Work coverage (above, and the featured-card test) proves
+    // the featured border, the status *colour*, the project name and the
+    // link href - but not the text of three of the section's four content
+    // elements: the blurb paragraph, the stack chip list and the status
+    // text itself. Each stays green under: deleting .work-blurb's content,
+    // changing {#if project.stack?.length} to {#if false}, or emptying
+    // .work-status while keeping the element and its style attribute.
+    const html = html_for(LANDING);
+    const work_html = html.slice(html.indexOf('id="work"'), html.indexOf('id="contact"'));
+
+    expect(work_html).toMatch(/class="work-blurb[^"]*">Does a thing\.</);
+    expect(work_html).toMatch(/class="work-blurb[^"]*">Does another thing\.</);
+
+    expect(work_html.match(/class="work-stack/g)?.length).toBe(2);
+    expect(work_html.match(/<li[^>]*>TypeScript<\/li>/g)?.length).toBe(2);
+
+    expect(work_html.match(/class="work-status[^"]*"[^>]*>Active</g)?.length).toBe(2);
   });
 
   it("omits target/rel from a mailto: contact link but keeps them on an https: one", () => {
@@ -109,6 +143,19 @@ describe("LandingSections", () => {
     expect(linkedin_anchor).toBeDefined();
     expect(linkedin_anchor).toContain('target="_blank"');
     expect(linkedin_anchor).toContain('rel="noopener noreferrer"');
+  });
+
+  it("renders each contact entry's label text on its link", () => {
+    // The href/target/rel checks above only match up to the anchor's
+    // opening tag, so none of them prove {item.label} actually reaches the
+    // markup - an anchor left empty for every contact entry would satisfy
+    // all of them.
+    const html = html_for(LANDING);
+    const contact_html = html.slice(html.indexOf('id="contact"'));
+
+    expect(contact_html).toMatch(/href="mailto:test@example\.com"[^>]*>Email</);
+    expect(contact_html).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>LinkedIn</);
+    expect(contact_html).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>GitHub</);
   });
 
   it("renders sections in the order given by landing.sections", () => {
@@ -137,6 +184,20 @@ describe("LandingSections", () => {
     // silently without this check.
     const divider_band = html.slice(divider_index, commits_index);
     expect(divider_band).not.toContain("mailto:");
+
+    // The not.toContain("mailto:") check above is covered against an
+    // unfiltered `contact`, but proves nothing about the band actually
+    // rendering the non-mailto links - both `social_links` collapsing to
+    // an empty array and dropping href={item.url} from .divider-link stay
+    // green without this positive half.
+    expect(divider_band).toContain('href="https://linkedin.com/in/test"');
+    expect(divider_band).toContain('href="https://github.com/testuser"');
+
+    // The href checks above don't prove the link *text* (item.label)
+    // reaches the markup - an anchor left empty (`<a href="..."></a>`)
+    // would satisfy them too.
+    expect(divider_band).toMatch(/href="https:\/\/linkedin\.com\/in\/test"[^>]*>LinkedIn</);
+    expect(divider_band).toMatch(/href="https:\/\/github\.com\/testuser"[^>]*>GitHub</);
   });
 
   it("reverses the rendered order when landing.sections is reversed", () => {
@@ -205,5 +266,20 @@ describe("LandingSections", () => {
     // by "testuser" appearing inside an href elsewhere on the page (e.g.
     // Divider's GitHub link).
     expect(hero_html).toContain(">testuser<");
+  });
+
+  it("omits the badge label span entirely when hero.role has no comma", () => {
+    // split_role_badge() returns an empty label when hero.role has no comma
+    // (falls back to the full string as the tag) - the {#if role.label}
+    // guard in Hero.svelte (~line 53) is what keeps an empty
+    // hero-badge-label span out of the markup for that case. Nothing else
+    // in the suite renders a comma-less role, so this branch was reachable
+    // only by adding a case for it.
+    const no_label_landing = { ...LANDING, hero: { ...LANDING.hero, role: "Independent" } };
+    const html = html_for(no_label_landing);
+    const hero_html = html.slice(html.indexOf('id="hero"'), html.indexOf('id="divider"'));
+
+    expect(hero_html).toMatch(/class="hero-badge-tag[^"]*">Independent</);
+    expect(hero_html).not.toContain("hero-badge-label");
   });
 });

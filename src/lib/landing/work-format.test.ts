@@ -42,4 +42,16 @@ describe("project_link", () => {
   it("returns null when neither repo_url nor links is set", () => {
     expect(project_link(PROJECT)).toBeNull();
   });
+
+  it("returns null when links is an empty array", () => {
+    // landing.ts's validator accepts an empty `links` array (it only checks
+    // each entry's label/url when entries exist, never that the array is
+    // non-empty), so this is a real, reachable shape - not a hypothetical.
+    // The `?.length` guard above exists precisely to rule it out; changing
+    // it to `if (project.links)` would evaluate `project.links[0].url` on
+    // `undefined` here and throw.
+    const project = { ...PROJECT, links: [] };
+
+    expect(project_link(project)).toBeNull();
+  });
 });

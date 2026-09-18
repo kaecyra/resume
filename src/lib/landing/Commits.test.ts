@@ -68,4 +68,16 @@ describe("Commits", () => {
     expect(scroller).toContain('role="group"');
     expect(scroller).toContain('aria-labelledby="commits-caption"');
   });
+
+  it("hides the colour-only grid from assistive tech, since it has no accessible summary of its own", () => {
+    const html = html_for(GRID);
+
+    // `commits-grid ` (trailing space), not `commits-grid[^>]*` - the
+    // latter also matches the outer `commits-grid-scroll` div and grabs
+    // that one first, since it appears earlier in the markup.
+    const grid = html.match(/<div class="commits-grid svelte-[^>]*>/)?.[0];
+
+    expect(grid).toBeDefined();
+    expect(grid).toContain('aria-hidden="true"');
+  });
 });
