@@ -3,19 +3,19 @@ import { render } from "svelte/server";
 import type { LandingGithub } from "$lib/types.js";
 
 import Commits from "./Commits.svelte";
-import type { ContributionsGrid } from "./contributions.js";
+import type { ProvisionalContributionsGrid } from "./contributions.js";
 
 const GITHUB: LandingGithub = { user: "testuser" };
 
 // Two weeks of two days is enough to exercise both the outer `{#each}` over
 // weeks and the inner `{#each}` over days, and to prove each day's own
 // colour (not just the first) reaches the markup.
-const GRID: ContributionsGrid = [
+const GRID: ProvisionalContributionsGrid = [
   { days: [{ color: "#111111" }, { color: "#222222" }] },
   { days: [{ color: "#333333" }, { color: "#444444" }] },
 ];
 
-function html_for(contributions_grid: ContributionsGrid | null): string {
+function html_for(contributions_grid: ProvisionalContributionsGrid | null): string {
   return render(Commits, {
     props: { github: GITHUB, contributions_grid },
   }).body;

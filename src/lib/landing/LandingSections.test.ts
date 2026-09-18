@@ -3,6 +3,7 @@ import { render } from "svelte/server";
 import type { LandingData } from "$lib/types.js";
 
 import LandingSections from "./LandingSections.svelte";
+import { HUD_PALETTE } from "./palette.js";
 
 const LANDING: LandingData = {
   hero: {
@@ -76,6 +77,19 @@ describe("LandingSections", () => {
     const html = html_for(LANDING);
 
     expect(html).toContain('href="https://example.com"');
+  });
+
+  it("marks only the first project as the featured card", () => {
+    // Work.svelte's index === 0 check (~line 31) decides both the featured
+    // border colour and the status text colour; with two fixture projects
+    // both sides of that branch render in one pass, so a flipped condition
+    // or a dropped class:work-card-featured shows up here.
+    const html = html_for(LANDING);
+
+    expect(html.match(/work-card-featured/g)?.length).toBe(1);
+    expect(html).toContain(`border-left-color: ${HUD_PALETTE.accent};`);
+    expect(html).toContain(`border-left-color: ${HUD_PALETTE.edge};`);
+    expect(html).toContain(`color: ${HUD_PALETTE.secondary};`);
   });
 
   it("omits target/rel from a mailto: contact link but keeps them on an https: one", () => {

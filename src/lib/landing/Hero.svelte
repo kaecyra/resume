@@ -59,9 +59,7 @@
   <div class="hero-foot">
     <p class="hero-tagline">{hero.tagline}</p>
     <p class="hero-status">{hero.status}</p>
-    <div class="hero-actions">
-      <ResumeCta {resume_link} {profile_name} {resume_title} />
-    </div>
+    <ResumeCta {resume_link} {profile_name} {resume_title} />
   </div>
 </section>
 

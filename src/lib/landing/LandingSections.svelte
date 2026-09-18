@@ -3,7 +3,7 @@
 
   import Commits from "./Commits.svelte";
   import Contact from "./Contact.svelte";
-  import type { ContributionsGrid } from "./contributions.js";
+  import type { ProvisionalContributionsGrid } from "./contributions.js";
   import Divider from "./Divider.svelte";
   import Hero from "./Hero.svelte";
   import Work from "./Work.svelte";
@@ -26,7 +26,7 @@
     landing: LandingData;
     profile_name: string;
     resume_title: string;
-    contributions_grid: ContributionsGrid | null;
+    contributions_grid: ProvisionalContributionsGrid | null;
   } = $props();
 
   const resume_link = $derived(landing.resume_links[0]);

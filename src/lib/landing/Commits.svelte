@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { LandingGithub } from "$lib/types.js";
 
-  import type { ContributionsGrid } from "./contributions.js";
+  import type { ProvisionalContributionsGrid } from "./contributions.js";
   import { HUD_PALETTE } from "./palette.js";
 
   let {
     github,
     contributions_grid,
-  }: { github: LandingGithub; contributions_grid: ContributionsGrid | null } = $props();
+  }: { github: LandingGithub; contributions_grid: ProvisionalContributionsGrid | null } = $props();
 </script>
 
 <section
@@ -36,8 +36,8 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div class="commits-grid-scroll" tabindex="0" role="group" aria-labelledby="commits-caption">
       <!-- aria-hidden, not an aria-label: this grid has no contribution
-           *numbers* to summarise, only colours (ContributionsGrid is
-           color-per-day and nothing else), so any aria-label written here
+           *numbers* to summarise, only colours (ProvisionalContributionsGrid
+           is color-per-day and nothing else), so any aria-label written here
            would be fabricated. The caption above is the whole accessible
            story for now. #167 owns the underlying contribution data and is
            the node that can add a real summary and lift this aria-hidden -
