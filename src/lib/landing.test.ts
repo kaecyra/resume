@@ -204,6 +204,14 @@ describe("validate_landing_data", () => {
     );
   });
 
+  it("validates clean when a project's links array is empty", () => {
+    const landing = make_landing({
+      projects: [{ ...MOCK_LANDING_DATA.projects[0], links: [] }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toEqual([]);
+  });
+
   it("detects empty resume_links", () => {
     const landing = make_landing({ resume_links: [] });
     const errors = validate_landing_data(landing, VALID_VARIANTS);

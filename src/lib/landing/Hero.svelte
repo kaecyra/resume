@@ -83,6 +83,9 @@
   .hero-backdrop {
     position: absolute;
     inset: 0;
+    /* These three stops are bespoke gradient shades, not a translated
+       HUD_PALETTE token - there's no token to point at, so they stay
+       literals. Not a missed spot in the token-literal sweep. */
     background: radial-gradient(70% 70% at 68% 48%, #17171b 0%, #0d0d0f 55%, #09090a 100%);
   }
 
@@ -99,7 +102,17 @@
   .hero-scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(10, 10, 11, 0.97) 0%, rgba(10, 10, 11, 0.84) 36%, rgba(10, 10, 11, 0) 64%);
+    /* Translucent derivation of --hud-bg (HUD_PALETTE.background), not a
+       fresh literal - color-mix keeps it tied to the token instead of
+       drifting if the token changes. Same pattern as Divider.svelte. The
+       64% stop is fully transparent already, so it needs no colour
+       component. */
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--hud-bg) 97%, transparent) 0%,
+      color-mix(in srgb, var(--hud-bg) 84%, transparent) 36%,
+      transparent 64%
+    );
   }
 
   .hero-topbar,

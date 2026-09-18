@@ -17,12 +17,36 @@
 >
   <div class="commits-head">
     <h2 class="commits-heading">Commits</h2>
-    <span class="commits-meta">@{github.user}, last 12 months</span>
+    <span id="commits-caption" class="commits-meta">@{github.user}, last 12 months</span>
   </div>
 
   {#if contributions_grid}
-    <div class="commits-grid-scroll">
-      <div class="commits-grid">
+    <!-- overflow-x: auto below makes this a scrollable region; without
+         something focusable inside it, a keyboard-only user can't reach or
+         pan it (WCAG 2.1.1). tabindex/role/aria-labelledby go here, on the
+         scroller, not on the grid - see the grid's own comment for why the
+         grid itself carries aria-hidden instead. Naming this group from the
+         caption above (rather than writing a second, separate label) keeps
+         there being exactly one accessible description of what this is.
+         svelte-ignore below: svelte's a11y_no_noninteractive_tabindex rule
+         has no exception for the "make a scrollable region reachable"
+         pattern (WCAG 2.1.1 / technique SCR29) - role="group" is correct
+         a11y semantics here (this isn't a widget), the lint rule is just
+         blind to this specific, sanctioned use of tabindex. -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div class="commits-grid-scroll" tabindex="0" role="group" aria-labelledby="commits-caption">
+      <!-- aria-hidden, not an aria-label: this grid has no contribution
+           *numbers* to summarise, only colours (ContributionsGrid is
+           color-per-day and nothing else), so any aria-label written here
+           would be fabricated. The caption above is the whole accessible
+           story for now. #167 owns the underlying contribution data and is
+           the node that can add a real summary and lift this aria-hidden -
+           treat this as a handoff, not a settled decision. (It's also why
+           aria-hidden lives here and not on the scroller: nesting a
+           focusable element inside an aria-hidden subtree is a documented
+           anti-pattern that axe flags - the scroller carries the
+           tabindex/role, this inner grid carries no focusable children.) -->
+      <div class="commits-grid" aria-hidden="true">
         {#each contributions_grid as week, week_index (week_index)}
           <div class="commits-week">
             {#each week.days as day, day_index (day_index)}

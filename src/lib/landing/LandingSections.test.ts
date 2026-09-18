@@ -20,6 +20,14 @@ const LANDING: LandingData = {
       stack: ["TypeScript"],
       status: "Active",
     },
+    {
+      id: "proj-b",
+      name: "Project B",
+      blurb: "Does another thing.",
+      stack: ["TypeScript"],
+      status: "Active",
+      links: [{ label: "Site", url: "https://example.com" }],
+    },
   ],
   resume_links: ["default"],
   contact: [
@@ -57,6 +65,17 @@ describe("LandingSections", () => {
     expect(html).toContain("Project A");
     expect(html).toContain("https://linkedin.com/in/test");
     expect(html).toContain("mailto:test@example.com");
+  });
+
+  it("wires a project's links entry into a real href on the rendered card", () => {
+    // Round 3 extracted and tested project_link() itself, but every fixture
+    // project here previously had neither repo_url nor links, so the
+    // {#if link} branch in Work.svelte (~line 34) that turns the result
+    // into an <a href> was never exercised by a render. proj-b (added
+    // above) carries a links entry to close that gap.
+    const html = html_for(LANDING);
+
+    expect(html).toContain('href="https://example.com"');
   });
 
   it("renders sections in the order given by landing.sections", () => {
