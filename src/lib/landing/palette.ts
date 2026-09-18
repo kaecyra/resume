@@ -37,3 +37,41 @@ export const HUD_PALETTE = {
   chip_bg: "#1d1d21",
   chip_text: "#8a8a92",
 } as const;
+
+// The contribution grid's own ramp (#192) - Commits.svelte's five
+// `cell.level` buckets (0-4), darkest/emptiest to brightest. Kept separate
+// from `HUD_PALETTE` rather than added to it: everywhere else on the page
+// `accent` (amber) stays the one accent colour, and folding a second,
+// unrelated accent ramp into the same object would make every future
+// `Object.values(HUD_PALETTE)` walk (palette.test.ts's hex-format check,
+// any future contrast sweep) silently start covering swatches those checks
+// were never written for.
+//
+// Green, in GitHub's spirit - darkest-to-brightest steps reading as "more
+// activity" - tuned to this page's near-black surfaces (`background`
+// #0a0a0b, `panel` #121214) rather than copied from GitHub's own dark-mode
+// hex values (#0e4429/#006d32/#26a641/#39d353), which assume GitHub's own
+// background (#0d1117).
+//
+// `level_0` deliberately reuses `HUD_PALETTE.edge` instead of a new "empty
+// green": a zero-contribution day should read as an unlit slot - the same
+// border tone the rest of the page uses for "nothing here" - not a dark
+// green that still reads as "some colour, just a low one".
+//
+// Not load-bearing for palette.test.ts's WCAG AA text-contrast sweep: every
+// checked token there is something read as text (a caption, a label, a
+// chip) at a fixed 4.5:1 floor. A ramp cell is a small coloured square
+// encoding a data value, not text - WCAG's 1.4.3 text-contrast floor does
+// not apply to it, and unlike `chip_text`-on-`chip_bg` there is no
+// foreground/background text pairing here to hold to a ratio. What *is*
+// worth protecting mechanically is the property that actually matters for
+// reading the ramp - each level visibly brighter than the last, empty
+// through full - so palette.test.ts checks the five levels' relative
+// luminance is strictly increasing instead.
+export const CONTRIBUTION_RAMP = {
+  level_0: HUD_PALETTE.edge,
+  level_1: "#164a2f",
+  level_2: "#1f6b3f",
+  level_3: "#2fa35c",
+  level_4: "#4fd67e",
+} as const;

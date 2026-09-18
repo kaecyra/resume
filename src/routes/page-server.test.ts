@@ -16,7 +16,22 @@ vi.mock("$lib/landing.js", async (import_original) => {
   return { ...actual, load_landing_data: vi.fn(actual.load_landing_data) };
 });
 
+// The real I/O boundary for the GitHub contribution grid is the
+// gitignored data/generated/github.json read inside
+// load_github_contribution_data (src/lib/github.ts's own readFileSync) -
+// wrapping it the same way load_landing_data is wrapped above means the
+// two tests below control whether that file is "present" deterministically,
+// rather than depending on whether it happens to exist on the machine
+// running the suite. build_contribution_grid stays real and unmocked, so
+// the "present" case still exercises the actual grid-building logic, not a
+// hand-typed fixture of that shape.
+vi.mock("$lib/github.js", async (import_original) => {
+  const actual = await import_original<typeof import("$lib/github.js")>();
+  return { ...actual, load_github_contribution_data: vi.fn(actual.load_github_contribution_data) };
+});
+
 import { load_resume_data, load_variant } from "$lib/data.js";
+import { load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data } from "$lib/landing.js";
 
 import { load } from "./+page.server.js";
@@ -62,6 +77,7 @@ describe("landing page load", () => {
 describe("landing data wiring", () => {
   beforeEach(() => {
     vi.mocked(load_landing_data).mockClear();
+    vi.mocked(load_github_contribution_data).mockClear();
   });
 
   it("returns the validated landing document for a well-formed data/landing.yaml", async () => {
@@ -71,14 +87,45 @@ describe("landing data wiring", () => {
     expect(result.landing.resume_links).toEqual(["default"]);
   });
 
-  // #167 (not this node) fetches and buckets the real GitHub contribution
-  // calendar at build time. Until it lands, the loader has nothing to
-  // read, and Commits.svelte's offline state depends on getting `null`
-  // here rather than an empty array or throwing.
-  it("passes a null contributions_grid until the GitHub fetch data source lands", async () => {
+  // #167/#184 fetch and bucket the real GitHub contribution calendar at
+  // build time, writing data/generated/github.json - gitignored, so a
+  // contributor or a CI run without GH_CONTRIB_PAT/GITHUB_TOKEN never has
+  // it. This asserted `contributions_grid === null` unconditionally until
+  // #192 caught it: it happened to pass because CI has no token, not
+  // because the loader was exercised both ways - a test that can't fail on
+  // the thing it claims to check. Split into the two real outcomes below,
+  // both driven by mocking load_github_contribution_data (see the vi.mock
+  // above) rather than by whether the file happens to exist.
+  it("passes a null contributions_grid when the generated GitHub data file is absent - the offline case Commits.svelte renders for", async () => {
+    vi.mocked(load_github_contribution_data).mockReturnValueOnce(null);
+
     const result = await run_load();
 
     expect(result.contributions_grid).toBeNull();
+  });
+
+  it("builds a real contributions_grid from the generated GitHub data file when it is present", async () => {
+    vi.mocked(load_github_contribution_data).mockReturnValueOnce({
+      generated_at: "2026-09-18T00:00:00.000Z",
+      total_count: 5,
+      days: [
+        { date: "2026-09-17", count: 0 },
+        { date: "2026-09-18", count: 5 },
+      ],
+    });
+
+    const result = await run_load();
+
+    // Asserts the real day-by-day shape build_contribution_grid (unmocked,
+    // src/lib/github.ts) produces from this fixture - not just "is not
+    // null" - so a broken wiring that swaps in an empty or malformed grid
+    // still fails this test.
+    expect(result.contributions_grid?.total_count).toBe(5);
+    const real_days = result.contributions_grid?.weeks.flat().filter((cell) => cell !== null);
+    expect(real_days).toEqual([
+      { date: "2026-09-17", count: 0, level: 0 },
+      { date: "2026-09-18", count: 5, level: 4 },
+    ]);
   });
 
   it("sources the PDF filename pieces from resume.yaml and the linked variant, not from landing.hero", async () => {

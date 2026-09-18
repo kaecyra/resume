@@ -1,8 +1,12 @@
 <script lang="ts">
-  import type { ContributionGridModel } from "$lib/github.js";
+  import { onMount } from "svelte";
+
+  import { browser } from "$app/environment";
+  import type { ContributionCell, ContributionGridModel } from "$lib/github.js";
   import type { LandingGithub } from "$lib/types.js";
 
-  import { HUD_PALETTE } from "./palette.js";
+  import { day_readout, derive_month_labels, format_day_summary, resting_readout } from "./contributions.js";
+  import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
   let {
     github,
@@ -13,25 +17,89 @@
   // ramp bucket as `level: number` (0-4), not a colour - the ramp's own
   // maths (which quartile a count falls into) lives there, out of this
   // component. This is the one place that turns a level into a colour, so
-  // there is exactly one ramp definition to keep in sync with the "Signal"
-  // amber accent. Index 0 is a day with zero contributions (still a real
-  // day - rendered, just at the empty end of the ramp); indices 1-4 step
-  // `accent` up through increasing opacity to full strength at the
-  // calendar's own max (see bucket_level in github.ts for why the top
-  // bucket is relative to the calendar's max, not an absolute count).
+  // there is exactly one ramp definition to keep in sync with the green
+  // `CONTRIBUTION_RAMP` tokens (palette.ts). Index 0 is a day with zero
+  // contributions (still a real day - rendered, just at the empty end of
+  // the ramp); indices 1-4 step up to the calendar's own max (see
+  // bucket_level in github.ts for why the top bucket is relative to the
+  // calendar's max, not an absolute count).
   const LEVEL_COLORS = [
-    HUD_PALETTE.edge,
-    `${HUD_PALETTE.accent}40`,
-    `${HUD_PALETTE.accent}80`,
-    `${HUD_PALETTE.accent}bf`,
-    HUD_PALETTE.accent,
+    CONTRIBUTION_RAMP.level_0,
+    CONTRIBUTION_RAMP.level_1,
+    CONTRIBUTION_RAMP.level_2,
+    CONTRIBUTION_RAMP.level_3,
+    CONTRIBUTION_RAMP.level_4,
   ];
+
+  const week_count = $derived(contributions_grid?.weeks.length ?? 0);
+  const month_labels = $derived(contributions_grid ? derive_month_labels(contributions_grid.weeks) : []);
+
+  // Drives the info rail below the grid. `null` is the resting state (see
+  // the rail's own render below for why that shows the total rather than
+  // being empty) - set from a real day's mouseenter/focus, cleared on
+  // mouseleave/blur, so hover and focus behave identically (#192 requires
+  // both, not a mouse-only affordance).
+  let active_cell: ContributionCell | null = $state(null);
+
+  const readout = $derived(
+    active_cell ? day_readout(active_cell) : resting_readout(contributions_grid?.total_count ?? 0),
+  );
+
+  // Ties the rail to the ramp visually (round 2 of #192: "let the hovered
+  // day's level tint something in the rail"), the same left-border-accent
+  // idiom Work.svelte uses to mark "the one thing being pointed at" - a
+  // decorative border swatch, not text, so this carries no WCAG text-
+  // contrast obligation (same reasoning as the ramp itself; see palette.ts).
+  // Falls back to the neutral `edge` token at rest, since nothing is being
+  // pointed at yet.
+  const rail_accent = $derived.by(() => {
+    const cell = active_cell;
+    return cell ? LEVEL_COLORS[cell.level] : HUD_PALETTE.edge;
+  });
+
+  function activate(cell: ContributionCell) {
+    active_cell = cell;
+  }
+
+  function deactivate() {
+    active_cell = null;
+  }
+
+  // Whether the scroller still needs to announce itself as a scrollable
+  // region. Starts `true` - the safe, conservative default for SSR and for
+  // any visitor without JS, where there is no way to measure real layout -
+  // and onMount narrows it to the actual overflow once the grid has a real
+  // box to measure. #192 made the grid fluid (see `.commits-grid`'s
+  // `minmax(6px, 1fr)` columns below): most viewports never overflow at
+  // all now, so most visitors lose the tabindex/role/aria-labelledby entirely
+  // once JS runs, and only a narrow viewport - where 6px columns still don't
+  // fit - keeps them.
+  let scroller_overflowing = $state(true);
+  let scroll_el: HTMLDivElement | undefined = $state();
+
+  onMount(() => {
+    if (!browser || !scroll_el) {
+      return;
+    }
+
+    function measure() {
+      if (!scroll_el) {
+        return;
+      }
+      scroller_overflowing = scroll_el.scrollWidth > scroll_el.clientWidth;
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+
+    return () => window.removeEventListener("resize", measure);
+  });
 </script>
 
 <section
   id="commits"
   class="commits"
-  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};"
+  style="--hud-panel: {HUD_PALETTE.panel}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-edge: {HUD_PALETTE.edge}; --commits-glow: {CONTRIBUTION_RAMP.level_4};"
 >
   <div class="commits-head">
     <h2 class="commits-heading">Commits</h2>
@@ -39,11 +107,13 @@
   </div>
 
   {#if contributions_grid}
-    <!-- overflow-x: auto below makes this a scrollable region; without
-         something focusable inside it, a keyboard-only user can't reach or
-         pan it (WCAG 2.1.1). tabindex/role/aria-labelledby go here, on the
-         scroller, not on the grid - see the grid's own comment for why the
-         grid itself carries aria-hidden instead. Naming this group from the
+    <!-- overflow-x: auto below makes this a scrollable region only once the
+         grid's fluid columns (see .commits-grid) hit their 6px floor and
+         genuinely don't fit; without something focusable inside it at that
+         point, a keyboard-only user couldn't reach or pan it (WCAG 2.1.1).
+         tabindex/role/aria-labelledby are conditional on scroller_overflowing
+         (set above) precisely so this region stops announcing itself as
+         scrollable once it no longer is (#192) - naming this group from the
          caption above (rather than writing a second, separate label) keeps
          there being exactly one accessible description of what this is.
          svelte-ignore below: svelte's a11y_no_noninteractive_tabindex rule
@@ -52,35 +122,85 @@
          a11y semantics here (this isn't a widget) and the lint rule
          doesn't recognize this pattern. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-    <div class="commits-grid-scroll" tabindex="0" role="group" aria-labelledby="commits-caption">
-      <!-- aria-hidden, not an aria-label: a per-day summary here would just
-           restate the calendar visually ("mostly empty, a cluster in
-           October"), which isn't information distinct from the grid itself,
-           and a single aggregate number is already the caption above's job
-           if it ever gets one. The caption is the whole accessible story for
-           this grid. (It's also why aria-hidden lives here and not on the
-           scroller: nesting a focusable element inside an aria-hidden
-           subtree is a documented anti-pattern that axe flags - the
-           scroller carries the tabindex/role, this inner grid carries no
-           focusable children.) -->
-      <div class="commits-grid" aria-hidden="true">
+    <div
+      class="commits-grid-scroll"
+      bind:this={scroll_el}
+      tabindex={scroller_overflowing ? 0 : undefined}
+      role={scroller_overflowing ? "group" : undefined}
+      aria-labelledby={scroller_overflowing ? "commits-caption" : undefined}
+    >
+      <div class="commits-months" style="--week-count: {week_count};">
+        {#each month_labels as month (month.week_index)}
+          <span class="commits-month" style="grid-column: {month.week_index + 1};">{month.label}</span>
+        {/each}
+      </div>
+
+      <!-- No aria-hidden here (unlike the pre-#192 grid): every real day is
+           now a focusable button with its own aria-label carrying that
+           day's count and date, so the grid is no longer a decorative echo
+           of the caption above - it's the accessible source of per-day
+           detail. Hiding a subtree that contains focusable descendants is
+           a documented anti-pattern (axe: aria-hidden-focus) as well as
+           being wrong here now that there's real distinct information
+           inside it. Padding slots (see the `else` branch below) are the
+           only children still marked aria-hidden - they aren't days. -->
+      <div class="commits-grid" style="--week-count: {week_count};">
         {#each contributions_grid.weeks as week, week_index (week_index)}
           <div class="commits-week">
             {#each week as cell, day_index (day_index)}
               {#if cell}
-                <div class="commits-day" style="background: {LEVEL_COLORS[cell.level]};"></div>
+                <button
+                  type="button"
+                  class="commits-day"
+                  style="background: {LEVEL_COLORS[cell.level]};"
+                  aria-label={format_day_summary(cell)}
+                  onmouseenter={() => activate(cell)}
+                  onmouseleave={deactivate}
+                  onfocus={() => activate(cell)}
+                  onblur={deactivate}
+                ></button>
               {:else}
                 <!-- A null slot pads the first/last week when the calendar
                      doesn't start on a Sunday or end on a Saturday (see
                      build_contribution_grid in github.ts) - it holds the
-                     column's width without drawing a day that doesn't exist. -->
-                <div class="commits-day commits-day-pad"></div>
+                     column's width without drawing a day that doesn't
+                     exist, so it's aria-hidden rather than a button. -->
+                <div class="commits-day commits-day-pad" aria-hidden="true"></div>
               {/if}
             {/each}
           </div>
         {/each}
       </div>
     </div>
+
+    <!-- No aria-live here: every button above already carries its own
+         aria-label with the same wording, read the moment a screen-reader
+         user focuses it - an aria-live region on top would announce that
+         same sentence a second time. This is the sighted/visual half of the
+         same information (and the resting default for a mouse user who
+         hasn't touched a day yet), not a second accessible channel.
+
+         A <dl> of two <dt>/<dd> fields (wrapped in a <div> each - valid
+         HTML5, the standard way to group dt/dd pairs), not a sentence: the
+         "more stylized" instrument-panel rail from round 2 of #192 reads as
+         two readouts, count and date/window, not prose. Both branches of
+         `readout` (day_readout/resting_readout, contributions.ts) always
+         produce the exact same two fields, just with different text - the
+         DOM shape never changes between the resting and hovered states, so
+         there is nothing here that *can* reflow when the content swaps; the
+         stylesheet still pins font sizes/line-heights explicitly rather
+         than leaning on that alone, in case a future edit adds a
+         conditional field. No layout shift (#192). -->
+    <dl class="commits-rail" style="--commits-rail-accent: {rail_accent};">
+      <div class="commits-rail-field">
+        <dt class="commits-rail-label">{readout.count_label}</dt>
+        <dd class="commits-rail-value">{readout.count_value}</dd>
+      </div>
+      <div class="commits-rail-field">
+        <dt class="commits-rail-label">{readout.detail_label}</dt>
+        <dd class="commits-rail-value">{readout.detail_value}</dd>
+      </div>
+    </dl>
   {:else}
     <p class="commits-offline">Commit history is offline for this build.</p>
   {/if}
@@ -113,9 +233,9 @@
   }
 
   .commits-meta {
-    /* This caption is the grid's sole label (which account, what period),
-       so it's content someone needs to read, not a decorative tag - it
-       uses `secondary`, not `meta`. See palette.ts.
+    /* This caption names the account and period, so it's content someone
+       needs to read, not a decorative tag - it uses `secondary`, not
+       `meta`. See palette.ts.
        Inherits the body face (IBM Plex Sans) from .landing in +page.svelte
        - mono retired here (#187). Renders mixed-case running text
        ("@kaecyra, last 12 months"), so the 0.14em tracking tuned for
@@ -129,10 +249,39 @@
     overflow-x: auto;
   }
 
-  .commits-grid {
-    display: flex;
+  .commits-months {
+    display: grid;
+    /* Same column template as .commits-grid below, so a label at
+       grid-column N lines up with week N's cells - a shared --week-count
+       and identical minmax/gap values are what keep the two grids in
+       lockstep, not a shared DOM parent. */
+    grid-template-columns: repeat(var(--week-count), minmax(6px, 1fr));
     gap: 3px;
-    width: fit-content;
+    margin-bottom: 0.35rem;
+  }
+
+  .commits-month {
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--hud-secondary);
+    /* Short as these labels are ("Sep", "Oct"), a 6px-floor column is still
+       narrower than the text - nowrap lets a label spill rightward across
+       the following empty columns rather than wrap or clip, same as
+       GitHub's own month row. */
+    white-space: nowrap;
+  }
+
+  .commits-grid {
+    display: grid;
+    /* Fluid, not fit-content: each week gets an equal fraction of the
+       section's full width (#192's "full width" requirement), with a 6px
+       floor so a day never shrinks past legible. Below that floor the grid
+       overflows its .commits-grid-scroll ancestor and that ancestor's own
+       overflow-x: auto (below) takes over - the same condition
+       scroller_overflowing (above) measures to decide whether to keep
+       announcing the region as scrollable. */
+    grid-template-columns: repeat(var(--week-count), minmax(6px, 1fr));
+    gap: 3px;
   }
 
   .commits-week {
@@ -142,12 +291,76 @@
   }
 
   .commits-day {
-    width: 14px;
-    height: 14px;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border: none;
+    padding: 0;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .commits-day:hover,
+  .commits-day:focus-visible {
+    /* Glow, not just a colour swap: an outer ring in --commits-glow (the
+       ramp's own brightest step, set from CONTRIBUTION_RAMP.level_4 on the
+       section above - never a literal hex here, palette.ts stays the one
+       place colour is defined) plus a soft blur reads as "lit up" against
+       the near-black panel behind it, at any ramp level including 0. */
+    outline: none;
+    box-shadow:
+      0 0 0 1px var(--commits-glow),
+      0 0 6px 1px var(--commits-glow);
   }
 
   .commits-day-pad {
     visibility: hidden;
+  }
+
+  .commits-rail {
+    margin: 0.85rem 0 0;
+    padding: 0.9375rem 1.375rem;
+    display: flex;
+    gap: 0.75rem 2.75rem;
+    background: var(--hud-panel-alt);
+    border: 1px solid var(--hud-edge);
+    /* The one part of this panel that changes at all between the resting
+       and hovered states - see `rail_accent` in the script above for why a
+       border, not text, carries the ramp's colour. */
+    border-left: 3px solid var(--commits-rail-accent);
+    /* Both fields' label/value line-heights are fixed below regardless of
+       which text is showing, so this height is already deterministic - see
+       the rail's own markup comment for why. Reserved explicitly anyway
+       rather than left implicit. */
+    min-height: calc(1.3 * 0.6875rem + 0.3rem + 1.3 * 1.375rem + 2 * 0.9375rem + 2px);
+  }
+
+  .commits-rail-field {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .commits-rail-label {
+    margin: 0;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--hud-secondary);
+  }
+
+  .commits-rail-value {
+    margin: 0;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 1.375rem;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--hud-text);
+    white-space: nowrap;
   }
 
   .commits-offline {
@@ -164,6 +377,11 @@
   @media (max-width: 480px) {
     .commits {
       padding: 2rem 1.25rem 2.75rem;
+    }
+
+    .commits-rail {
+      flex-direction: column;
+      gap: 0.85rem;
     }
   }
 </style>
