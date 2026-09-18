@@ -5,6 +5,8 @@
 // importing it here is side-effect free.
 import type { Topology } from "topojson-specification";
 
+import { MONTREAL_LAT, MONTREAL_LON } from "../src/lib/landing/globe.js";
+
 import {
   assert_no_antimeridian_span,
   build_globe_lines,
@@ -250,5 +252,27 @@ describe("build_globe_still_svg", () => {
   it("produces no path layers for empty geometry", () => {
     const svg = build_globe_still_svg({ world: [], canada: [] });
     expect(svg).not.toContain("<path");
+  });
+
+  // #188: the still is rendered at STILL_SPIN_RAD, which must follow
+  // globe.ts's MONTREAL_START_SPIN_RAD so the still and the animating
+  // canvas's first frame show the same orientation. A degenerate
+  // (coincident-point) ring at exactly YUL's coordinates projects to a
+  // single M/L pair whose x tells us the spin actually used: STILL_SPIN_RAD
+  // still at 0 (or any value other than MONTREAL_START_SPIN_RAD) would not
+  // land on the viewbox's horizontal centre.
+  it("centres the Montreal (YUL) point horizontally, matching the canvas's first frame", () => {
+    const montreal_ring = `${MONTREAL_LON.toFixed(4)},${MONTREAL_LAT.toFixed(4)} ${MONTREAL_LON.toFixed(4)},${MONTREAL_LAT.toFixed(4)}`;
+    const svg = build_globe_still_svg({ world: [montreal_ring], canada: [] });
+
+    const match = svg.match(/M([\d.]+),([\d.]+) L([\d.]+),([\d.]+)/);
+    expect(match).not.toBeNull();
+    const [, x_a, , x_b] = match!;
+
+    // STILL_VIEWBOX_PX is 760 in build-geo.ts (matches Hero.svelte's
+    // .hero-visual box 1:1) - its horizontal centre is 380.
+    const still_center_px = 380;
+    expect(Number(x_a)).toBeCloseTo(still_center_px, 0);
+    expect(Number(x_b)).toBeCloseTo(still_center_px, 0);
   });
 });

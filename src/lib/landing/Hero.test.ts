@@ -67,4 +67,14 @@ describe("Hero SSR/no-JS output", () => {
     const html = html_for();
     expect(html).not.toContain("hero-status");
   });
+
+  // Pins the exact rendered string (#188) - not just "contains some
+  // coordinates" - so a wrong derivation (dropped decimal place, wrong
+  // sign, stale hardcoded literal) is caught rather than passing on a loose
+  // substring match. 45.47/73.75 are MONTREAL_LAT/MONTREAL_LON (YUL) to two
+  // decimal places, longitude with its sign dropped per the "W" convention.
+  it("renders the topbar coordinates derived from globe.ts's MONTREAL_LAT/MONTREAL_LON (YUL)", () => {
+    const html = html_for();
+    expect(html).toContain("45.47°N 73.75°W");
+  });
 });
