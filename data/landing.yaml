@@ -56,30 +56,25 @@ projects:
       - "MCP"
     status: "In development"
 
+appearances:
+  - id: gtc-2026
+    event: "NVIDIA GTC 2026"
+    what: "LiveVision talk"
+    date: "March 2026"
+    blurb: |
+      Talked at NVIDIA GTC 2026 about the architecture behind LiveVision: real-time AI
+      video understanding at the edge, running high-concurrency model inference against
+      a live broadcast feed, and generating new assets fast enough to keep up with it.
+
   - id: ces-2026
-    name: "LiveVision - CES 2026 Demo"
+    event: "CES 2026"
+    what: "LiveVision demo"
+    date: "January 2026"
     blurb: |
       Built and ran a live, on-prem computer vision pipeline at CES 2026: real video
       feeds from an NFL game, processed on DGX Spark and Lenovo Neo hardware. Getting
       inference to keep pace with the live feed, on hardware that had to work
       correctly the first time on the show floor, was the hard part.
-    stack:
-      - "Computer vision"
-      - "Edge inference"
-      - "DGX Spark"
-    status: "Demo, January 2026"
-
-  - id: gtc-2026
-    name: "LiveVision - NVIDIA GTC 2026 Talk"
-    blurb: |
-      Talked at NVIDIA GTC 2026 about the architecture behind LiveVision: real-time AI
-      video understanding at the edge, running high-concurrency model inference against
-      a live broadcast feed, and generating new assets fast enough to keep up with it.
-    stack:
-      - "Edge AI"
-      - "Video pipelines"
-      - "Model inference"
-    status: "Spoke, March 2026"
 
 resume_links:
   - "default"
@@ -100,4 +95,5 @@ sections:
   - "divider"
   - "commits"
   - "work"
+  - "appearances"
   - "contact"

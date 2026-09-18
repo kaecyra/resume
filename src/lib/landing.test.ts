@@ -31,6 +31,15 @@ const MOCK_LANDING_DATA: LandingData = {
       status: "Active",
     },
   ],
+  appearances: [
+    {
+      id: "appearance-a",
+      event: "Test Conference 2026",
+      what: "Did a thing there",
+      date: "January 2026",
+      blurb: "Talked about the thing.",
+    },
+  ],
   resume_links: ["default"],
   contact: [{ label: "Email", url: "mailto:test@example.com" }],
   github: { user: "testuser" },
@@ -236,6 +245,55 @@ describe("validate_landing_data", () => {
     expect(errors).toContainEqual(
       expect.objectContaining({
         message: `resume_links variant "ghost-variant" is not a valid variant`,
+      }),
+    );
+  });
+
+  it("does not throw when appearances is a map instead of an array", () => {
+    const landing = make_landing({ appearances: { gtc: {} } as unknown as never });
+    expect(() => validate_landing_data(landing, VALID_VARIANTS)).not.toThrow();
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "appearances must be an array" }),
+    );
+  });
+
+  it("detects a missing appearances array", () => {
+    const landing = make_landing({ appearances: undefined as unknown as never });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "appearances must be an array" }),
+    );
+  });
+
+  it("detects an appearance missing an id", () => {
+    const landing = make_landing({
+      appearances: [{ ...MOCK_LANDING_DATA.appearances[0], id: "" }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: "appearance is missing an id" }),
+    );
+  });
+
+  it("detects duplicate appearance ids", () => {
+    const landing = make_landing({
+      appearances: [MOCK_LANDING_DATA.appearances[0], MOCK_LANDING_DATA.appearances[0]],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({ message: `duplicate appearance id "appearance-a"` }),
+    );
+  });
+
+  it("detects an appearance missing event, what, date, or blurb", () => {
+    const landing = make_landing({
+      appearances: [{ ...MOCK_LANDING_DATA.appearances[0], event: "", what: "", date: "", blurb: "" }],
+    });
+    const errors = validate_landing_data(landing, VALID_VARIANTS);
+    expect(errors).toContainEqual(
+      expect.objectContaining({
+        message: `appearance "appearance-a" is missing event, what, date, or blurb`,
       }),
     );
   });

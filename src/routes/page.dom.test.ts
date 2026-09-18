@@ -24,6 +24,7 @@ const LANDING: LandingData = {
     status: "Somewhere, doing stuff.",
   },
   projects: [],
+  appearances: [],
   resume_links: ["default"],
   contact: [{ label: "Email", url: "mailto:test@example.com" }],
   github: { user: "testuser" },

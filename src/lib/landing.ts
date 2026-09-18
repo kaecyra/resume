@@ -9,11 +9,12 @@ import type { ValidationError } from "./validate.js";
 const DATA_DIR = resolve("data");
 
 // The section ids any component built so far can render: Hero ("hero"),
-// Divider ("divider"), Commits ("commits"), Work ("work"), Contact
-// ("contact"). A `sections` entry outside this set silently renders nothing
-// once wired up. The resume CTA (#174's "resume" section) is no longer a
-// standalone section - the redesign (#177) embeds it directly in the hero.
-const KNOWN_SECTIONS = new Set(["hero", "divider", "commits", "work", "contact"]);
+// Divider ("divider"), Commits ("commits"), Work ("work"), Appearances
+// ("appearances"), Contact ("contact"). A `sections` entry outside this set
+// silently renders nothing once wired up. The resume CTA (#174's "resume"
+// section) is no longer a standalone section - the redesign (#177) embeds
+// it directly in the hero.
+const KNOWN_SECTIONS = new Set(["hero", "divider", "commits", "work", "appearances", "contact"]);
 
 export function load_landing_data(): LandingData {
   const raw = readFileSync(resolve(DATA_DIR, "landing.yaml"), "utf-8");
@@ -83,6 +84,31 @@ export function validate_landing_data(
           errors.push({ path, message: `project "${project_label}" link ${link_index} is missing label or url` });
         }
       }
+    }
+  }
+
+  const appearances = Array.isArray(landing.appearances) ? landing.appearances : null;
+  if (!appearances) {
+    errors.push({ path, message: "appearances must be an array" });
+  }
+
+  const seen_appearance_ids = new Set<string>();
+  for (const appearance of appearances ?? []) {
+    const appearance_label = appearance.id || "unknown";
+
+    if (!appearance.id) {
+      errors.push({ path, message: "appearance is missing an id" });
+    } else if (seen_appearance_ids.has(appearance.id)) {
+      errors.push({ path, message: `duplicate appearance id "${appearance.id}"` });
+    } else {
+      seen_appearance_ids.add(appearance.id);
+    }
+
+    if (!appearance.event || !appearance.what || !appearance.date || !appearance.blurb) {
+      errors.push({
+        path,
+        message: `appearance "${appearance_label}" is missing event, what, date, or blurb`,
+      });
     }
   }
 

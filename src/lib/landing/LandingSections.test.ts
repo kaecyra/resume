@@ -31,6 +31,22 @@ const LANDING: LandingData = {
       links: [{ label: "Site", url: "https://example.com" }],
     },
   ],
+  appearances: [
+    {
+      id: "gtc-2026",
+      event: "NVIDIA GTC 2026",
+      what: "LiveVision talk",
+      date: "March 2026",
+      blurb: "Talked about the architecture.",
+    },
+    {
+      id: "ces-2026",
+      event: "CES 2026",
+      what: "LiveVision demo",
+      date: "January 2026",
+      blurb: "Demoed the pipeline.",
+    },
+  ],
   resume_links: ["default"],
   contact: [
     { label: "Email", url: "mailto:test@example.com" },
@@ -38,7 +54,7 @@ const LANDING: LandingData = {
     { label: "GitHub", url: "https://github.com/testuser" },
   ],
   github: { user: "testuser" },
-  sections: ["hero", "divider", "commits", "work", "contact"],
+  sections: ["hero", "divider", "commits", "work", "appearances", "contact"],
 };
 
 // Deliberately different from hero.name/hero.role, to prove the download
@@ -143,6 +159,36 @@ describe("LandingSections", () => {
     expect(work_html.match(/class="work-status[^"]*"[^>]*>Active</g)?.length).toBe(2);
   });
 
+  it("renders every appearance's event, descriptor and date in file order", () => {
+    // landing.sections order is proven separately above; this proves the
+    // section's own content - both fixture rows, and in the order given in
+    // landing.appearances (gtc-2026 before ces-2026), not re-sorted by date.
+    const html = html_for(LANDING);
+    const appearances_html = html.slice(html.indexOf('id="appearances"'), html.indexOf('id="contact"'));
+
+    const gtc_index = appearances_html.indexOf("NVIDIA GTC 2026");
+    const ces_index = appearances_html.indexOf("CES 2026");
+
+    expect(gtc_index).toBeGreaterThanOrEqual(0);
+    expect(ces_index).toBeGreaterThan(gtc_index);
+
+    expect(appearances_html).toContain("LiveVision talk");
+    expect(appearances_html).toContain("March 2026");
+    expect(appearances_html).toContain("LiveVision demo");
+    expect(appearances_html).toContain("January 2026");
+  });
+
+  it("omits the appearances section entirely when it is removed from landing.sections", () => {
+    const without_appearances = {
+      ...LANDING,
+      sections: ["hero", "divider", "commits", "work", "contact"],
+    };
+    const html = html_for(without_appearances);
+
+    expect(html).not.toContain("NVIDIA GTC 2026");
+    expect(html).not.toContain("CES 2026");
+  });
+
   it("omits target/rel from a mailto: contact link but keeps them on an https: one", () => {
     const html = html_for(LANDING);
 
@@ -187,13 +233,15 @@ describe("LandingSections", () => {
     // section that never rendered at all.
     const commits_index = html.indexOf("Commit history is offline for this build.");
     const work_index = html.indexOf("Project A");
+    const appearances_index = html.indexOf("NVIDIA GTC 2026");
     const contact_index = html.indexOf("mailto:test@example.com");
 
     expect(hero_index).toBeGreaterThanOrEqual(0);
     expect(hero_index).toBeLessThan(divider_index);
     expect(divider_index).toBeLessThan(commits_index);
     expect(commits_index).toBeLessThan(work_index);
-    expect(work_index).toBeLessThan(contact_index);
+    expect(work_index).toBeLessThan(appearances_index);
+    expect(appearances_index).toBeLessThan(contact_index);
 
     // Divider filters out mailto: links (Contact renders them instead).
     // Asserted directly here, not just inferred from ordering - dropping

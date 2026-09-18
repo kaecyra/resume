@@ -166,6 +166,14 @@ export interface LandingProject {
   status: string;
 }
 
+export interface LandingAppearance {
+  id: string;
+  event: string;
+  what: string;
+  date: string;
+  blurb: string;
+}
+
 export interface LandingGithub {
   user: string;
 }
@@ -173,6 +181,7 @@ export interface LandingGithub {
 export interface LandingData {
   hero: LandingHero;
   projects: LandingProject[];
+  appearances: LandingAppearance[];
   resume_links: string[];
   contact: LandingLink[];
   github: LandingGithub;

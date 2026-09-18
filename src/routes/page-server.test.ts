@@ -67,7 +67,7 @@ describe("landing data wiring", () => {
   it("returns the validated landing document for a well-formed data/landing.yaml", async () => {
     const result = await run_load();
 
-    expect(result.landing.sections).toEqual(["hero", "divider", "commits", "work", "contact"]);
+    expect(result.landing.sections).toEqual(["hero", "divider", "commits", "work", "appearances", "contact"]);
     expect(result.landing.resume_links).toEqual(["default"]);
   });
 
@@ -98,6 +98,7 @@ describe("landing data wiring", () => {
         status: "Testing.",
       },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      appearances: [],
       resume_links: ["default"],
       contact: [{ label: "Email", url: "mailto:test@example.com" }],
       github: { user: "testuser" },
@@ -132,6 +133,7 @@ describe("landing data wiring", () => {
         status: "Testing.",
       },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      appearances: [],
       resume_links: ["default"],
       contact: [{ label: "Email", url: "mailto:test@example.com" }],
       github: { user: "testuser" },
@@ -158,6 +160,7 @@ describe("landing data wiring", () => {
     const linked_to_cto_a: LandingData = {
       hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "I build things.", status: "Somewhere." },
       projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+      appearances: [],
       resume_links: ["cto-a"],
       contact: [{ label: "Email", url: "mailto:test@example.com" }],
       github: { user: "testuser" },
@@ -174,6 +177,7 @@ describe("landing data wiring", () => {
     const bad_landing: LandingData = {
       hero: { name: "", role: "", location: "", tagline: "", status: "" },
       projects: [],
+      appearances: [],
       resume_links: [],
       contact: [],
       github: { user: "" },
