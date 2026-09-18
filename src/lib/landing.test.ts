@@ -112,65 +112,19 @@ describe("validate_landing_data", () => {
     );
   });
 
-  it("detects a missing hero name", () => {
-    const landing = make_landing({
-      hero: { name: "", role: "Engineer", location: "Somewhere", tagline: "x", status: "y" },
-    });
-    const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toContainEqual(
-      expect.objectContaining({
-        message: "hero is missing required fields (name, role, location, tagline, status)",
-      }),
-    );
-  });
-
-  it("detects a missing hero role", () => {
-    const landing = make_landing({
-      hero: { name: "Test Person", role: "", location: "Somewhere", tagline: "x", status: "y" },
-    });
-    const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toContainEqual(
-      expect.objectContaining({
-        message: "hero is missing required fields (name, role, location, tagline, status)",
-      }),
-    );
-  });
-
-  it("detects a missing hero location", () => {
-    const landing = make_landing({
-      hero: { name: "Test Person", role: "Engineer", location: "", tagline: "x", status: "y" },
-    });
-    const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toContainEqual(
-      expect.objectContaining({
-        message: "hero is missing required fields (name, role, location, tagline, status)",
-      }),
-    );
-  });
-
-  it("detects a missing hero tagline", () => {
-    const landing = make_landing({
-      hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "", status: "y" },
-    });
-    const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toContainEqual(
-      expect.objectContaining({
-        message: "hero is missing required fields (name, role, location, tagline, status)",
-      }),
-    );
-  });
-
-  it("detects a missing hero status", () => {
-    const landing = make_landing({
-      hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "x", status: "" },
-    });
-    const errors = validate_landing_data(landing, VALID_VARIANTS);
-    expect(errors).toContainEqual(
-      expect.objectContaining({
-        message: "hero is missing required fields (name, role, location, tagline, status)",
-      }),
-    );
-  });
+  it.each(["name", "role", "location", "tagline", "status"] as const)(
+    "detects a missing hero %s",
+    (field) => {
+      const landing = make_landing({
+        hero: { ...MOCK_LANDING_DATA.hero, [field]: "" },
+      });
+      expect(validate_landing_data(landing, VALID_VARIANTS)).toContainEqual(
+        expect.objectContaining({
+          message: "hero is missing required fields (name, role, location, tagline, status)",
+        }),
+      );
+    },
+  );
 
   it("detects a missing projects array", () => {
     const landing = make_landing({ projects: undefined as unknown as never });

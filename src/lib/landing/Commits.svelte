@@ -30,9 +30,9 @@
          there being exactly one accessible description of what this is.
          svelte-ignore below: svelte's a11y_no_noninteractive_tabindex rule
          has no exception for the "make a scrollable region reachable"
-         pattern (WCAG 2.1.1 / technique SCR29) - role="group" is correct
-         a11y semantics here (this isn't a widget), the lint rule is just
-         blind to this specific, sanctioned use of tabindex. -->
+         pattern (WCAG 2.1.1 / technique SCR29); role="group" is correct
+         a11y semantics here (this isn't a widget) and the lint rule
+         doesn't recognize this pattern. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div class="commits-grid-scroll" tabindex="0" role="group" aria-labelledby="commits-caption">
       <!-- aria-hidden, not an aria-label: this grid has no contribution
@@ -40,10 +40,9 @@
            is color-per-day and nothing else), so any aria-label written here
            would be fabricated. The caption above is the whole accessible
            story for now. #167 owns the underlying contribution data and is
-           the node that can add a real summary and lift this aria-hidden -
-           treat this as a handoff, not a settled decision. (It's also why
-           aria-hidden lives here and not on the scroller: nesting a
-           focusable element inside an aria-hidden subtree is a documented
+           the node that can add a real summary and lift this aria-hidden.
+           (It's also why aria-hidden lives here and not on the scroller:
+           nesting a focusable element inside an aria-hidden subtree is a documented
            anti-pattern that axe flags - the scroller carries the
            tabindex/role, this inner grid carries no focusable children.) -->
       <div class="commits-grid" aria-hidden="true">

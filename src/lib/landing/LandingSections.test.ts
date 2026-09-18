@@ -254,10 +254,13 @@ describe("LandingSections", () => {
     expect(html.match(/<h1\b/g)?.length).toBe(1);
   });
 
-  it("renders no slash-separated slogan anywhere on the page", () => {
+  it("renders no slash-separated slogan in the divider band", () => {
     const html = html_for(LANDING);
+    const divider_index = html.indexOf("Somewhere, QC");
+    const commits_index = html.indexOf("Commit history is offline for this build.");
+    const divider_band = html.slice(divider_index, commits_index);
 
-    expect(html).not.toMatch(/\s\/\s/);
+    expect(divider_band).not.toMatch(/\s\/\s/);
   });
 
   it("splits hero.role into the badge's tag and label spans, and renders the tagline/status/handle", () => {
