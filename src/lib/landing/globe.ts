@@ -7,12 +7,13 @@
 // drawArrays calls and the marker element's per-frame writes - stays
 // untested. start_globe's controller *decisions* (when it schedules or
 // cancels a frame, what stop() releases) are pinned separately in
-// globe.test.ts's "start_globe controller lifecycle" describe block,
-// against a hand-built gl stub and stubbed window/document/rAF/
-// IntersectionObserver globals - see SHOULD 3 in the #178 round-3 review,
-// which is what corrected this comment: those decisions used to be lumped
-// in with "everything that decides what to draw" and implied covered, when
-// nothing asserted them at all.
+// globe.dom.test.ts's "start_globe controller lifecycle" describe block,
+// which runs in the `dom` project against a real <canvas>, so what it
+// stubs is the gl object, requestAnimationFrame, cancelAnimationFrame and
+// IntersectionObserver - see SHOULD 3 in the #178 round-3 review, which is
+// what corrected this comment: those decisions used to be lumped in with
+// "everything that decides what to draw" and implied covered, when nothing
+// asserted them at all.
 
 import { HUD_PALETTE } from "./palette.js";
 
