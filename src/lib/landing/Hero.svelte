@@ -30,10 +30,10 @@
   <div class="hero-backdrop" aria-hidden="true"></div>
 
   <!--
-    #177 owns this static gradient placeholder. #168 (the rotating globe)
-    mounts its canvas into this element - id and position are the contract
-    between the two nodes, so don't rename or remove #hero-globe-mount
-    without checking with that node.
+    The static gradient lives on .hero-backdrop above. This element is the
+    empty mount point #168 (the rotating globe) fills with its canvas - id
+    and position are the contract between the two nodes, so don't rename or
+    remove #hero-globe-mount without checking with that node.
   -->
   <div id="hero-globe-mount" class="hero-visual" aria-hidden="true"></div>
 
