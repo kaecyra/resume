@@ -50,6 +50,7 @@ npm install
 | `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
 | `npm run generate-slug` | Generate a random 8-char hex slug for sub-variants |
 | `npm run validate-sub-variants` | Validate all sub-variant manifests against master data |
+| `npm run fetch-github` | Fetch the GitHub contribution calendar into `data/generated/github.json` |
 | `npm run prepare` | Sync SvelteKit types |
 
 ## Project Structure
@@ -64,17 +65,21 @@ data/
     default.yaml
     cto-a/                # Sub-variants (job-specific customizations)
       a7f3b9c2.yaml
+  generated/              # Build-time fetched data (gitignored, not in source control)
+    github.json           # GitHub contribution calendar, written by scripts/fetch-github.ts
 src/
   lib/
     data.ts               # Data loading and variant resolution
     landing.ts            # Landing page data loading and validation
     landing/              # Landing page components (greyscale + amber "Signal" design)
+    github.ts             # GitHub contribution calendar transform (grid model, level bucketing)
     types.ts              # TypeScript type definitions
   routes/                 # SvelteKit pages
 scripts/
   generate-og-images.ts   # Puppeteer-based OG image generation
   generate-pdf.ts         # Puppeteer-based PDF generation
   linkedin-export.ts      # LinkedIn copy/paste text exporter
+  fetch-github.ts         # Fetches the GitHub contribution calendar at build time
   deploy.sh               # Manual deploy script (build and push to GHCR)
   setup-host.sh           # Host VM provisioning script
 VERSION                   # CalVer version (YYYY.MM.DD)
@@ -104,6 +109,12 @@ The landing page is not a resume theme: it has no PDF path and no variant resolu
 
 The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [flag-icons](https://github.com/lipis/flag-icons) project, MIT licensed; the upstream license notice is reproduced in a comment at the top of the file.
 
+#### GitHub Contribution Data
+
+The landing page's contribution grid is fetched at build time, not from the browser: `npm run fetch-github` (`scripts/fetch-github.ts`) queries the GitHub GraphQL API for `data.github.user`'s `contributionCalendar` and writes `data/generated/github.json` (fetch timestamp, total count, and per-day counts only - no repository names, ever). That file is gitignored and read by `src/routes/+page.server.ts` at prerender time via `src/lib/github.ts`, which turns it into a grid model rendered as inline SVG with no client-side request.
+
+The script needs a token with `read:user` scope: `GITHUB_TOKEN` in `.env.example` for local runs, and the `GH_CONTRIB_PAT` repository secret in CI (see [Required GitHub Configuration](#required-github-configuration)). Without a token, or if the fetch fails, `data/generated/github.json` simply doesn't exist - the build still succeeds and the section renders an explicit offline state instead of the grid.
+
 ### Sub-Variants
 
 Sub-variants are job-specific customizations of an existing variant. They live in subdirectories of `data/variants/` (e.g., `data/variants/cto-a/a7f3b9c2.yaml`) and inherit all fields from their parent variant, overriding only what benefits from customization.
@@ -125,6 +136,8 @@ GitHub Actions runs on pushes and pull requests to `main`, executing type checki
 ## Deployment
 
 The site uses a pull-based deployment model. Pushing to `main` triggers GitHub Actions to build and push the Docker image to GHCR. On the VM, Watchtower polls GHCR for new images and automatically pulls and recreates the container.
+
+The deploy workflow also runs nightly (`schedule:` trigger, 06:00 UTC) and can be run on demand (`workflow_dispatch`), so the GitHub contribution grid refreshes even with no code change. A nightly run re-pushes the same VERSION tag alongside `latest`; Watchtower tracks `latest`, so this is harmless.
 
 ```
 Push to main -> GitHub Actions builds and pushes to GHCR
@@ -190,6 +203,7 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 | Type | Name | Purpose |
 |---|---|---|
 | Secret | `GHCR_PAT` | GitHub PAT with `read:packages` and `write:packages` scope for GHCR push |
+| Secret | `GH_CONTRIB_PAT` | GitHub PAT with `read:user` scope, for fetching the landing page's contribution calendar |
 | Variable | `DEPLOY_ENABLED` | Enable/disable the deploy workflow (`true`/`false`) |
 | Variable | `PUBLIC_BASE_URL` | Absolute base URL for OG meta tags (no trailing slash) |
 | Variable | `PUBLIC_UMAMI_WEBSITE_ID` | Website ID from Umami dashboard |

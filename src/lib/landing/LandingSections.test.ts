@@ -1,8 +1,8 @@
 import { render } from "svelte/server";
 
+import type { ContributionGridModel } from "$lib/github.js";
 import type { LandingData } from "$lib/types.js";
 
-import type { ProvisionalContributionsGrid } from "./contributions.js";
 import LandingSections from "./LandingSections.svelte";
 import { HUD_PALETTE } from "./palette.js";
 
@@ -63,7 +63,7 @@ const LANDING: LandingData = {
 const PROFILE_NAME = "Resolved Profile";
 const RESUME_TITLE = "Resolved Variant Title";
 
-function html_for(landing: LandingData, contributions_grid: ProvisionalContributionsGrid | null = null): string {
+function html_for(landing: LandingData, contributions_grid: ContributionGridModel | null = null): string {
   return render(LandingSections, {
     props: {
       landing,
@@ -90,15 +90,24 @@ describe("LandingSections", () => {
     // colours in isolation. Nothing proved this component actually forwards
     // its own contributions_grid prop down to Commits rather than, say,
     // hardcoding null on the element - #167's seam only works end to end if
-    // this wiring holds.
-    const grid: ProvisionalContributionsGrid = [
-      { days: [{ color: "#111111" }, { color: "#222222" }] },
-    ];
+    // this wiring holds. Two distinct levels (not the ramp's full 0-4 range,
+    // which is Commits.test.ts's job) are enough to prove distinct per-day
+    // colours reach the markup through this component.
+    const grid: ContributionGridModel = {
+      total_count: 5,
+      generated_at: "2026-09-18T00:00:00.000Z",
+      weeks: [
+        [
+          { date: "2026-09-13", count: 1, level: 1 },
+          { date: "2026-09-14", count: 4, level: 4 },
+        ],
+      ],
+    };
     const html = html_for(LANDING, grid);
 
     expect(html).not.toContain("Commit history is offline for this build.");
-    expect(html).toContain("background: #111111;");
-    expect(html).toContain("background: #222222;");
+    expect(html).toContain(`background: ${HUD_PALETTE.accent}40;`);
+    expect(html).toContain(`background: ${HUD_PALETTE.accent};`);
   });
 
   it("wires a project's links entry into a real href on the rendered card", () => {

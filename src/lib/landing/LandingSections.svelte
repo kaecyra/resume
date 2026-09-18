@@ -1,10 +1,10 @@
 <script lang="ts">
+  import type { ContributionGridModel } from "$lib/github.js";
   import type { LandingData } from "$lib/types.js";
 
   import Appearances from "./Appearances.svelte";
   import Commits from "./Commits.svelte";
   import Contact from "./Contact.svelte";
-  import type { ProvisionalContributionsGrid } from "./contributions.js";
   import Divider from "./Divider.svelte";
   import Hero from "./Hero.svelte";
   import Work from "./Work.svelte";
@@ -15,8 +15,9 @@
   // `profile_name`/`resume_title` come from the loader (resume.yaml and the
   // linked variant), not from `landing`, so the PDF download offers the
   // same filename the variant route itself uses for that file.
-  // `contributions_grid` is #167's data source (out of scope here); it
-  // arrives as `null` until that node lands, and Commits renders an
+  // `contributions_grid` is #167's data source (src/lib/github.ts); it
+  // arrives as `null` when data/generated/github.json is absent (no
+  // GH_CONTRIB_PAT/GITHUB_TOKEN at build time), and Commits renders an
   // explicit offline state for that case.
   let {
     landing,
@@ -27,7 +28,7 @@
     landing: LandingData;
     profile_name: string;
     resume_title: string;
-    contributions_grid: ProvisionalContributionsGrid | null;
+    contributions_grid: ContributionGridModel | null;
   } = $props();
 
   const resume_link = $derived(landing.resume_links[0]);
