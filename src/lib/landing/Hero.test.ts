@@ -7,7 +7,7 @@
 // Commits.test.ts renders Commits directly on the base branch).
 import { render } from "svelte/server";
 
-import type { LandingHero } from "$lib/types.js";
+import type { LandingGithub, LandingHero } from "$lib/types.js";
 
 import Hero from "./Hero.svelte";
 
@@ -19,10 +19,13 @@ const HERO: LandingHero = {
   status: "Somewhere, doing stuff.",
 };
 
+const GITHUB: LandingGithub = { user: "testuser" };
+
 function html_for(hero: LandingHero = HERO): string {
   return render(Hero, {
     props: {
       hero,
+      github: GITHUB,
       resume_link: "default",
       profile_name: "Resolved Profile",
       resume_title: "Resolved Variant Title",

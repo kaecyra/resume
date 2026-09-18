@@ -20,7 +20,7 @@
 import { render } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { LandingHero } from "$lib/types.js";
+import type { LandingGithub, LandingHero } from "$lib/types.js";
 
 const { start_globe, load_globe_lines } = vi.hoisted(() => ({
   start_globe: vi.fn(),
@@ -46,6 +46,8 @@ const HERO: LandingHero = {
   status: "Somewhere, doing stuff.",
 };
 
+const GITHUB: LandingGithub = { user: "testuser" };
+
 function stub_matchmedia(matches: boolean) {
   window.matchMedia = vi.fn().mockReturnValue({
     matches,
@@ -58,6 +60,7 @@ function render_hero() {
   return render(Hero, {
     props: {
       hero: HERO,
+      github: GITHUB,
       resume_link: "default",
       profile_name: "Resolved Profile",
       resume_title: "Resolved Variant Title",
