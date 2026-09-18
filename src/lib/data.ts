@@ -10,6 +10,12 @@ import type {
   SubVariantManifest,
   SubVariantEntry,
 } from "./types.js";
+import {
+  build_master_ids,
+  format_validation_errors,
+  validate_resume_data,
+  validate_variant,
+} from "./validate.js";
 
 const DATA_DIR = resolve("data");
 
@@ -21,14 +27,38 @@ export function list_variants(): string[] {
     .map((f) => f.replace(/\.yaml$/, ""));
 }
 
+// The `as T` these two used to end on was compile-time only - it asserted a
+// shape without checking one, so a malformed YAML file reached the renderer
+// intact and failed later as a TypeError somewhere else entirely (#6).
+// Validating here means a bad data file names its own bad field and stops
+// the build, which is the whole point: these files are the content pipeline
+// for every page on the site.
 export function load_resume_data(): ResumeData {
   const raw = readFileSync(resolve(DATA_DIR, "resume.yaml"), "utf-8");
-  return yaml.load(raw) as ResumeData;
+  const parsed = yaml.load(raw);
+
+  const errors = validate_resume_data(parsed);
+  if (errors.length > 0) {
+    throw new Error(`data/resume.yaml is invalid:\n${format_validation_errors(errors)}`);
+  }
+
+  return parsed as ResumeData;
 }
 
 export function load_variant(name: string): VariantManifest {
   const raw = readFileSync(resolve(DATA_DIR, "variants", `${name}.yaml`), "utf-8");
-  return yaml.load(raw) as VariantManifest;
+  const parsed = yaml.load(raw);
+
+  // Master ids are read here rather than passed in so every existing caller
+  // keeps its signature. resume.yaml is a single small file and the build
+  // prerenders a bounded set of variants, so re-reading it per variant costs
+  // nothing worth threading a parameter through the call graph for.
+  const errors = validate_variant(name, parsed, build_master_ids(load_resume_data()));
+  if (errors.length > 0) {
+    throw new Error(`data/variants/${name}.yaml is invalid:\n${format_validation_errors(errors)}`);
+  }
+
+  return parsed as VariantManifest;
 }
 
 export function resolve_resume(data: ResumeData, variant: VariantManifest): ResolvedResume {
