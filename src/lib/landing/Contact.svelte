@@ -6,7 +6,7 @@
   let { contact }: { contact: LandingLink[] } = $props();
 </script>
 
-<div id="contact" class="contact" style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent};">
+<section id="contact" class="contact" style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent};">
   <h2 class="contact-heading">Let's talk</h2>
   <div class="contact-links">
     {#each contact as item (item.url)}
@@ -22,7 +22,7 @@
       >
     {/each}
   </div>
-</div>
+</section>
 
 <style>
   .contact {

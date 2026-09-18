@@ -10,10 +10,10 @@
   }: { github: LandingGithub; contributions_grid: ContributionsGrid | null } = $props();
 </script>
 
-<div
+<section
   id="commits"
   class="commits"
-  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta};"
+  style="--hud-panel: {HUD_PALETTE.panel}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};"
 >
   <div class="commits-head">
     <h2 class="commits-heading">Commits</h2>
@@ -35,7 +35,7 @@
   {:else}
     <p class="commits-offline">Commit history is offline for this build.</p>
   {/if}
-</div>
+</section>
 
 <style>
   .commits {
@@ -64,10 +64,13 @@
   }
 
   .commits-meta {
+    /* This caption is the grid's sole label (which account, what period),
+       so it's content someone needs to read, not a decorative tag - it
+       uses `secondary`, not `meta`. See palette.ts. */
     font-family: "Share Tech Mono", ui-monospace, monospace;
     font-size: 0.75rem;
     letter-spacing: 0.14em;
-    color: var(--hud-meta);
+    color: var(--hud-secondary);
   }
 
   .commits-grid-scroll {

@@ -2,27 +2,15 @@
   import type { LandingProject } from "$lib/types.js";
 
   import { HUD_PALETTE } from "./palette.js";
+  import { project_link } from "./work-format.js";
 
   let { projects }: { projects: LandingProject[] } = $props();
-
-  function project_link(project: LandingProject): string | null {
-    if (project.repo_url) {
-      return project.repo_url;
-    }
-    if (project.links?.length) {
-      // `links` is a validated array and can hold more than one entry;
-      // rendering only the first is deliberate (one entry exists today),
-      // not a bug. Revisit if a project ever ships with multiple links.
-      return project.links[0].url;
-    }
-    return null;
-  }
 </script>
 
-<div
+<section
   id="work"
   class="work"
-  style="--hud-bg: {HUD_PALETTE.background}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-accent: {HUD_PALETTE.accent}; --hud-chip-bg: {HUD_PALETTE.chip_bg}; --hud-chip-text: {HUD_PALETTE.chip_text};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-chip-bg: {HUD_PALETTE.chip_bg}; --hud-chip-text: {HUD_PALETTE.chip_text};"
 >
   <h2 class="work-heading">Work</h2>
 
@@ -64,7 +52,7 @@
       </article>
     {/each}
   </div>
-</div>
+</section>
 
 <style>
   .work {
@@ -76,7 +64,9 @@
     margin: 0 0 2.5rem;
     font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
-    font-size: 4rem;
+    /* Scales like .commits-heading and .contact-heading, its neighbouring
+       display headings, keeping 4rem (the old fixed size) as the ceiling. */
+    font-size: clamp(2.5rem, 8vw, 4rem);
     line-height: 0.9;
     letter-spacing: -0.03em;
     text-transform: uppercase;

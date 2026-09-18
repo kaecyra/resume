@@ -56,6 +56,7 @@ describe("HUD_PALETTE", () => {
   it.each([
     ["secondary", "background"],
     ["secondary", "panel"],
+    ["secondary", "panel_alt"],
   ] as const)("clears WCAG AA contrast (4.5:1) for %s text on the %s surface", (token, surface) => {
     const ratio = contrast_ratio(HUD_PALETTE[surface], HUD_PALETTE[token]);
     expect(ratio).toBeGreaterThanOrEqual(4.5);

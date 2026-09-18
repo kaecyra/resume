@@ -12,6 +12,14 @@
   const social_links = $derived(contact.filter((item) => !item.url.startsWith("mailto:")));
 </script>
 
+<!-- Deliberately a `div`, not a `section`: Divider has no heading of its own
+     to give a landmark an accessible name (the alternative, a hand-written
+     aria-label, would just restate "location and social links" without
+     giving a screen-reader user anything to jump to that the surrounding
+     Hero/Commits landmarks don't already cover), and it is a pure
+     navigation band rather than a region of page content, so it is
+     intentionally left out of the landmark structure fixed for
+     Contact/Commits/Work. -->
 <div
   id="divider"
   class="divider"
