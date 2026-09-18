@@ -106,6 +106,14 @@ field_deployments:
     description: |
       Built a sandboxing and orchestration harness for running AI coding agents safely: network egress gatekept through a host-side proxy, shell commands broken out to a host-side execution daemon with per-project mount and volume isolation and configurable approval gates (Manual, Judge, Yolo). Lets an agent session run a real toolchain without direct access to credentials or the open internet. Promotes continuous harness evolution by making skills and agent guidance portable between unrelated projects.
 
+  - id: penny-royal
+    category: "Personal Project"
+    title: "Penny Royal"
+    venue: "https://pennyroyal.io"
+    date: "2026-06"
+    description: |
+      Built a multi-tenant AI agent framework that runs on hardware the operator owns. A local model triages every inbound message and answers what it can on-device; only the work that genuinely needs a frontier model leaves the machine, and which provider that is stays the operator's choice. Tenant credentials are encrypted at rest and injected at execution time, so the model never sees a secret. Integrations are MCP servers, which keeps the core from needing to know what sits behind any one of them.
+
 employment:
   - id: monks-vpe
     title: "Vice President of Engineering"
