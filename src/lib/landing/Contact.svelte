@@ -16,7 +16,11 @@
   }
 </script>
 
-<section id="contact" class="contact" style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent};">
+<section
+  id="contact"
+  class="contact"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent}; --hud-edge: {HUD_PALETTE.edge};"
+>
   <h2 class="contact-heading">Let's talk</h2>
   <div class="contact-links">
     {#each contact as item (item.url)}
@@ -84,9 +88,7 @@
        address) just reads as loose, not deliberate. */
     /* No underline on landing-page links (owner request). An anchor with no
        text-decoration declaration underlines by default, so this needs an
-       explicit `none` even though nothing here ever set `underline`. No
-       hover rule existed before this either, so this link still has no
-       hover response. */
+       explicit `none`. */
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
@@ -94,6 +96,18 @@
     color: inherit;
     text-decoration: none;
     word-break: break-word;
+  }
+
+  .contact-link:hover {
+    /* Colour-change hover to replace the underline's lost affordance.
+       --hud-edge is the most visible shift the palette offers off the
+       resting --hud-bg text while staying readable against this section's
+       amber (--hud-accent) background - ~4.3:1, short of the 4.5:1 body-text
+       AA floor but still clearly legible for a short link label, and the
+       best contrast/visibility trade-off in the token set (the darker
+       tokens that clear 4.5:1 here - panel, panel_alt - sit too close to
+       --hud-bg to read as a change at all). */
+    color: var(--hud-edge);
   }
 
   .contact-link-icon {

@@ -35,7 +35,7 @@
 <div
   id="divider"
   class="divider"
-  style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background};"
+  style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background}; --hud-edge: {HUD_PALETTE.edge};"
 >
   <span class="divider-location">{hero.location}</span>
   <div class="divider-links">
@@ -93,20 +93,23 @@
        are dropped rather than carried over. */
     /* No underline on landing-page links (owner request). An anchor with no
        text-decoration declaration underlines by default, so this needs an
-       explicit `none` even though nothing here ever set `underline`. No
-       hover rule existed before this either, so this link still has no
-       hover response - the border-bottom above is its only affordance,
-       resting or hover. */
+       explicit `none`. The border-bottom this rule used to carry was a line
+       drawn under the link text - visually an underline by another name, so
+       it's gone too, not just the text-decoration property; the padding
+       that existed only to clear that border went with it. Hover recovers
+       the lost affordance as a colour change instead: --hud-edge on the
+       light divider band (background #ededec) is ~10.7:1 against it, a
+       clearly visible, comfortably legible shift off --hud-bg. */
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
     font-size: 0.8125rem;
     color: var(--hud-bg);
     text-decoration: none;
-    /* Translucent derivation of --hud-bg, not a fresh literal - color-mix
-       keeps it tied to the token instead of drifting if the token changes. */
-    border-bottom: 1px solid color-mix(in srgb, var(--hud-bg) 28%, transparent);
-    padding-bottom: 2px;
+  }
+
+  .divider-link:hover {
+    color: var(--hud-edge);
   }
 
   .divider-link-icon {

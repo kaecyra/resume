@@ -116,11 +116,19 @@
   .work-name a {
     /* No underline on landing-page links (owner request, post-#187) - this
        was the underline's own hover state (swapping its colour), so it goes
-       too rather than being left dead. Nothing replaces it: this link had
-       no other hover treatment, so it now has none - see LandingSections
-       test file / task report for the full inventory. */
+       too rather than being left dead. */
     color: inherit;
     text-decoration: none;
+  }
+
+  .work-name a:hover {
+    /* Colour-change hover to replace the underline's lost affordance.
+       --hud-secondary is already exposed on this section (used by
+       .work-blurb) and gives ~7.7:1 against the card background
+       (--hud-panel-alt, the same on every card, featured or not), clearing
+       AA with room to spare while still reading as a real shift off the
+       near-white --hud-text these headings inherit at rest. */
+    color: var(--hud-secondary);
   }
 
   .work-status {
