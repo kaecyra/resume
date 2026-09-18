@@ -1,19 +1,10 @@
 <script lang="ts">
   import type { LandingLink } from "$lib/types.js";
 
+  import { contact_icon, is_mailto } from "./link-format.js";
   import { HUD_PALETTE } from "./palette.js";
 
   let { contact }: { contact: LandingLink[] } = $props();
-
-  // Same url-derived icon lookup as Divider.svelte, which renders the same
-  // `contact` list (#187) - duplicated rather than shared because these two
-  // components don't otherwise share a module and neither is worth adding
-  // just for this.
-  function contact_icon(url: string): string | null {
-    if (url.includes("github.com")) return "/landing/github-mark.svg";
-    if (url.includes("linkedin.com")) return "/landing/linkedin-mark.svg";
-    return null;
-  }
 </script>
 
 <section
@@ -22,26 +13,25 @@
   style="--hud-bg: {HUD_PALETTE.background}; --hud-accent: {HUD_PALETTE.accent}; --hud-edge: {HUD_PALETTE.edge};"
 >
   <h2 class="contact-heading">Let's talk</h2>
-  <div class="contact-links">
+  <ul class="contact-links">
     {#each contact as item (item.url)}
-      <!-- Same mailto: check Divider.svelte uses - target="_blank" on a
-           mailto: link opens a blank tab in some browsers before handing
-           off to the mail client. -->
-      {@const is_mailto = item.url.startsWith("mailto:")}
+      {@const mailto = is_mailto(item.url)}
       {@const icon = contact_icon(item.url)}
-      <a
-        href={item.url}
-        target={is_mailto ? undefined : "_blank"}
-        rel={is_mailto ? undefined : "noopener noreferrer"}
-        class="contact-link"
-      >
-        {#if icon}
-          <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="contact-link-icon" />
-        {/if}
-        {item.label}
-      </a>
+      <li>
+        <a
+          href={item.url}
+          target={mailto ? undefined : "_blank"}
+          rel={mailto ? undefined : "noopener noreferrer"}
+          class="contact-link"
+        >
+          {#if icon}
+            <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="contact-link-icon" />
+          {/if}
+          {item.label}
+        </a>
+      </li>
     {/each}
-  </div>
+  </ul>
 </section>
 
 <style>
@@ -72,6 +62,9 @@
   }
 
   .contact-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
     display: flex;
     flex-direction: column;
     align-items: flex-end;

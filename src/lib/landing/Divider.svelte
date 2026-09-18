@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { LandingHero, LandingLink } from "$lib/types.js";
 
+  import { contact_icon, is_mailto } from "./link-format.js";
   import { HUD_PALETTE } from "./palette.js";
 
   let { hero, contact }: { hero: LandingHero; contact: LandingLink[] } = $props();
@@ -9,19 +10,7 @@
   // contact list the Contact section renders (which also includes email).
   // Filtering out mailto: links here, rather than adding a second data
   // field, keeps `contact` the single source of truth for every link.
-  const social_links = $derived(contact.filter((item) => !item.url.startsWith("mailto:")));
-
-  // The icon is derived from the URL, not the label - same reasoning as
-  // filtering social_links above: `contact` stays the single source of
-  // truth, with no extra "which icon" field to keep in sync by hand. Email
-  // has no icon (mailto: never reaches this list). Returns null rather than
-  // a fallback icon so an unrecognised provider degrades to text-only,
-  // matching the {#if icon} guard below.
-  function contact_icon(url: string): string | null {
-    if (url.includes("github.com")) return "/landing/github-mark.svg";
-    if (url.includes("linkedin.com")) return "/landing/linkedin-mark.svg";
-    return null;
-  }
+  const social_links = $derived(contact.filter((item) => !is_mailto(item.url)));
 </script>
 
 <!-- Deliberately a `div`, not a `section`: Divider has no heading of its own
@@ -38,17 +27,19 @@
   style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background}; --hud-edge: {HUD_PALETTE.edge};"
 >
   <span class="divider-location">{hero.location}</span>
-  <div class="divider-links">
+  <ul class="divider-links">
     {#each social_links as item (item.url)}
       {@const icon = contact_icon(item.url)}
-      <a href={item.url} target="_blank" rel="noopener noreferrer" class="divider-link">
-        {#if icon}
-          <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="divider-link-icon" />
-        {/if}
-        {item.label}
-      </a>
+      <li>
+        <a href={item.url} target="_blank" rel="noopener noreferrer" class="divider-link">
+          {#if icon}
+            <img src={icon} alt="" aria-hidden="true" width="14" height="14" class="divider-link-icon" />
+          {/if}
+          {item.label}
+        </a>
+      </li>
     {/each}
-  </div>
+  </ul>
 </div>
 
 <style>
@@ -77,6 +68,9 @@
   }
 
   .divider-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

@@ -67,4 +67,21 @@ describe("landing route page", () => {
     expect(meta).not.toBeNull();
     expect(meta?.getAttribute("content")).toBe(HUD_PALETTE.background);
   });
+
+  it("publishes --hud-bg on :root from HUD_PALETTE.background, not a literal hex", () => {
+    // :global(body)'s background-color reads var(--hud-bg) (see the
+    // component <style> block), which only resolves to something if this
+    // <style> tag actually reaches the rendered <head> carrying the live
+    // palette value - a regression back to a hardcoded hex here (as the
+    // theme-color meta tag above shipped once already, #1a2744) would
+    // leave --hud-bg undefined instead of failing loudly, so this pins the
+    // token going in rather than a computed colour coming out.
+    render(Page, { props: { data: PAGE_DATA } });
+
+    const style_tags = Array.from(document.head.querySelectorAll("style"));
+    const root_style = style_tags.find((tag) => tag.textContent?.includes("--hud-bg"));
+
+    expect(root_style).toBeDefined();
+    expect(root_style?.textContent).toContain(`:root { --hud-bg: ${HUD_PALETTE.background}; }`);
+  });
 });
