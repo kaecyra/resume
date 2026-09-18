@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
 
   import { track_pdf_download, track_resume_view } from "$lib/analytics.js";
+  import { resume_pdf_filename } from "$lib/landing/resume-download.js";
   import { get_theme, get_theme_favicon } from "$lib/themes/index.js";
 
   import type { PageData } from "./$types";
@@ -53,7 +54,7 @@
   <a
     class="resume-tools-download-link"
     href="/{data.variant_name}.pdf"
-    download="{data.resume.profile.name} - Resume - {data.resume.title}.pdf"
+    download={resume_pdf_filename(data.resume.profile.name, data.resume.title)}
     style="color: {data.palette.accent};"
     onclick={() => track_pdf_download({ variant: data.variant_name, type: "resume", slug: data.variant_name })}
   >
