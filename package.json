@@ -18,7 +18,8 @@
     "generate-icons": "tsx scripts/generate-apple-touch-icon.ts",
     "generate-geo": "tsx scripts/build-geo.ts",
     "generate-slug": "tsx scripts/generate-slug.ts",
-    "validate-sub-variants": "tsx scripts/validate-sub-variants.ts"
+    "validate-sub-variants": "tsx scripts/validate-sub-variants.ts",
+    "fetch-github": "tsx scripts/fetch-github.ts"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",

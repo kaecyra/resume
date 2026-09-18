@@ -1,8 +1,8 @@
 import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
+import { build_contribution_grid, load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
-import type { ProvisionalContributionsGrid } from "$lib/landing/contributions.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -54,11 +54,14 @@ export const load: PageServerLoad = () => {
   const person_jsonld = build_person_jsonld(data.profile, landing.hero.role, canonical_url);
   const webpage_jsonld = build_webpage_jsonld(og.title, og.description, canonical_url);
 
-  // The GitHub contribution grid's data source is #167's node, not this
-  // one (#177) - it fetches and buckets the real calendar at build time.
-  // Until that lands, there is nothing here to read, so this is always
-  // null and Commits.svelte renders its offline state for that case.
-  const contributions_grid: ProvisionalContributionsGrid | null = null;
+  // data/generated/github.json is gitignored and only exists when
+  // `npm run fetch-github` has run with a token (CI, or a contributor's own
+  // local run). Its absence - the normal case for a local build without
+  // GITHUB_TOKEN - resolves to `null` here rather than throwing, so the
+  // build still succeeds; whatever renders this is responsible for the
+  // offline state (see src/lib/landing/Commits.svelte).
+  const contribution_data = load_github_contribution_data();
+  const contributions_grid = contribution_data ? build_contribution_grid(contribution_data) : null;
 
   return {
     landing,

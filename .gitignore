@@ -57,6 +57,9 @@ coverage/
 # Alembic
 *.db
 
+# Generated data (fetched at build time, e.g. scripts/fetch-github.ts)
+data/generated/
+
 # Claude
 tasks/
 .claude/settings.local.json

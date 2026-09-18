@@ -3,6 +3,12 @@ name: Deploy
 on:
   push:
     branches: [main]
+  schedule:
+    # Nightly, so the contribution grid refreshes without a code change.
+    # This re-pushes the same VERSION tag alongside `latest`; Watchtower
+    # tracks `latest`, so the repeat tag is harmless.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -18,6 +24,25 @@ jobs:
       - name: Read version
         id: version
         run: echo "value=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Writes data/generated/github.json into the checkout before the
+      # Docker build context is captured (the Dockerfile's `COPY . .` picks
+      # it up). continue-on-error so a fetch failure (bad token, GitHub API
+      # outage) never blocks a deploy - the page just renders its offline
+      # state for that build instead, same as a contributor building
+      # locally without GH_CONTRIB_PAT.
+      - name: Fetch GitHub contribution data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_PAT }}
+        run: npm run fetch-github
+        continue-on-error: true
 
       - uses: docker/login-action@v3
         with:
