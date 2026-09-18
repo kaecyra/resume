@@ -4,7 +4,7 @@ import type { ContributionGridModel } from "$lib/github.js";
 import type { LandingData } from "$lib/types.js";
 
 import LandingSections from "./LandingSections.svelte";
-import { HUD_PALETTE } from "./palette.js";
+import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
 
 const LANDING: LandingData = {
   hero: {
@@ -91,7 +91,10 @@ describe("LandingSections", () => {
     // hardcoding null on the element - #167's seam only works end to end if
     // this wiring holds. Two distinct levels (not the ramp's full 0-4 range,
     // which is Commits.test.ts's job) are enough to prove distinct per-day
-    // colours reach the markup through this component.
+    // colours reach the markup through this component. Asserts against
+    // CONTRIBUTION_RAMP (#192's green ramp), not HUD_PALETTE.accent - the
+    // grid's ramp is scoped to Commits.svelte only, amber stays the page's
+    // accent everywhere else.
     const grid: ContributionGridModel = {
       total_count: 5,
       generated_at: "2026-09-18T00:00:00.000Z",
@@ -105,8 +108,8 @@ describe("LandingSections", () => {
     const html = html_for(LANDING, grid);
 
     expect(html).not.toContain("Commit history is offline for this build.");
-    expect(html).toContain(`background: ${HUD_PALETTE.accent}40;`);
-    expect(html).toContain(`background: ${HUD_PALETTE.accent};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_1};`);
+    expect(html).toContain(`background: ${CONTRIBUTION_RAMP.level_4};`);
   });
 
   it("wires a project's links entry into a real href on the rendered card", () => {
