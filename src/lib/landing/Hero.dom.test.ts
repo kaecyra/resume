@@ -43,7 +43,6 @@ const HERO: LandingHero = {
   role: "Engineer, Acme",
   location: "Somewhere, QC",
   tagline: "I build things.",
-  status: "Somewhere, doing stuff.",
 };
 
 const GITHUB: LandingGithub = { user: "testuser" };

@@ -16,7 +16,6 @@ const HERO: LandingHero = {
   role: "Engineer, Acme",
   location: "Somewhere, QC",
   tagline: "I build things.",
-  status: "Somewhere, doing stuff.",
 };
 
 const GITHUB: LandingGithub = { user: "testuser" };
@@ -62,5 +61,10 @@ describe("Hero SSR/no-JS output", () => {
     const still_class = html.match(/<img class="(hero-globe-still[^"]*)"/)?.[1];
     expect(still_class).toBeDefined();
     expect(still_class).not.toContain("hero-globe-still-hidden");
+  });
+
+  it("does not render a hero-status line - the field was removed from LandingHero (#185)", () => {
+    const html = html_for();
+    expect(html).not.toContain("hero-status");
   });
 });

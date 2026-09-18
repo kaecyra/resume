@@ -19,7 +19,6 @@ const MOCK_LANDING_DATA: LandingData = {
     role: "Engineer",
     tagline: "I build things.",
     location: "Somewhere, QC",
-    status: "Somewhere, currently doing stuff.",
   },
   projects: [
     {
@@ -121,7 +120,7 @@ describe("validate_landing_data", () => {
     );
   });
 
-  it.each(["name", "role", "location", "tagline", "status"] as const)(
+  it.each(["name", "role", "location", "tagline"] as const)(
     "detects a missing hero %s",
     (field) => {
       const landing = make_landing({
@@ -129,7 +128,7 @@ describe("validate_landing_data", () => {
       });
       expect(validate_landing_data(landing, VALID_VARIANTS)).toContainEqual(
         expect.objectContaining({
-          message: "hero is missing required fields (name, role, location, tagline, status)",
+          message: "hero is missing required fields (name, role, location, tagline)",
         }),
       );
     },
@@ -363,7 +362,7 @@ describe("validate_landing_data", () => {
 
   it("accumulates multiple errors from different branches", () => {
     const landing = make_landing({
-      hero: { name: "", role: "", location: "", tagline: "", status: "" },
+      hero: { name: "", role: "", location: "", tagline: "" },
       resume_links: [],
       github: { user: "" },
     });
