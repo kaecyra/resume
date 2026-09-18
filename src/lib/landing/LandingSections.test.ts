@@ -181,4 +181,29 @@ describe("LandingSections", () => {
 
     expect(html).not.toMatch(/\s\/\s/);
   });
+
+  it("splits hero.role into the badge's tag and label spans, and renders the tagline/status/handle", () => {
+    // Scoped to the hero section only (id="hero" up to id="divider") - the
+    // point is to prove *this* markup carries each piece, not just that the
+    // strings appear somewhere on the page.
+    const html = html_for(LANDING);
+    const hero_html = html.slice(html.indexOf('id="hero"'), html.indexOf('id="divider"'));
+
+    // hero.role is "Engineer, Acme" - split_role_badge() divides it on the
+    // first comma into a mono tag ("Engineer") and a display-font label
+    // ("Acme"), rendered in two separate spans. Rendering hero.role raw
+    // into one span (unwiring split_role_badge) would pass a plain
+    // toContain("Engineer") check, so this asserts each half lands inside
+    // its own class="hero-badge-*" element.
+    expect(hero_html).toMatch(/class="hero-badge-tag[^"]*">Engineer</);
+    expect(hero_html).toMatch(/class="hero-badge-label[^"]*">Acme</);
+
+    expect(hero_html).toContain(LANDING.hero.tagline);
+    expect(hero_html).toContain(LANDING.hero.status);
+
+    // The topbar handle - angle-bracket-anchored so this can't be satisfied
+    // by "testuser" appearing inside an href elsewhere on the page (e.g.
+    // Divider's GitHub link).
+    expect(hero_html).toContain(">testuser<");
+  });
 });

@@ -50,4 +50,22 @@ describe("Commits", () => {
 
     expect(html).not.toContain("Commit history is offline for this build.");
   });
+
+  it("renders the caption naming the account and window, with the id the scroller labels itself from", () => {
+    const html = html_for(GRID);
+
+    expect(html).toContain("@testuser, last 12 months");
+    expect(html).toMatch(/id="commits-caption"[^>]*>@testuser, last 12 months</);
+  });
+
+  it("gives the grid scroller keyboard reachability (WCAG 2.1.1) via tabindex, role and aria-labelledby", () => {
+    const html = html_for(GRID);
+
+    const scroller = html.match(/<div class="commits-grid-scroll[^>]*>/)?.[0];
+
+    expect(scroller).toBeDefined();
+    expect(scroller).toContain('tabindex="0"');
+    expect(scroller).toContain('role="group"');
+    expect(scroller).toContain('aria-labelledby="commits-caption"');
+  });
 });

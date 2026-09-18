@@ -75,7 +75,6 @@
     padding: 4rem 2.5rem 2.75rem;
     background: var(--hud-bg);
     color: var(--hud-text);
-    font-family: "IBM Plex Sans", system-ui, sans-serif;
   }
 
   .hero-backdrop {
