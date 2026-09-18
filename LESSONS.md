@@ -45,3 +45,19 @@ Intake log for corrections. Stable patterns get graduated into [ENGINEERING.md](
 **The rule:** When `proxy_pass` contains a variable, nginx disables automatic location-prefix-to-URI replacement. Use an explicit `rewrite ... break` to transform the URI, and specify `proxy_pass` without a URI path: `rewrite ^/api/umami/(.*) /api/$1 break; proxy_pass $umami;`. The existing exact-match locations (`= /api/send`) are unaffected because there's no prefix to strip.
 
 **Why it matters:** This is a well-documented nginx behavior but easy to miss. The existing proxy locations in this project all use exact matches and work fine with variables, so the pattern appeared safe to extend to prefix matches.
+
+## 2026-09-18: Design handoffs are proposals to argue with, not specs to schedule
+
+**What happened:** Resuming from an overseer handoff that pointed at a design artifact, I treated the artifact as settled work and went straight to asking which of its two flagged options to ship, then started breaking it into dispatchable tickets. Tim stopped me: "we need to DISCUSS it. you're assuming its all fine." Checking the artifact against the actual source then found its central argument was stale — it proposed making the contribution ramp the page's brightest amber, but #194 had already made that ramp green, on purpose, with the reasoning written into `palette.ts`. It also miscounted the page's section weights, claiming six near-identical bands when `Divider.svelte` already renders a light plane and `Contact.svelte` a full amber one.
+
+**The rule:** Before planning any work from a design artifact, proposal or handoff, verify its factual claims against the current code. State where it is wrong, out of date, or in conflict with a recorded decision, and say so before offering any options. A menu of choices drawn from an unverified premise is worse than no menu, because it launders the premise into a decision.
+
+**Why it matters:** A design document is written at a moment in time against a snapshot of the code. On a fast-moving branch its claims rot within a day. Presenting its conclusions as live options hides that rot behind a question that looks like collaboration.
+
+## 2026-09-18: Check a new component against .memory/ before shipping its styling
+
+**What happened:** #194 shipped the contribution info rail as a panel with a background fill, a 1px border, a 3px coloured left accent bar and `Share Tech Mono` on its label and value. That is all four tells recorded in `.memory/no-default-ai-styling.md`, and the mono also contradicted #187, which retired that face outside the hero — a retirement `src/routes/+page.svelte:94` still described as total. No gate caught it.
+
+**The rule:** When adding or restyling a visual component, read `.memory/` first and check the result against it. Where a rule has already been violated once, add a test that would have caught it rather than only fixing the instance — `Commits.test.ts` now reads the component's own source and fails on `Share Tech Mono`, because scoped styles never reach the rendered HTML and no DOM assertion can see a font declaration.
+
+**Why it matters:** Design rules that live only in prose get re-violated by the next change. The mono retirement was decided, documented in a comment, and undone two PRs later without anyone noticing.

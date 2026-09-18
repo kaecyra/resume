@@ -5,6 +5,7 @@ hero:
   tagline: |
     I build systems, and lately I build them by directing AI agents instead of typing
     every line myself.
+  tagline_emphasis: "directing AI agents"
 
 projects:
   - id: odette

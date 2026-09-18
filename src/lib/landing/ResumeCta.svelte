@@ -57,6 +57,8 @@
     /* No underline on landing-page links (owner request). An anchor with no
        text-decoration declaration underlines by default, so this needs an
        explicit `none`. */
+    position: relative;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     min-height: 52px;
@@ -69,6 +71,14 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
     text-decoration: none;
+    /* Thicker bottom edge: reads as a physical key with a lit face and a
+       shadowed lip, rather than a flat rectangle of colour. Inset rather
+       than a real border so it costs no layout - a border-bottom here
+       would shift the label off centre against .cta-icon's matching 52px
+       box. Black at low alpha darkens whatever fill is behind it, so it
+       survives the :hover swap from --hud-text to --hud-secondary without
+       needing a second declaration. */
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
   }
 
   .cta-link:hover {
@@ -82,6 +92,37 @@
     background: var(--hud-secondary);
   }
 
+  /*
+   * Shine sweep (#196): a skewed light band that crosses the button on
+   * hover. rgba(255, 255, 255, ...) rather than a token - the fill it
+   * crosses is already --hud-text (near-white), so this is a highlight
+   * relative to that fill, not a themed colour with a token of its own.
+   * The sweep is a hover-triggered transition, not a looping animation, so
+   * reduced motion drops it outright below rather than just disabling a
+   * loop.
+   */
+  .cta-link::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 42%;
+    transform: skewX(-18deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transition: left 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  .cta-link:hover::after {
+    left: 120%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-link::after {
+      display: none;
+    }
+  }
+
   .cta-icon {
     display: inline-flex;
     align-items: center;
@@ -90,10 +131,16 @@
     height: 52px;
     border: 1px solid var(--hud-edge);
     color: var(--hud-secondary);
+    /* Matches .cta-link's lip so the pair reads as one control group. This
+       one is an outlined button on the page's own ground rather than a
+       filled slab, so the edge is drawn in the border tone it already
+       uses - a black inset would just muddy the transparent fill. */
+    box-shadow: inset 0 -3px 0 var(--hud-edge);
   }
 
   .cta-icon:hover {
     color: var(--hud-text);
     border-color: var(--hud-secondary);
+    box-shadow: inset 0 -3px 0 var(--hud-secondary);
   }
 </style>

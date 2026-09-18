@@ -144,4 +144,46 @@ describe("Hero reduced-motion fallback (client)", () => {
     expect(still_hidden(container)).toBe(false);
     expect(marker_hidden(container)).toBe(true);
   });
+
+  // #196's staged name arrival: Hero.test.ts (SSR) pins the no-JS/reduced
+  // motion case (plain contiguous text, no spans). This file is what
+  // actually runs onMount, so it's the only place the opposite case -
+  // motion welcome, JS active - can be proven: the name splits into one
+  // span per word, in order, and nothing is dropped or reordered.
+  it("splits the hero name into one staged-reveal span per word once motion is confirmed welcome", async () => {
+    stub_matchmedia(false);
+    start_globe.mockReturnValue({ stop: vi.fn() });
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".hero-name-line-text").length).toBe(2);
+    });
+
+    const words = Array.from(container.querySelectorAll(".hero-name-line-text")).map((el) => el.textContent);
+    expect(words).toEqual(["Test", "Person"]);
+
+    // Each word's mask carries its own index as a CSS custom property, so
+    // the CSS stagger delay (calc(140ms + var(--hero-line-index) * 95ms))
+    // keys off the word's actual position rather than every word firing at
+    // once.
+    const indices = Array.from(container.querySelectorAll(".hero-name-line")).map((el) =>
+      (el as HTMLElement).style.getPropertyValue("--hero-line-index").trim(),
+    );
+    expect(indices).toEqual(["0", "1"]);
+  });
+
+  // The mirror case: reduced motion means `staged_words` never populates
+  // (see the script block), so the name must stay exactly as SSR rendered
+  // it - one plain text node, not split - even after mount has had a
+  // chance to run.
+  it("keeps the hero name as plain text when prefers-reduced-motion matches, even after mount", async () => {
+    stub_matchmedia(true);
+    const { container } = render_hero();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(container.querySelectorAll(".hero-name-line").length).toBe(0);
+    expect(container.querySelector(".hero-name")?.textContent?.trim()).toBe("Test Person");
+  });
 });
