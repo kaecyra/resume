@@ -4,7 +4,7 @@
 // event listeners. The `.dom.test.ts` suffix opts this file into the `dom`
 // Vitest project (see vite.config.ts) instead of the default `node` one
 // that every other test runs under - see #175.
-import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { fireEvent, render } from "@testing-library/svelte";
 import { vi } from "vitest";
 
 vi.mock("$lib/analytics.js", () => ({
@@ -14,10 +14,6 @@ vi.mock("$lib/analytics.js", () => ({
 import { track_pdf_download } from "$lib/analytics.js";
 
 import ResumeCta from "./ResumeCta.svelte";
-
-afterEach(() => {
-  cleanup();
-});
 
 describe("ResumeCta", () => {
   it("fires a resume pdf_download analytics event when the download link is clicked", async () => {

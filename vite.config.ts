@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { defaultClientConditions } from "vite";
 import { defineConfig } from "vitest/config";
 
 const version = readFileSync("VERSION", "utf-8").trim();
@@ -30,7 +31,7 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        resolve: { conditions: ["browser"] },
+        resolve: { conditions: ["browser", ...defaultClientConditions] },
         test: {
           name: "dom",
           environment: "happy-dom",

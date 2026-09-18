@@ -4,7 +4,7 @@
 // +page.svelte directly with an inline PageData fixture, bypassing SvelteKit's
 // load/router - see ENGINEERING.md rule 17 (inline fixtures, not filesystem
 // dependencies).
-import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { fireEvent, render } from "@testing-library/svelte";
 import { vi } from "vitest";
 
 vi.mock("$lib/analytics.js", () => ({
@@ -13,6 +13,7 @@ vi.mock("$lib/analytics.js", () => ({
 }));
 
 import { track_pdf_download } from "$lib/analytics.js";
+import { resume_pdf_filename } from "$lib/landing/resume-download.js";
 
 import Page from "./[variant=variant]/+page.svelte";
 
@@ -73,10 +74,6 @@ const PAGE_DATA = {
   theme_color: "#ffffff",
 };
 
-afterEach(() => {
-  cleanup();
-});
-
 describe("variant route page", () => {
   it("fires a resume pdf_download analytics event when the download link is clicked", async () => {
     const { getByText } = render(Page, { props: { data: PAGE_DATA } });
@@ -88,5 +85,15 @@ describe("variant route page", () => {
       type: "resume",
       slug: "default",
     });
+  });
+
+  it("sets the download link's filename via resume_pdf_filename", () => {
+    const { getByText } = render(Page, { props: { data: PAGE_DATA } });
+
+    const link = getByText("Download PDF");
+
+    expect(link.getAttribute("download")).toBe(
+      resume_pdf_filename(RESUME.profile.name, RESUME.title),
+    );
   });
 });
