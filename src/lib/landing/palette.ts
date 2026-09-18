@@ -90,6 +90,19 @@ export const ELEVATION = {
   hair_bright: "rgba(237, 237, 236, 0.13)",
 } as const;
 
+// The hero marker's coordinate line, painted in the Canadian flag's own
+// red - lifted from static/landing/canada-flag.svg, which fills its bars
+// with #d52b1e - so the flag and the label beside it read as one object
+// rather than the label borrowing the page's amber accent for something
+// that is not an accent.
+//
+// Kept out of HUD_PALETTE for the same reason CONTRIBUTION_RAMP is: that
+// object is swept by palette.test.ts's WCAG AA contrast check, and this is
+// decorative chrome inside an aria-hidden marker layer, riding a rotating
+// globe. It carries no text-contrast obligation and nobody depends on
+// reading it.
+export const MARKER_RED = "#d52b1e" as const;
+
 export const CONTRIBUTION_RAMP = {
   level_0: HUD_PALETTE.edge,
   level_1: "#164a2f",

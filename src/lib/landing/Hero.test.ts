@@ -109,11 +109,4 @@ describe("Hero SSR/no-JS output", () => {
     const matches = html.match(/<div class="hero-glow\b[^"]*" aria-hidden="true">/g);
     expect(matches?.length).toBe(1);
   });
-
-  it("renders the scroll cue with its sweep bar, aria-hidden", () => {
-    const html = html_for();
-    expect(html).toMatch(/<div class="hero-scrollcue\b[^"]*" aria-hidden="true">/);
-    expect(html).toContain('class="hero-scrollcue-bar');
-    expect(html).toContain("Scroll");
-  });
 });

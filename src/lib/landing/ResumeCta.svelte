@@ -71,6 +71,14 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
     text-decoration: none;
+    /* Thicker bottom edge: reads as a physical key with a lit face and a
+       shadowed lip, rather than a flat rectangle of colour. Inset rather
+       than a real border so it costs no layout - a border-bottom here
+       would shift the label off centre against .cta-icon's matching 52px
+       box. Black at low alpha darkens whatever fill is behind it, so it
+       survives the :hover swap from --hud-text to --hud-secondary without
+       needing a second declaration. */
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
   }
 
   .cta-link:hover {
@@ -123,10 +131,16 @@
     height: 52px;
     border: 1px solid var(--hud-edge);
     color: var(--hud-secondary);
+    /* Matches .cta-link's lip so the pair reads as one control group. This
+       one is an outlined button on the page's own ground rather than a
+       filled slab, so the edge is drawn in the border tone it already
+       uses - a black inset would just muddy the transparent fill. */
+    box-shadow: inset 0 -3px 0 var(--hud-edge);
   }
 
   .cta-icon:hover {
     color: var(--hud-text);
     border-color: var(--hud-secondary);
+    box-shadow: inset 0 -3px 0 var(--hud-secondary);
   }
 </style>

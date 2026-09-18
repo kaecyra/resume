@@ -13,7 +13,8 @@
     type GlobeController,
   } from "./globe.js";
   import { split_role_badge } from "./hero-format.js";
-  import { HUD_PALETTE } from "./palette.js";
+  import { split_tagline } from "./tagline-format.js";
+  import { HUD_PALETTE, MARKER_RED } from "./palette.js";
   import ResumeCta from "./ResumeCta.svelte";
 
   let {
@@ -31,6 +32,7 @@
   } = $props();
 
   const role = $derived(split_role_badge(hero.role));
+  const tagline = $derived(split_tagline(hero.tagline, hero.tagline_emphasis));
 
   // Derived from globe.ts's MONTREAL_LON/MONTREAL_LAT rather than typed out
   // here a second time, so this topbar chrome can never drift out of sync
@@ -126,7 +128,7 @@
 <section
   id="hero"
   class="hero"
-  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta}; --hud-accent: {HUD_PALETTE.accent}; --hud-edge: {HUD_PALETTE.edge};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-meta: {HUD_PALETTE.meta}; --hud-accent: {HUD_PALETTE.accent}; --hud-edge: {HUD_PALETTE.edge}; --hud-marker-red: {MARKER_RED};"
 >
   <!--
     Always rendered, regardless of JavaScript, reduced motion, or WebGL
@@ -201,7 +203,7 @@
   </div>
 
   <div class="hero-identity">
-    <h1 class="hero-name">
+    <h1 class="hero-name" class:hero-name-staged={staged_words}>
       {#if staged_words}
         {#each staged_words as word, index}<span
             class="hero-name-line"
@@ -220,7 +222,15 @@
   </div>
 
   <div class="hero-foot">
-    <p class="hero-tagline">{hero.tagline}</p>
+    <!-- Three text nodes, not one with markup from the data: the emphasis
+         phrase arrives as plain text (hero.tagline_emphasis) and is wrapped
+         here, so the YAML never carries HTML and seo.ts can keep reading
+         hero.tagline as the flat string it already expects. -->
+    <p class="hero-tagline">
+      {tagline.before}{#if tagline.emphasis}<strong class="hero-tagline-emphasis"
+          >{tagline.emphasis}</strong
+        >{tagline.after}{/if}
+    </p>
     <ResumeCta {resume_link} {profile_name} {resume_title} />
   </div>
 
@@ -229,10 +239,6 @@
     sliver sweeping across it. aria-hidden and pointer-events: none since
     it carries no information a reader needs - scrolling works regardless.
   -->
-  <div class="hero-scrollcue" aria-hidden="true">
-    <span class="hero-scrollcue-bar"></span>
-    <span class="hero-scrollcue-label">Scroll</span>
-  </div>
 </section>
 
 <style>
@@ -328,12 +334,26 @@
   }
 
   .hero-globe-marker {
+    /* The label's two line sizes and the gap between them live here as
+       custom properties because the flag's height is derived from all
+       three below - the flag is sized to span exactly from the top of
+       MONTREAL to the bottom of the coordinate line, so if either line
+       size changes the flag has to follow. Declaring them on the shared
+       parent is what keeps that from drifting. */
+    --marker-city-size: 0.6875rem;
+    --marker-coords-size: 0.625rem;
+    --marker-line-gap: 0.3rem;
+    /* Separate from --marker-line-gap on purpose: the flag and the text
+       are two different objects and want real separation, while the two
+       text lines are one block and want to stay tight. */
+    --marker-flag-gap: 0.75rem;
+
     position: absolute;
     top: 0;
     left: 0;
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: var(--marker-flag-gap);
     pointer-events: none;
     white-space: nowrap;
   }
@@ -349,15 +369,28 @@
 
   .hero-globe-flag {
     display: block;
+    /* Spans the full label block - the top of MONTREAL to the bottom of
+       the coordinates - rather than sitting at an arbitrary size beside
+       it. Both lines set line-height: 1 below, so each line's box is
+       exactly its own font-size and this sum is the real rendered height.
+       Width is left to the intrinsic 4:3 of the asset's viewBox
+       (640x480), so the flag keeps its proportions. */
+    height: calc(var(--marker-city-size) + var(--marker-line-gap) + var(--marker-coords-size));
+    width: auto;
     box-shadow: 0 0 0 1px rgba(237, 237, 236, 0.35);
   }
 
   .hero-globe-marker-label {
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
+    gap: var(--marker-line-gap);
     font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 0.6875rem;
+    font-size: var(--marker-city-size);
+    /* Pinned to 1 so each line's box is exactly its font-size, which is
+       what makes the flag's height calc above land on the real top and
+       bottom of the text rather than on a leading-padded approximation.
+       All-caps mono with no descenders, so nothing clips. */
+    line-height: 1;
     letter-spacing: 0.14em;
     color: var(--hud-text);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
@@ -368,9 +401,10 @@
     /* Inherits the mono face from .hero-globe-marker-label above rather
        than declaring it again - #196 keeps Share Tech Mono confined to the
        three places this file already sets it, and this is not a fourth. */
-    font-size: 0.625rem;
+    font-size: var(--marker-coords-size);
+    line-height: 1;
     letter-spacing: 0.12em;
-    color: var(--hud-accent);
+    color: var(--hud-marker-red);
   }
 
   .hero-scrim {
@@ -438,8 +472,25 @@
      than invisible glyphs. Stops are color-mix derivations of the existing
      text/secondary tokens (plus the "white" keyword, not a hex literal),
      not a fresh brand colour. */
+  /* The light-catching gradient has to be painted on whichever element
+     actually holds the glyphs, and that differs between the two branches
+     of the markup above.
+     
+     background-clip: text paints the element's own background and clips it
+     to that element's glyph geometry, in that element's own box. A
+     transformed descendant paints its glyphs somewhere else, so an
+     ancestor's clipped background no longer lines up behind them and the
+     text renders as the transparent colour it inherited - it vanishes,
+     with a flicker as compositing hands over. That is exactly what the
+     staged arrival's per-word translateY did to it.
+     
+     So: the plain text node gets the gradient from the <h1>, and the
+     staged words each get it from the span that carries their own
+     transform. The two rules are mutually exclusive via
+     .hero-name-staged, never both at once. */
   @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-    .hero-name {
+    .hero-name:not(.hero-name-staged),
+    .hero-name-staged .hero-name-line-text {
       background: linear-gradient(
         104deg,
         var(--hud-secondary) 0%,
@@ -524,58 +575,43 @@
   }
 
   .hero-foot {
-    max-width: 37.5rem;
+    /* The tagline holds the left, the CTA pair flies right. space-between
+       with align-items: flex-end sits them on a shared baseline edge, so
+       the button lip lines up with the last line of the tagline rather
+       than floating above it. Wraps back to a stack on narrow viewports,
+       where there is no width to spend on a gap. */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(1.375rem, 4vw, 3rem);
   }
 
   .hero-tagline {
-    margin: 0 0 1.75rem;
+    /* 34ch, not a rem width: measured in characters the line length holds
+       its readability as the font size scales, which a fixed rem width
+       would not. The old bottom margin is gone with the stacked layout -
+       .hero-foot's gap owns the space between this and the CTA now. */
+    margin: 0;
+    max-width: 34ch;
     font-size: 1.1875rem;
     line-height: 1.5;
     color: var(--hud-secondary);
+    text-wrap: pretty;
   }
 
-  .hero-scrollcue {
-    position: absolute;
-    left: 2.5rem;
-    bottom: 0.9rem;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    font-size: 0.625rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--hud-secondary);
-    pointer-events: none;
+  .hero-tagline-emphasis {
+    /* The one phrase the sentence is actually about. Lifted out of
+       --hud-secondary to full --hud-text and up one weight step - no
+       colour accent, since amber on this page is spent on the featured
+       work and the close, not on body copy. */
+    color: var(--hud-text);
+    font-weight: 500;
   }
 
-  .hero-scrollcue-bar {
-    position: relative;
-    width: 3.375rem;
-    height: 1px;
-    background: var(--hud-edge);
-    overflow: hidden;
-  }
 
-  .hero-scrollcue-bar::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    width: 36%;
-    background: var(--hud-accent);
-    animation: hero-scrollcue-sweep 2.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-  }
 
-  @keyframes hero-scrollcue-sweep {
-    0% {
-      transform: translateX(-110%);
-    }
 
-    60%,
-    100% {
-      transform: translateX(300%);
-    }
-  }
 
   @media (max-width: 640px) {
     .hero {
@@ -583,18 +619,10 @@
       padding: 3rem 1.25rem 2.25rem;
       gap: 3rem;
     }
-
-    .hero-scrollcue {
-      left: 1.25rem;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hero-name-line-text {
-      animation: none;
-    }
-
-    .hero-scrollcue-bar::after {
       animation: none;
     }
   }

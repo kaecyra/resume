@@ -148,6 +148,12 @@ export interface LandingHero {
   role: string;
   location: string;
   tagline: string;
+  // A verbatim substring of `tagline` to emphasise when the hero renders it.
+  // Carried as plain text rather than markup in the YAML: the tagline is
+  // also consumed by seo.ts for meta descriptions, where inline HTML would
+  // have to be stripped back out again. Optional - absent means the tagline
+  // renders flat, which is what every other consumer already does.
+  tagline_emphasis?: string;
 }
 
 export interface LandingLink {

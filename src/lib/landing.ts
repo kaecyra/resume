@@ -72,6 +72,7 @@ const LandingHeroSchema = z.object({
   role: z.any().optional(),
   location: z.any().optional(),
   tagline: z.any().optional(),
+  tagline_emphasis: z.any().optional(),
 });
 const _hero_schema_covers_type: SchemaCoversType<LandingHero, z.infer<typeof LandingHeroSchema>> =
   true;
@@ -128,6 +129,18 @@ function build_landing_data_schema(valid_variants: string[]) {
           code: z.ZodIssueCode.custom,
           message: "hero is missing required fields (name, role, location, tagline)",
         });
+      }
+
+      // An emphasis that isn't in the tagline would silently render nothing
+      // - the phrase would just never be highlighted, with no error - so a
+      // typo here has to fail loudly rather than degrade quietly.
+      if (hero.tagline_emphasis && typeof hero.tagline === "string") {
+        if (!hero.tagline.includes(hero.tagline_emphasis)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `hero.tagline_emphasis (${hero.tagline_emphasis}) must appear verbatim in hero.tagline`,
+          });
+        }
       }
     }),
 
