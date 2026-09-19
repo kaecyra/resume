@@ -33,8 +33,9 @@ import {
   type SatellitePayload,
 } from "./satellite-catalog.js";
 
-// WGS 72 equatorial radius - the one SGP4 itself uses.
-export const EARTH_RADIUS_KM = 6378.137;
+// WGS 72 equatorial radius - the one SGP4 itself uses (satellite.js's
+// `earthRadius`).
+export const EARTH_RADIUS_KM = 6378.135;
 export const GEO_ALTITUDE_KM = 35_786;
 
 // Log compression: display radius = 1 + gain * ln(1 + altitude / knee).
@@ -197,8 +198,11 @@ export interface SatelliteVitals {
 }
 
 // What the hover readout shows for a satellite at `date`, or null when SGP4
-// can't place it. Altitude is distance above the equatorial radius, the
-// same measure `display_radius` compresses.
+// can't place it. Altitude is height above the ellipsoid, not distance less
+// the equatorial radius: the Earth is about 21 km flatter at the poles, and
+// the simpler measure would read low there and swing as a sun-synchronous
+// satellite crosses them. (`display_radius` does use the simpler measure,
+// where 21 km is invisible.)
 export function satellite_vitals(satrec: SatRec, date: Date): SatelliteVitals | null {
   const state = propagate(satrec, date);
   const position = state?.position;
@@ -206,10 +210,9 @@ export function satellite_vitals(satrec: SatRec, date: Date): SatelliteVitals | 
   if (!position || !velocity) {
     return null;
   }
-  const distance = Math.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2);
   const geodetic = eciToGeodetic(position, gstime(date));
   return {
-    altitude_km: distance - EARTH_RADIUS_KM,
+    altitude_km: geodetic.height,
     speed_km_s: Math.sqrt(velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2),
     latitude_deg: degreesLat(geodetic.latitude),
     longitude_deg: degreesLong(geodetic.longitude),

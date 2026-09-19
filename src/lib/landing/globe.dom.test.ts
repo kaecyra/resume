@@ -27,8 +27,8 @@
 // fake gl would just be a slower, less direct copy of those tests.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { start_globe, type GlobeLines } from "./globe.js";
-import { build_satellite_scene } from "./orbits.js";
+import { MONTREAL_LON, start_globe, type GlobeLines } from "./globe.js";
+import { build_satellite_scene, sidereal_time } from "./orbits.js";
 import type { CatalogSatellite, GpElements } from "./satellite-catalog.js";
 
 const EMPTY_LINES: GlobeLines = { world: [], canada: [] };
@@ -304,8 +304,64 @@ describe("start_globe satellites", () => {
 
     expect(icon.style.transform).toMatch(/^translate\(/);
     expect(icon.style.opacity).not.toBe("");
-    // Hover follows visibility: on only while the icon can be seen.
-    expect(icon.style.pointerEvents).toBe(Number(icon.style.opacity) > 0.5 ? "auto" : "none");
+  });
+
+  // Hover follows visibility. Pinned with a geostationary satellite parked
+  // over a chosen longitude at a fixed clock: the globe's first frame
+  // centres Montreal, so a satellite over Montreal's longitude faces the
+  // viewer and one on the opposite side sits dead behind the globe.
+  describe("icon hover follows visibility", () => {
+    const frame_time = new Date("2026-09-18T12:00:00Z");
+
+    // Equatorial and circular, so its inertial angle is RAAN + argument of
+    // perigee + mean anomaly, and its longitude is that less sidereal time.
+    function geo_over(longitude_deg: number): GpElements {
+      const gmst_deg = (sidereal_time(frame_time) * 180) / Math.PI;
+      return {
+        ...LEO_ELEMENTS,
+        EPOCH: "2026-09-18T12:00:00.000000",
+        MEAN_MOTION: 1.0027,
+        ECCENTRICITY: 0.0001,
+        INCLINATION: 0.01,
+        RA_OF_ASC_NODE: 0,
+        ARG_OF_PERICENTER: 0,
+        MEAN_ANOMALY: (((longitude_deg + gmst_deg) % 360) + 360) % 360,
+      };
+    }
+
+    function icon_after_first_frame(longitude_deg: number): HTMLElement {
+      const { gl } = create_gl_stub();
+      const satellites = build_satellite_scene(
+        [satellite({ norad_id: 7, flagship: "radarsat-2", elements: geo_over(longitude_deg) })],
+        frame_time,
+      );
+      const icon = document.createElement("div");
+      start_globe({ canvas: make_canvas(gl), lines: EMPTY_LINES, satellites, satellite_icon_els: new Map([[7, icon]]) });
+      run_first_frame();
+      return icon;
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(frame_time);
+      vi.spyOn(performance, "now").mockReturnValue(0);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("takes hover while the icon faces the viewer", () => {
+      const icon = icon_after_first_frame(MONTREAL_LON);
+      expect(Number(icon.style.opacity)).toBe(1);
+      expect(icon.style.pointerEvents).toBe("auto");
+    });
+
+    it("refuses hover while the icon is hidden behind the globe", () => {
+      const icon = icon_after_first_frame(MONTREAL_LON + 180);
+      expect(Number(icon.style.opacity)).toBe(0);
+      expect(icon.style.pointerEvents).toBe("none");
+    });
   });
 
   it("skips the points pass when every satellite is a flagship icon", () => {

@@ -273,7 +273,7 @@ describe("Hero satellites (client)", () => {
 
     expect(container.querySelectorAll(".hero-satellite")).toHaveLength(2);
     const icon_els = start_globe.mock.calls[0][0].satellite_icon_els as Map<number, HTMLElement>;
-    expect([...icon_els.keys()].sort()).toEqual([25544, 44322]);
+    expect([...icon_els.keys()].sort((a, b) => a - b)).toEqual([25544, 44322]);
     expect(icon_els.get(44322)?.isConnected).toBe(true);
   });
 
@@ -320,5 +320,30 @@ describe("Hero satellites (client)", () => {
 
     await fireEvent.pointerLeave(rcm);
     expect(container.querySelector(".hero-satellite-vitals")).toBeNull();
+  });
+
+  // A still cursor gets no pointerleave when the icon under it turns
+  // behind the globe, so the readout has to notice for itself.
+  it("drops the readout once the hovered icon turns hidden, even with no pointerleave", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+    vi.useFakeTimers();
+    try {
+      const rcm = container.querySelector(".hero-satellite-canadian") as HTMLElement;
+      await fireEvent.pointerEnter(rcm);
+      expect(container.querySelector(".hero-satellite-vitals")).not.toBeNull();
+
+      // What start_globe does to an icon faded out behind the globe.
+      rcm.style.pointerEvents = "none";
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(container.querySelector(".hero-satellite-vitals")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

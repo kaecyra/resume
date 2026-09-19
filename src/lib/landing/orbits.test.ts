@@ -1,4 +1,4 @@
-import { degreesLong, eciToGeodetic, json2satrec } from "satellite.js";
+import { degreesLong, eciToGeodetic, json2satrec, propagate } from "satellite.js";
 
 import { lonlat_to_unit_vector, SPHERE_FILL_RATIO, to_view_space, type Vec3 } from "./globe.js";
 import {
@@ -245,6 +245,22 @@ describe("build_satellite_scene", () => {
     const scene = build_satellite_scene([satellite({ elements: decayed }), satellite({ norad_id: 2 })], EPOCH_DATE);
     expect(scene.dots.map((d) => d.norad_id)).toEqual([2]);
   });
+
+  it("tags each ring with its orbit class, so it can be coloured by it", () => {
+    const scene = build_satellite_scene(
+      [
+        satellite({ norad_id: 1, flagship: "iss" }),
+        satellite({ norad_id: 2, flagship: "rcm", elements: { ...LEO_ELEMENTS, INCLINATION: 97.7 } }),
+      ],
+      EPOCH_DATE,
+    );
+    expect(scene.rings.map((r) => r.orbit_class)).toEqual(["leo", "sso"]);
+  });
+
+  it("tags each flagship with its orbit class too", () => {
+    const scene = build_satellite_scene([satellite({ flagship: "radarsat-2", elements: GEO_ELEMENTS })], EPOCH_DATE);
+    expect(scene.flagships[0].orbit_class).toBe("geo");
+  });
 });
 
 describe("orbit_class", () => {
@@ -265,49 +281,68 @@ describe("orbit_class", () => {
   });
 });
 
-describe("build_satellite_scene ring classes", () => {
-  it("tags each ring with its orbit class, so it can be coloured by it", () => {
-    const scene = build_satellite_scene(
-      [
-        satellite({ norad_id: 1, flagship: "iss" }),
-        satellite({ norad_id: 2, flagship: "rcm", elements: { ...LEO_ELEMENTS, INCLINATION: 97.7 } }),
-      ],
-      EPOCH_DATE,
-    );
-    expect(scene.rings.map((r) => r.orbit_class)).toEqual(["leo", "sso"]);
-  });
-
-  it("tags each flagship with its orbit class too", () => {
-    const scene = build_satellite_scene([satellite({ flagship: "radarsat-2", elements: GEO_ELEMENTS })], EPOCH_DATE);
-    expect(scene.flagships[0].orbit_class).toBe("geo");
-  });
-});
-
 describe("satellite_vitals", () => {
   const satrec = json2satrec(LEO_ELEMENTS);
-  const vitals = satellite_vitals(satrec, EPOCH_DATE);
+  const maybe_vitals = satellite_vitals(satrec, EPOCH_DATE);
+
+  it("places a propagatable satellite", () => {
+    expect(maybe_vitals).not.toBeNull();
+  });
+
+  // Every case below reads through this, so a null result fails once, above,
+  // with a clear message instead of as a confusing numeric mismatch.
+  const vitals = maybe_vitals ?? {
+    altitude_km: NaN,
+    speed_km_s: NaN,
+    latitude_deg: NaN,
+    longitude_deg: NaN,
+    period_min: NaN,
+    inclination_deg: NaN,
+  };
 
   it("reports the orbital period in minutes", () => {
-    expect(vitals?.period_min).toBeCloseTo(1440 / 15.5, 0);
+    expect(vitals.period_min).toBeCloseTo(1440 / 15.5, 0);
   });
 
   it("reports inclination in degrees, not radians", () => {
-    expect(vitals?.inclination_deg).toBeCloseTo(51.64, 1);
+    expect(vitals.inclination_deg).toBeCloseTo(51.64, 1);
   });
 
   it("reports altitude above the surface, not distance from the centre", () => {
-    expect(vitals?.altitude_km).toBeGreaterThan(200);
-    expect(vitals?.altitude_km).toBeLessThan(600);
+    expect(vitals.altitude_km).toBeGreaterThan(200);
+    expect(vitals.altitude_km).toBeLessThan(600);
   });
 
   it("reports orbital speed in km/s", () => {
-    expect(vitals?.speed_km_s).toBeGreaterThan(7);
-    expect(vitals?.speed_km_s).toBeLessThan(8.5);
+    expect(vitals.speed_km_s).toBeGreaterThan(7);
+    expect(vitals.speed_km_s).toBeLessThan(8.5);
   });
 
   it("reports latitude within the orbit's inclination and longitude in [-180, 180]", () => {
-    expect(Math.abs(vitals?.latitude_deg ?? 99)).toBeLessThanOrEqual(52);
-    expect(Math.abs(vitals?.longitude_deg ?? 999)).toBeLessThanOrEqual(180);
+    expect(Math.abs(vitals.latitude_deg)).toBeLessThanOrEqual(52);
+    expect(Math.abs(vitals.longitude_deg)).toBeLessThanOrEqual(180);
+  });
+
+  // Height above the ellipsoid, not distance less the equatorial radius:
+  // the Earth is about 21 km flatter at the poles. The two measures agree
+  // over the equator and part by that much over a pole. Compared at the
+  // same instant against the satellite's own distance, so the orbit's real
+  // radius variation around a lap cancels out.
+  it("measures altitude above the ellipsoid, which stands about 21 km higher over the poles", () => {
+    const polar = json2satrec({ ...LEO_ELEMENTS, INCLINATION: 90 });
+    const period_ms = ((2 * Math.PI) / polar.no) * 60_000;
+    const readings = Array.from({ length: 120 }, (_, i) => {
+      const date = new Date(EPOCH_DATE.getTime() + (period_ms * i) / 120);
+      const position = propagate(polar, date)?.position;
+      const vitals = satellite_vitals(polar, date);
+      if (!position || !vitals) return null;
+      const distance = Math.sqrt(position.x ** 2 + position.y ** 2 + position.z ** 2);
+      return { latitude: vitals.latitude_deg, lift: vitals.altitude_km - (distance - EARTH_RADIUS_KM) };
+    }).filter((r) => r !== null);
+    const over_pole = readings.reduce((a, b) => (Math.abs(b.latitude) > Math.abs(a.latitude) ? b : a));
+    const over_equator = readings.reduce((a, b) => (Math.abs(b.latitude) < Math.abs(a.latitude) ? b : a));
+    expect(over_pole.lift).toBeGreaterThan(18);
+    expect(Math.abs(over_equator.lift)).toBeLessThan(1);
   });
 });
 

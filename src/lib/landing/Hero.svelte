@@ -75,6 +75,14 @@
   let vitals_timer: ReturnType<typeof setInterval> | undefined;
 
   function refresh_vitals() {
+    // A still cursor gets no pointerleave when the icon under it turns
+    // behind the globe - start_globe only switches its pointer-events off -
+    // so the readout checks for that itself rather than lingering and
+    // reappearing when the icon comes back round.
+    if (hovered && satellite_icon_els[hovered.norad_id]?.style.pointerEvents === "none") {
+      hover_end();
+      return;
+    }
     const vitals = hovered ? satellite_vitals(hovered.satrec, new Date()) : null;
     hovered_vitals = vitals ? format_vitals(vitals) : null;
   }
