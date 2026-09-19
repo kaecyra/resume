@@ -42,8 +42,9 @@ export const GEO_ALTITUDE_KM = 35_786;
 // The knee sets where the curve bends: well below it altitude reads almost
 // linearly, well above it each doubling adds the same step. At 20 km, low
 // orbits (300-1000 km) sit well out from the wireframe while geostationary
-// lands at about 1.36 - right at the canvas edge once SPHERE_FILL_RATIO
-// leaves room for it, where the hero's own crop is allowed to take it.
+// lands at about 1.36 - right at the edge of the canvas's shorter side
+// once SPHERE_FILL_RATIO leaves room for it, where the hero's own crop is
+// allowed to take it.
 export const ALTITUDE_KNEE_KM = 20;
 
 // The gain is pinned by one reference point rather than typed in: the ISS
