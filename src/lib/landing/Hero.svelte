@@ -401,15 +401,22 @@
    * roughly 20% off the bottom (960 - 50 top-crop - ~720 visible height
    * for a hero at its 720px min-height). `.hero`'s `overflow: hidden`
    * (above) is what actually does the cropping - this box is intentionally
-   * bigger than the space it renders into. `right: 60px` pulls it in from
-   * the edge instead of bleeding past it.
+   * bigger than the space it renders into.
+   *
+   * Wider than it is tall, and flush with the hero's right edge: the globe
+   * sits 540px in from the right, but a 960px box placed there stopped
+   * 60px short of the edge and clipped the outer orbit rings in mid-air.
+   * globe.ts sizes the sphere from the box's shorter side and centres it
+   * horizontally, so the extra 60px on each side widens only the canvas -
+   * the globe keeps its size and position, and the rings run on until the
+   * hero's own crop takes them.
    */
   .hero-visual,
   .hero-globe-marker-layer {
     position: absolute;
-    right: 60px;
+    right: 0;
     top: -50px;
-    width: 960px;
+    width: 1080px;
     height: 960px;
     max-width: none;
   }
@@ -436,6 +443,12 @@
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+
+  /* The still is square and the box is not; contain centres it at the
+     box's height, matching where the canvas draws the sphere. */
+  .hero-globe-still {
+    object-fit: contain;
   }
 
   /*

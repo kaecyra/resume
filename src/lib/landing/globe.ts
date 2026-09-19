@@ -55,14 +55,15 @@ export const LINE_BACK_ALPHA = 0.16;
 export const MARKER_FADE_START_Z = -0.08;
 export const MARKER_FADE_END_Z = 0.08;
 
-// The globe is drawn inset from its square viewport by this fraction, so
-// the wireframe never touches the frame edge. The WebGL draw and the
-// Montreal marker's DOM placement both scale by this same constant so they
-// never disagree about where the sphere's edge actually is. Was 0.94 until
+// The globe is drawn inset from its viewport's shorter side by this
+// fraction, so the wireframe never touches the frame edge. The WebGL draw
+// and the Montreal marker's DOM placement both scale by this same constant
+// so they never disagree about where the sphere's edge actually is. Was 0.94 until
 // #203 put satellites above the surface: 0.75 leaves the low orbits room
 // to sit well out from the wireframe and puts the geostationary ring
-// (orbits.ts's `display_radius`) right at the canvas edge, where the
-// hero's own crop is allowed to take part of it.
+// (orbits.ts's `display_radius`) right at the shorter side's edge. The
+// hero's box is wider than it is tall (#205), so sideways the ring runs on
+// until the hero's own crop takes it.
 export const SPHERE_FILL_RATIO = 0.75;
 
 // Orbit rings are drawn at this fraction of the wireframe's own depth
