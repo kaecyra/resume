@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   import { browser } from "$app/environment";
   import type { LandingGithub, LandingHero } from "$lib/types.js";
@@ -13,9 +13,19 @@
     type GlobeController,
   } from "./globe.js";
   import { split_role_badge } from "./hero-format.js";
+  import {
+    build_satellite_scene,
+    format_vitals,
+    load_satellite_payload,
+    ORBIT_CLASS_LABELS,
+    satellite_vitals,
+    type FormattedVitals,
+    type SceneSatellite,
+  } from "./orbits.js";
   import { split_tagline } from "./tagline-format.js";
-  import { HUD_PALETTE, MARKER_RED } from "./palette.js";
+  import { HUD_PALETTE, MARKER_RED, ORBIT_CLASS_COLORS } from "./palette.js";
   import ResumeCta from "./ResumeCta.svelte";
+  import SatelliteIcon from "./SatelliteIcon.svelte";
 
   let {
     hero,
@@ -44,6 +54,51 @@
 
   let canvas_el: HTMLCanvasElement | undefined = $state();
   let marker_el: HTMLDivElement | undefined = $state();
+
+  // Flagship satellites (#203), one DOM icon each, positioned every frame by
+  // start_globe. $state.raw, not $state: each entry carries a satellite.js
+  // satrec that start_globe propagates 60 times a second, and a deep proxy
+  // around it would tax every one of those reads for nothing - the list is
+  // replaced wholesale once, never mutated.
+  let satellite_flagships: SceneSatellite[] = $state.raw([]);
+  // Filled by bind:this below, keyed by NORAD id. A plain object rather
+  // than state: nothing renders from it, it only hands elements over.
+  const satellite_icon_els: Record<number, HTMLDivElement> = {};
+
+  // Hover readout. Nothing on the globe is labelled until hovered - not
+  // even the ISS. The owner reversed the earlier "globe ignores the cursor"
+  // call for flagship icons only; the globe itself still doesn't react.
+  // Vitals are recomputed once a second while hovered, since they are live.
+  const VITALS_REFRESH_MS = 1000;
+  let hovered: SceneSatellite | null = $state.raw(null);
+  let hovered_vitals: FormattedVitals | null = $state(null);
+  let vitals_timer: ReturnType<typeof setInterval> | undefined;
+
+  function refresh_vitals() {
+    // A still cursor gets no pointerleave when the icon under it turns
+    // behind the globe - start_globe only switches its pointer-events off -
+    // so the readout checks for that itself rather than lingering and
+    // reappearing when the icon comes back round.
+    if (hovered && satellite_icon_els[hovered.norad_id]?.style.pointerEvents === "none") {
+      hover_end();
+      return;
+    }
+    const vitals = hovered ? satellite_vitals(hovered.satrec, new Date()) : null;
+    hovered_vitals = vitals ? format_vitals(vitals) : null;
+  }
+
+  function hover_start(flagship: SceneSatellite) {
+    hovered = flagship;
+    refresh_vitals();
+    clearInterval(vitals_timer);
+    vitals_timer = setInterval(refresh_vitals, VITALS_REFRESH_MS);
+  }
+
+  function hover_end() {
+    clearInterval(vitals_timer);
+    hovered = null;
+    hovered_vitals = null;
+  }
 
   // Starts false for SSR/prerendering and for every path where the globe
   // never actually starts drawing (no JS at all, reduced motion, no WebGL
@@ -104,11 +159,31 @@
 
       (async () => {
         try {
-          const lines = await load_globe_lines();
+          // The satellite payload is optional: a missing file (a local
+          // build that never ran fetch-satellites) or a failed fetch just
+          // means a globe without satellites, never no globe at all.
+          const [lines, payload] = await Promise.all([
+            load_globe_lines(),
+            load_satellite_payload().catch(() => null),
+          ]);
           if (cancelled || !canvas_el || motion_query.matches) {
             return;
           }
-          controller = start_globe({ canvas: canvas_el, lines, marker_el });
+          const satellites = payload ? build_satellite_scene(payload.satellites, new Date()) : null;
+          satellite_flagships = satellites?.flagships ?? [];
+          // Let the icon elements render before start_globe needs them.
+          await tick();
+          if (cancelled || !canvas_el || motion_query.matches) {
+            return;
+          }
+          const icon_els = new Map(satellite_flagships.map((f) => [f.norad_id, satellite_icon_els[f.norad_id]]));
+          controller = start_globe({
+            canvas: canvas_el,
+            lines,
+            marker_el,
+            satellites,
+            satellite_icon_els: icon_els,
+          });
           canvas_animating = controller !== null;
         } catch {
           // Geometry fetch or WebGL setup failed - leave canvas_animating
@@ -121,6 +196,7 @@
       cancelled = true;
       motion_query.removeEventListener("change", on_motion_change);
       controller?.stop();
+      clearInterval(vitals_timer);
     };
   });
 </script>
@@ -192,6 +268,33 @@
         <span class="hero-globe-marker-coords">YUL &middot; {montreal_coords}</span>
       </span>
     </div>
+    {#each satellite_flagships as flagship (flagship.norad_id)}
+      <div
+        class="hero-satellite"
+        class:hero-satellite-canadian={flagship.canadian}
+        class:hero-satellite-hovered={hovered === flagship}
+        class:hero-globe-marker-hidden={!canvas_animating}
+        bind:this={satellite_icon_els[flagship.norad_id]}
+        role="presentation"
+        onpointerenter={() => hover_start(flagship)}
+        onpointerleave={hover_end}
+      >
+        {#if flagship.flagship}
+          <SatelliteIcon kind={flagship.flagship} />
+        {/if}
+        <!-- Reuses the MONTREAL label's class rather than setting the mono
+             face a fourth time (#196). -->
+        {#if hovered === flagship && hovered_vitals}
+          <span class="hero-globe-marker-label hero-satellite-vitals">
+            <span class="hero-satellite-name">{flagship.name}</span>
+            <span style="color: {ORBIT_CLASS_COLORS[flagship.orbit_class]}">{ORBIT_CLASS_LABELS[flagship.orbit_class]}</span>
+            <span class="hero-satellite-reading">{hovered_vitals.motion}</span>
+            <span class="hero-satellite-reading">{hovered_vitals.position}</span>
+            <span class="hero-satellite-reading">{hovered_vitals.orbit}</span>
+          </span>
+        {/if}
+      </div>
+    {/each}
   </div>
 
   <div class="hero-topbar">
@@ -313,6 +416,18 @@
 
   .hero-globe-marker-layer {
     pointer-events: none;
+
+    /* The label's two line sizes and the gap between them live here as
+       custom properties because the flag's height is derived from all
+       three below - the flag is sized to span exactly from the top of
+       MONTREAL to the bottom of the coordinate line, so if either line
+       size changes the flag has to follow. Declaring them on the shared
+       parent is what keeps that from drifting. On the layer rather than
+       the Montreal marker (#203) so the satellite hover readout, which
+       reuses .hero-globe-marker-label, gets the same sizes. */
+    --marker-city-size: 0.6875rem;
+    --marker-coords-size: 0.625rem;
+    --marker-line-gap: 0.3rem;
   }
 
   .hero-globe-still,
@@ -334,15 +449,6 @@
   }
 
   .hero-globe-marker {
-    /* The label's two line sizes and the gap between them live here as
-       custom properties because the flag's height is derived from all
-       three below - the flag is sized to span exactly from the top of
-       MONTREAL to the bottom of the coordinate line, so if either line
-       size changes the flag has to follow. Declaring them on the shared
-       parent is what keeps that from drifting. */
-    --marker-city-size: 0.6875rem;
-    --marker-coords-size: 0.625rem;
-    --marker-line-gap: 0.3rem;
     /* Separate from --marker-line-gap on purpose: the flag and the text
        are two different objects and want real separation, while the two
        text lines are one block and want to stay tight. */
@@ -365,6 +471,64 @@
    */
   .hero-globe-marker-hidden {
     display: none;
+  }
+
+  /*
+   * Flagship satellite icons (#203). Placed by start_globe the same way as
+   * the Montreal marker: transform for position, opacity for the fade
+   * behind the globe. Bare glyph and colour, nothing drawn behind it.
+   */
+  .hero-satellite {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* A little padding widens the hover target past the 16px glyph. */
+    padding: 6px;
+    color: var(--hud-text);
+    /* The layer is pointer-events: none; icons opt back in for hover.
+       start_globe turns this off again while an icon is hidden behind the
+       globe, so an invisible icon can't be hovered. */
+    pointer-events: auto;
+    white-space: nowrap;
+  }
+
+  .hero-satellite-hovered {
+    z-index: 1;
+  }
+
+  /* Absolutely placed beside the glyph so the readout never changes the
+     icon box's size - start_globe centres that box on the satellite, and a
+     box that grew on hover would pull the glyph off its position. */
+  .hero-satellite-vitals {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    padding-left: 0.5rem;
+    gap: 0.4rem;
+    /* Legibility over busy wireframe without drawing a box: a tight halo in
+       the page background, then a wider soft falloff, so strokes behind the
+       text are knocked back rather than covered. */
+    text-shadow:
+      0 0 2px var(--hud-bg),
+      0 0 4px var(--hud-bg),
+      0 0 10px var(--hud-bg),
+      0 1px 14px rgba(0, 0, 0, 0.9);
+  }
+
+  .hero-satellite-name {
+    font-size: 0.8125rem;
+    color: var(--hud-text);
+  }
+
+  .hero-satellite-reading {
+    font-size: 0.6875rem;
+    color: var(--hud-text);
+    opacity: 0.82;
+  }
+
+  .hero-satellite-canadian {
+    color: var(--hud-accent);
   }
 
   .hero-globe-flag {

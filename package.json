@@ -19,7 +19,8 @@
     "generate-geo": "tsx scripts/build-geo.ts",
     "generate-slug": "tsx scripts/generate-slug.ts",
     "validate-sub-variants": "tsx scripts/validate-sub-variants.ts",
-    "fetch-github": "tsx scripts/fetch-github.ts"
+    "fetch-github": "tsx scripts/fetch-github.ts",
+    "fetch-satellites": "tsx scripts/fetch-satellites.ts"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
@@ -51,6 +52,7 @@
     "js-yaml": "^4.1.1",
     "marked": "^17.0.2",
     "qrcode": "^1.5.4",
+    "satellite.js": "^7.1.0",
     "zod": "^3.25.76"
   }
 }

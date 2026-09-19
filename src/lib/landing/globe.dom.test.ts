@@ -27,7 +27,9 @@
 // fake gl would just be a slower, less direct copy of those tests.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { start_globe, type GlobeLines } from "./globe.js";
+import { MONTREAL_LON, start_globe, type GlobeLines } from "./globe.js";
+import { build_satellite_scene, sidereal_time } from "./orbits.js";
+import type { CatalogSatellite, GpElements } from "./satellite-catalog.js";
 
 const EMPTY_LINES: GlobeLines = { world: [], canada: [] };
 
@@ -55,6 +57,7 @@ function create_gl_stub(options: { link_success?: boolean } = {}) {
     DYNAMIC_DRAW: 6,
     FLOAT: 7,
     LINES: 8,
+    POINTS: 13,
     COLOR_BUFFER_BIT: 9,
     BLEND: 10,
     SRC_ALPHA: 11,
@@ -76,6 +79,8 @@ function create_gl_stub(options: { link_success?: boolean } = {}) {
     createBuffer: vi.fn(() => ({})),
     deleteBuffer: vi.fn((buffer: unknown) => calls.delete_buffer.push(buffer)),
     getAttribLocation: vi.fn(() => 0),
+    getUniformLocation: vi.fn(() => ({})),
+    uniform1f: vi.fn(),
 
     enable: vi.fn(),
     blendFunc: vi.fn(),
@@ -228,5 +233,144 @@ describe("start_globe controller lifecycle", () => {
 
     expect(controller).toBeNull();
     expect(raf).not.toHaveBeenCalled();
+  });
+});
+
+const LEO_ELEMENTS: GpElements = {
+  OBJECT_NAME: "RCM-1",
+  OBJECT_ID: "2019-033A",
+  EPOCH: "2026-09-18T12:00:00.000000",
+  MEAN_MOTION: 15,
+  ECCENTRICITY: 0.0001,
+  INCLINATION: 97.7,
+  RA_OF_ASC_NODE: 10,
+  ARG_OF_PERICENTER: 90,
+  MEAN_ANOMALY: 0,
+  NORAD_CAT_ID: 44322,
+  ELEMENT_SET_NO: 999,
+  BSTAR: 0,
+  MEAN_MOTION_DOT: 0,
+  MEAN_MOTION_DDOT: 0,
+};
+
+function satellite(overrides: Partial<CatalogSatellite>): CatalogSatellite {
+  return { norad_id: 1, name: "SAT", canadian: true, flagship: null, elements: LEO_ELEMENTS, ...overrides };
+}
+
+// The frame callback start_globe handed requestAnimationFrame, run once.
+function run_first_frame() {
+  const frame_callback = raf.mock.calls[0]?.[0] as FrameRequestCallback;
+  frame_callback(16);
+}
+
+function draw_modes(gl: WebGLRenderingContext): number[] {
+  return (gl.drawArrays as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0] as number);
+}
+
+describe("start_globe satellites", () => {
+  const now = new Date("2026-09-18T12:00:00Z");
+
+  it("draws satellite dots in a points pass after the line pass", () => {
+    const { gl } = create_gl_stub();
+    const satellites = build_satellite_scene([satellite({})], now);
+    start_globe({ canvas: make_canvas(gl), lines: EMPTY_LINES, satellites });
+
+    run_first_frame();
+
+    expect(draw_modes(gl)).toEqual([gl.LINES, gl.POINTS]);
+  });
+
+  it("draws no points pass when there is no satellite scene", () => {
+    const { gl } = create_gl_stub();
+    start_globe({ canvas: make_canvas(gl), lines: EMPTY_LINES });
+
+    run_first_frame();
+
+    expect(draw_modes(gl)).toEqual([gl.LINES]);
+  });
+
+  it("places and fades each flagship's icon element on every frame", () => {
+    const { gl } = create_gl_stub();
+    const satellites = build_satellite_scene([satellite({ norad_id: 44322, flagship: "rcm" })], now);
+    const icon = document.createElement("div");
+    start_globe({
+      canvas: make_canvas(gl),
+      lines: EMPTY_LINES,
+      satellites,
+      satellite_icon_els: new Map([[44322, icon]]),
+    });
+
+    run_first_frame();
+
+    expect(icon.style.transform).toMatch(/^translate\(/);
+    expect(icon.style.opacity).not.toBe("");
+  });
+
+  // Hover follows visibility. Pinned with a geostationary satellite parked
+  // over a chosen longitude at a fixed clock: the globe's first frame
+  // centres Montreal, so a satellite over Montreal's longitude faces the
+  // viewer and one on the opposite side sits dead behind the globe.
+  describe("icon hover follows visibility", () => {
+    const frame_time = new Date("2026-09-18T12:00:00Z");
+
+    // Equatorial and circular, so its inertial angle is RAAN + argument of
+    // perigee + mean anomaly, and its longitude is that less sidereal time.
+    function geo_over(longitude_deg: number): GpElements {
+      const gmst_deg = (sidereal_time(frame_time) * 180) / Math.PI;
+      return {
+        ...LEO_ELEMENTS,
+        EPOCH: "2026-09-18T12:00:00.000000",
+        MEAN_MOTION: 1.0027,
+        ECCENTRICITY: 0.0001,
+        INCLINATION: 0.01,
+        RA_OF_ASC_NODE: 0,
+        ARG_OF_PERICENTER: 0,
+        MEAN_ANOMALY: (((longitude_deg + gmst_deg) % 360) + 360) % 360,
+      };
+    }
+
+    function icon_after_first_frame(longitude_deg: number): HTMLElement {
+      const { gl } = create_gl_stub();
+      const satellites = build_satellite_scene(
+        [satellite({ norad_id: 7, flagship: "radarsat-2", elements: geo_over(longitude_deg) })],
+        frame_time,
+      );
+      const icon = document.createElement("div");
+      start_globe({ canvas: make_canvas(gl), lines: EMPTY_LINES, satellites, satellite_icon_els: new Map([[7, icon]]) });
+      run_first_frame();
+      return icon;
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(frame_time);
+      vi.spyOn(performance, "now").mockReturnValue(0);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("takes hover while the icon faces the viewer", () => {
+      const icon = icon_after_first_frame(MONTREAL_LON);
+      expect(Number(icon.style.opacity)).toBe(1);
+      expect(icon.style.pointerEvents).toBe("auto");
+    });
+
+    it("refuses hover while the icon is hidden behind the globe", () => {
+      const icon = icon_after_first_frame(MONTREAL_LON + 180);
+      expect(Number(icon.style.opacity)).toBe(0);
+      expect(icon.style.pointerEvents).toBe("none");
+    });
+  });
+
+  it("skips the points pass when every satellite is a flagship icon", () => {
+    const { gl } = create_gl_stub();
+    const satellites = build_satellite_scene([satellite({ flagship: "rcm" })], now);
+    start_globe({ canvas: make_canvas(gl), lines: EMPTY_LINES, satellites });
+
+    run_first_frame();
+
+    expect(draw_modes(gl)).toEqual([gl.LINES]);
   });
 });

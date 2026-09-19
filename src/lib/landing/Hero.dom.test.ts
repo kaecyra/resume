@@ -17,14 +17,15 @@
 // ran, making the two cases indistinguishable. Mocking them means the
 // assertion is purely about whether Hero *attempts* to start the globe -
 // the decision under test - not about the drawing itself.
-import { render } from "@testing-library/svelte";
+import { fireEvent, render } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LandingGithub, LandingHero } from "$lib/types.js";
 
-const { start_globe, load_globe_lines } = vi.hoisted(() => ({
+const { start_globe, load_globe_lines, load_satellite_payload } = vi.hoisted(() => ({
   start_globe: vi.fn(),
   load_globe_lines: vi.fn(),
+  load_satellite_payload: vi.fn(),
 }));
 
 vi.mock("./globe.js", async (import_original) => {
@@ -36,7 +37,19 @@ vi.mock("./globe.js", async (import_original) => {
   };
 });
 
+// Same reasoning as the globe.js mock above: the satellite payload is a
+// runtime fetch of a generated file that doesn't exist under test, and what
+// is under test is how Hero reacts to it being there or not.
+vi.mock("./orbits.js", async (import_original) => {
+  const actual = await import_original<typeof import("./orbits.js")>();
+  return {
+    ...actual,
+    load_satellite_payload,
+  };
+});
+
 import Hero from "./Hero.svelte";
+import type { GpElements, SatellitePayload } from "./satellite-catalog.js";
 
 const HERO: LandingHero = {
   name: "Test Person",
@@ -82,6 +95,8 @@ describe("Hero reduced-motion fallback (client)", () => {
     start_globe.mockReset();
     load_globe_lines.mockReset();
     load_globe_lines.mockResolvedValue({ world: [], canada: [] });
+    load_satellite_payload.mockReset();
+    load_satellite_payload.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -185,5 +200,150 @@ describe("Hero reduced-motion fallback (client)", () => {
 
     expect(container.querySelectorAll(".hero-name-line").length).toBe(0);
     expect(container.querySelector(".hero-name")?.textContent?.trim()).toBe("Test Person");
+  });
+});
+
+const RCM_ELEMENTS: GpElements = {
+  OBJECT_NAME: "RCM-1",
+  OBJECT_ID: "2019-033A",
+  EPOCH: "2026-09-18T12:00:00.000000",
+  MEAN_MOTION: 15,
+  ECCENTRICITY: 0.0001,
+  INCLINATION: 97.7,
+  RA_OF_ASC_NODE: 10,
+  ARG_OF_PERICENTER: 90,
+  MEAN_ANOMALY: 0,
+  NORAD_CAT_ID: 44322,
+  ELEMENT_SET_NO: 999,
+  BSTAR: 0,
+  MEAN_MOTION_DOT: 0,
+  MEAN_MOTION_DDOT: 0,
+};
+
+const PAYLOAD: SatellitePayload = {
+  generated_at: "2026-09-19T06:00:00Z",
+  satellites: [
+    { norad_id: 44322, name: "RCM-1", canadian: true, flagship: "rcm", elements: RCM_ELEMENTS },
+    { norad_id: 25544, name: "ISS (ZARYA)", canadian: false, flagship: "iss", elements: { ...RCM_ELEMENTS, NORAD_CAT_ID: 25544 } },
+    { norad_id: 39089, name: "NEOSSAT", canadian: true, flagship: null, elements: { ...RCM_ELEMENTS, NORAD_CAT_ID: 39089 } },
+  ],
+};
+
+describe("Hero satellites (client)", () => {
+  beforeEach(() => {
+    start_globe.mockReset();
+    start_globe.mockReturnValue({ stop: vi.fn() });
+    load_globe_lines.mockReset();
+    load_globe_lines.mockResolvedValue({ world: [], canada: [] });
+    load_satellite_payload.mockReset();
+    stub_matchmedia(false);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("still starts the globe, without satellites, when the satellite payload is absent", async () => {
+    load_satellite_payload.mockResolvedValue(null);
+    render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+    expect(start_globe.mock.calls[0][0].satellites).toBeNull();
+  });
+
+  it("still starts the globe when the satellite fetch itself throws", async () => {
+    load_satellite_payload.mockRejectedValue(new Error("offline"));
+    render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+    expect(start_globe.mock.calls[0][0].satellites).toBeNull();
+  });
+
+  it("renders one icon per flagship, none for plain dots, and hands each to start_globe", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    expect(container.querySelectorAll(".hero-satellite")).toHaveLength(2);
+    const icon_els = start_globe.mock.calls[0][0].satellite_icon_els as Map<number, HTMLElement>;
+    expect([...icon_els.keys()].sort((a, b) => a - b)).toEqual([25544, 44322]);
+    expect(icon_els.get(44322)?.isConnected).toBe(true);
+  });
+
+  it("labels nothing until hovered, not even the ISS", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    expect(container.querySelectorAll(".hero-satellite-vitals")).toHaveLength(0);
+    const icons = Array.from(container.querySelectorAll(".hero-satellite"));
+    expect(icons.length).toBeGreaterThan(0);
+    expect(icons.map((el) => el.textContent?.trim()).join("")).toBe("");
+  });
+
+  it("colours Canadian flagships apart from the rest", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    const canadian = Array.from(container.querySelectorAll(".hero-satellite-canadian"));
+    expect(canadian).toHaveLength(1);
+  });
+
+  it("shows a flagship's vitals while hovered, and hides them on leave", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+    const rcm = container.querySelector(".hero-satellite-canadian") as HTMLElement;
+    expect(container.querySelector(".hero-satellite-vitals")).toBeNull();
+
+    await fireEvent.pointerEnter(rcm);
+    const vitals = container.querySelector(".hero-satellite-vitals");
+    expect(vitals?.textContent).toContain("RCM-1");
+    expect(vitals?.textContent).toContain("km");
+
+    await fireEvent.pointerLeave(rcm);
+    expect(container.querySelector(".hero-satellite-vitals")).toBeNull();
+  });
+
+  // A still cursor gets no pointerleave when the icon under it turns
+  // behind the globe, so the readout has to notice for itself.
+  it("drops the readout once the hovered icon turns hidden, even with no pointerleave", async () => {
+    load_satellite_payload.mockResolvedValue(PAYLOAD);
+    const { container } = render_hero();
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+    vi.useFakeTimers();
+    try {
+      const rcm = container.querySelector(".hero-satellite-canadian") as HTMLElement;
+      await fireEvent.pointerEnter(rcm);
+      expect(container.querySelector(".hero-satellite-vitals")).not.toBeNull();
+
+      // What start_globe does to an icon faded out behind the globe.
+      rcm.style.pointerEvents = "none";
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(container.querySelector(".hero-satellite-vitals")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

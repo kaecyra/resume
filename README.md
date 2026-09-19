@@ -51,6 +51,7 @@ npm install
 | `npm run generate-slug` | Generate a random 8-char hex slug for sub-variants |
 | `npm run validate-sub-variants` | Validate all sub-variant manifests against master data |
 | `npm run fetch-github` | Fetch the GitHub contribution calendar into `data/generated/github.json` |
+| `npm run fetch-satellites` | Fetch satellite orbital elements from CelesTrak into `static/landing/satellites.json` |
 | `npm run prepare` | Sync SvelteKit types |
 
 ## Project Structure
@@ -80,6 +81,7 @@ scripts/
   generate-pdf.ts         # Puppeteer-based PDF generation
   linkedin-export.ts      # LinkedIn copy/paste text exporter
   fetch-github.ts         # Fetches the GitHub contribution calendar at build time
+  fetch-satellites.ts     # Fetches satellite orbital elements for the hero globe at build time
   deploy.sh               # Manual deploy script (build and push to GHCR)
   setup-host.sh           # Host VM provisioning script
 VERSION                   # CalVer version (YYYY.MM.DD)
@@ -114,6 +116,14 @@ The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [
 The landing page's contribution grid is fetched at build time, not from the browser: `npm run fetch-github` (`scripts/fetch-github.ts`) queries the GitHub GraphQL API for `data.github.user`'s `contributionCalendar` and writes `data/generated/github.json` (fetch timestamp, total count, and per-day counts only - no repository names, ever). That file is gitignored and read by `src/routes/+page.server.ts` at prerender time via `src/lib/github.ts`, which turns it into a grid model rendered as inline SVG with no client-side request.
 
 The script needs a token with `read:user` scope: `GITHUB_TOKEN` in `.env.example` for local runs, and the `GH_CONTRIB_PAT` repository secret in CI (see [Required GitHub Configuration](#required-github-configuration)). Without a token, or if the fetch fails, `data/generated/github.json` simply doesn't exist - the build still succeeds and the section renders an explicit offline state instead of the grid.
+
+#### Satellites
+
+The hero globe overlays live satellite positions (#203): every active Canadian payload, plus the ISS, Hubble, ESA's Sentinel-1 and Sentinel-2, and EarthCARE. `npm run fetch-satellites` (`scripts/fetch-satellites.ts`) downloads CelesTrak's satellite catalog and active orbital elements (no key needed), selects the set via `src/lib/landing/satellite-catalog.ts`, and writes `static/landing/satellites.json`. The file is gitignored and refreshed by the nightly deploy.
+
+The browser fetches that file and propagates every satellite itself with [satellite.js](https://github.com/shashwatak/satellite-js) (SGP4) at the real current time, so no position API is called at runtime (`src/lib/landing/orbits.ts`). Altitude is log-compressed so low orbits sit well clear of the wireframe and the geostationary ring lands at the canvas edge. Flagships get an outline icon (`SatelliteIcon.svelte`) and a dashed orbit ring colored by orbit class (low Earth orbit, sun-synchronous, geostationary); everything else is a dot. Nothing is labelled until hovered: hovering a flagship icon shows its name, orbit class, altitude, speed, position, period and inclination, refreshed once a second. Without the file, or if the fetch fails, the globe renders without satellites. The reduced-motion still image never shows them.
+
+CelesTrak refuses a repeat download of the same data (HTTP 403) until it has changed, so running the script twice in quick succession fails the second time.
 
 ### Sub-Variants
 
