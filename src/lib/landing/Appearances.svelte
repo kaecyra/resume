@@ -241,6 +241,14 @@
       gap: 0.25rem;
     }
 
+    /* The desktop flex-basis values (12rem / 16rem) are widths in a row,
+       but once the toggle stacks into a column they become heights, which
+       pads each row with hundreds of pixels of empty space. */
+    .appearances-event,
+    .appearances-what {
+      flex: none;
+    }
+
     .appearances-date {
       margin-left: 0;
     }
