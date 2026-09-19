@@ -110,3 +110,25 @@ export const CONTRIBUTION_RAMP = {
   level_3: "#2fa35c",
   level_4: "#4fd67e",
 } as const;
+
+// Orbit track colours for the hero globe's satellites (#203), one per
+// orbit class (orbits.ts's `OrbitClass`). Deliberately new hues, off the
+// page's greyscale-plus-amber scheme: the owner asked for tracks to read
+// apart by regime, and amber already means "Canada" on the globe while
+// green belongs to the contribution grid, so all three stay clear of both.
+// Kept out of HUD_PALETTE for the same reason CONTRIBUTION_RAMP is: these
+// are line colours on a moving globe, not text, and palette.test.ts's WCAG
+// sweep has nothing to hold them to.
+//
+// Cyan, violet, magenta, spread wide in hue and all well saturated. The
+// first set (a muted cyan/lavender/rose) read too alike as thin dashed
+// lines. These pass the dataviz categorical checks against `background`:
+// OKLCH lightness inside the dark band, chroma floor, worst adjacent pair
+// Delta E 21 for normal vision and 14 under colour-vision deficiency. The
+// vitals readout also names the class in words, so colour is never the
+// only thing saying which orbit a track is.
+export const ORBIT_CLASS_COLORS = {
+  leo: "#12a4be",
+  sso: "#8a6cff",
+  geo: "#ea4b94",
+} as const;

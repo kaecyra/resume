@@ -59,6 +59,8 @@ coverage/
 
 # Generated data (fetched at build time, e.g. scripts/fetch-github.ts)
 data/generated/
+# Fetched nightly by scripts/fetch-satellites.ts, read by the browser
+static/landing/satellites.json
 
 # Claude
 tasks/

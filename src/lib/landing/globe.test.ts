@@ -4,6 +4,7 @@ import {
   densify_ring,
   globe_spin_at,
   hex_to_rgb01,
+  icon_alpha,
   line_alpha,
   line_segments,
   LINE_BACK_ALPHA,
@@ -280,6 +281,23 @@ describe("marker_alpha", () => {
   });
 });
 
+describe("icon_alpha", () => {
+  // Unlike marker_alpha, which only knows depth: a satellite sits above the
+  // surface, so one behind the globe but outside its silhouette is in plain
+  // sight.
+  it("is fully visible in front of the globe", () => {
+    expect(icon_alpha([0, 0, 1.1])).toBe(1);
+  });
+
+  it("is hidden directly behind the globe", () => {
+    expect(icon_alpha([0, 0, -1.1])).toBe(0);
+  });
+
+  it("stays visible behind the globe once it is outside the globe's silhouette", () => {
+    expect(icon_alpha([1.2, 0, -0.2])).toBe(1);
+  });
+});
+
 describe("project_to_screen", () => {
   it("centers a point at the sphere's origin on the given screen center", () => {
     const screen = project_to_screen([0, 0, 1], 100, 200, 150);
@@ -422,9 +440,15 @@ describe("transform_segments", () => {
 });
 
 describe("build_color_buffer", () => {
-  it("colors vertices before the boundary with world_rgb and the rest with canada_rgb", () => {
+  const RED = { rgb: [1, 0, 0] as const, alpha_scale: 1 };
+  const GREEN = { rgb: [0, 1, 0] as const, alpha_scale: 1 };
+
+  it("colors each band's run of vertices with that band's rgb, in order", () => {
     const depths = new Float32Array([1, 1, -1, -1]);
-    const colors = build_color_buffer(depths, 2, [1, 0, 0], [0, 1, 0]);
+    const colors = build_color_buffer(depths, [
+      { ...RED, vertex_count: 2 },
+      { ...GREEN, vertex_count: 2 },
+    ]);
     // Colors round-trip through a Float32Array, so compare against the
     // same float32-rounded expectation rather than a full-precision double.
     const front = Math.fround(line_alpha(1));
@@ -435,6 +459,26 @@ describe("build_color_buffer", () => {
     expect(Array.from(colors.slice(12, 16))).toEqual([0, 1, 0, back]);
   });
 
+  it("scales a band's depth alpha by its alpha_scale, so orbit rings sit quieter than the wireframe", () => {
+    const depths = new Float32Array([1, 1]);
+    const colors = build_color_buffer(depths, [
+      { ...RED, vertex_count: 1 },
+      { ...GREEN, alpha_scale: 0.5, vertex_count: 1 },
+    ]);
+    expect(colors[3]).toBeCloseTo(line_alpha(1));
+    expect(colors[7]).toBeCloseTo(line_alpha(1) * 0.5);
+  });
+
+  it("skips an empty band without shifting the bands after it", () => {
+    const depths = new Float32Array([1, 1]);
+    const colors = build_color_buffer(depths, [
+      { ...RED, vertex_count: 1 },
+      { rgb: [0, 0, 1], alpha_scale: 1, vertex_count: 0 },
+      { ...GREEN, vertex_count: 1 },
+    ]);
+    expect(Array.from(colors.slice(4, 7))).toEqual([0, 1, 0]);
+  });
+
   it("writes results into the caller's out buffer itself, not just the returned array", () => {
     // Same rationale as transform_segments's equivalent test: draw() only
     // ever reads the buffer it already holds a reference to, so a version
@@ -443,7 +487,7 @@ describe("build_color_buffer", () => {
     // caught.
     const depths = new Float32Array([1, 1, -1, -1]);
     const out = new Float32Array(16).fill(-999);
-    build_color_buffer(depths, 2, [1, 0, 0], [0, 1, 0], out);
+    build_color_buffer(depths, [{ ...RED, vertex_count: 2 }, { ...GREEN, vertex_count: 2 }], out);
     const front = Math.fround(line_alpha(1));
     expect(Array.from(out.slice(0, 4))).toEqual([1, 0, 0, front]);
   });
@@ -453,15 +497,15 @@ describe("build_color_buffer", () => {
     const smaller_depths = new Float32Array([-1, -1]);
     const out = new Float32Array(16);
 
-    // First call: front two vertices are world_rgb at front alpha.
-    build_color_buffer(larger_depths, 2, [1, 0, 0], [0, 1, 0], out);
-    // Second call: fewer vertices, all past the (zero) world/canada
-    // boundary - the front vertex should flip to canada_rgb at back alpha.
-    build_color_buffer(smaller_depths, 0, [1, 0, 0], [0, 1, 0], out);
+    // First call: front two vertices are red at front alpha.
+    build_color_buffer(larger_depths, [{ ...RED, vertex_count: 2 }, { ...GREEN, vertex_count: 2 }], out);
+    // Second call: fewer vertices, all green - the front vertex should
+    // flip to green at back alpha.
+    build_color_buffer(smaller_depths, [{ ...GREEN, vertex_count: 2 }], out);
 
     const back = Math.fround(line_alpha(-1));
     // If the second call left `out` untouched, this would still read the
-    // first call's stale world_rgb + front alpha instead.
+    // first call's stale red + front alpha instead.
     expect(Array.from(out.slice(0, 4))).toEqual([0, 1, 0, back]);
   });
 });

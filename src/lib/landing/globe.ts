@@ -15,7 +15,8 @@
 // "everything that decides what to draw" and implied covered, when nothing
 // asserted them at all.
 
-import { HUD_PALETTE } from "./palette.js";
+import { inertial_spin, propagate_to_globe, sidereal_time, type SatelliteScene } from "./orbits.js";
+import { HUD_PALETTE, ORBIT_CLASS_COLORS } from "./palette.js";
 
 export interface GlobeLines {
   world: string[];
@@ -57,8 +58,23 @@ export const MARKER_FADE_END_Z = 0.08;
 // The globe is drawn inset from its square viewport by this fraction, so
 // the wireframe never touches the frame edge. The WebGL draw and the
 // Montreal marker's DOM placement both scale by this same constant so they
-// never disagree about where the sphere's edge actually is.
-export const SPHERE_FILL_RATIO = 0.94;
+// never disagree about where the sphere's edge actually is. Was 0.94 until
+// #203 put satellites above the surface: 0.75 leaves the low orbits room
+// to sit well out from the wireframe and puts the geostationary ring
+// (orbits.ts's `display_radius`) right at the canvas edge, where the
+// hero's own crop is allowed to take part of it.
+export const SPHERE_FILL_RATIO = 0.75;
+
+// Orbit rings are drawn at this fraction of the wireframe's own depth
+// alpha, so they read as a layer above the globe rather than competing
+// with its coastlines.
+export const RING_ALPHA_SCALE = 0.75;
+
+// Below this opacity a satellite icon stops accepting hover.
+const ICON_HOVER_MIN_ALPHA = 0.5;
+
+// Satellite dot diameter, in CSS pixels.
+export const DOT_SIZE_PX = 2.5;
 
 function to_radians(deg: number): number {
   return (deg * Math.PI) / 180;
@@ -81,7 +97,7 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function smoothstep(edge0: number, edge1: number, x: number): number {
+export function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
   return t * t * (3 - 2 * t);
 }
@@ -224,6 +240,22 @@ export function marker_alpha(z: number): number {
   return smoothstep(MARKER_FADE_START_Z, MARKER_FADE_END_Z, z);
 }
 
+// A satellite icon's silhouette band: how far past the globe's projected
+// edge (in globe radii) an object behind the globe fades back in.
+const ICON_LIMB_FADE_START = 0.98;
+const ICON_LIMB_FADE_END = 1.02;
+
+// Opacity for a satellite icon at view-space position `v`. Unlike
+// marker_alpha, which only knows depth because Montreal is on the surface,
+// a satellite sits above it: one behind the globe is hidden only while it
+// is inside the globe's silhouette, and in plain sight once its projection
+// clears the limb.
+export function icon_alpha(v: Vec3): number {
+  const from_centre = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+  const outside = smoothstep(ICON_LIMB_FADE_START, ICON_LIMB_FADE_END, from_centre);
+  return 1 - (1 - marker_alpha(v[2])) * (1 - outside);
+}
+
 export interface ScreenPoint {
   x: number;
   y: number;
@@ -319,26 +351,35 @@ export function transform_segments(
   return { positions, depths };
 }
 
-// Builds the per-vertex RGBA color buffer for a transformed frame: vertices
-// before `world_vertex_count` are colored `world_rgb`, the rest
-// `canada_rgb` - alpha comes from `line_alpha` at that vertex's depth. `out`
-// behaves the same way as in `transform_segments`: reuse a caller-owned
-// buffer instead of allocating a fresh one every call.
+// One contiguous run of vertices in the line buffer that shares a color.
+// `alpha_scale` multiplies the depth alpha, so a band can sit quieter than
+// the wireframe (orbit rings) without its own fade curve.
+export interface ColorBand {
+  vertex_count: number;
+  rgb: readonly [number, number, number];
+  alpha_scale: number;
+}
+
+// Builds the per-vertex RGBA color buffer for a transformed frame: each
+// band colors the next `vertex_count` vertices, in order, with alpha from
+// `line_alpha` at that vertex's depth times the band's `alpha_scale`.
+// `out` behaves the same way as in `transform_segments`: reuse a
+// caller-owned buffer instead of allocating a fresh one every call.
 export function build_color_buffer(
   depths: Float32Array,
-  world_vertex_count: number,
-  world_rgb: readonly [number, number, number],
-  canada_rgb: readonly [number, number, number],
+  bands: readonly ColorBand[],
   out?: Float32Array,
 ): Float32Array {
   const colors = out ?? new Float32Array(depths.length * 4);
-  for (let i = 0; i < depths.length; i++) {
-    const rgb = i < world_vertex_count ? world_rgb : canada_rgb;
-    const alpha = line_alpha(depths[i]);
-    colors[i * 4] = rgb[0];
-    colors[i * 4 + 1] = rgb[1];
-    colors[i * 4 + 2] = rgb[2];
-    colors[i * 4 + 3] = alpha;
+  let i = 0;
+  for (const band of bands) {
+    const end = Math.min(depths.length, i + band.vertex_count);
+    for (; i < end; i++) {
+      colors[i * 4] = band.rgb[0];
+      colors[i * 4 + 1] = band.rgb[1];
+      colors[i * 4 + 2] = band.rgb[2];
+      colors[i * 4 + 3] = line_alpha(depths[i]) * band.alpha_scale;
+    }
   }
   return colors;
 }
@@ -375,9 +416,11 @@ export async function load_globe_lines(url: string = GLOBE_LINES_URL): Promise<G
 const VERTEX_SHADER_SOURCE = `
   attribute vec2 a_position;
   attribute vec4 a_color;
+  uniform float u_point_size;
   varying vec4 v_color;
   void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
+    gl_PointSize = u_point_size;
     v_color = a_color;
   }
 `;
@@ -449,6 +492,12 @@ export interface StartGlobeOptions {
   canvas: HTMLCanvasElement;
   lines: GlobeLines;
   marker_el?: HTMLElement | null;
+  // Satellites (#203): rings and dots drawn in the same WebGL pass, and a
+  // DOM icon per flagship, keyed by NORAD id, placed and faded every frame
+  // the way the Montreal marker is. Both optional - without them the globe
+  // is exactly what it was before.
+  satellites?: SatelliteScene | null;
+  satellite_icon_els?: ReadonlyMap<number, HTMLElement>;
 }
 
 // Wires the pure geometry/projection/rotation helpers above to a live
@@ -465,7 +514,7 @@ export interface StartGlobeOptions {
 // touches window/document/canvas context directly and has no SSR guard of
 // its own.
 export function start_globe(options: StartGlobeOptions): GlobeController | null {
-  const { canvas, lines, marker_el } = options;
+  const { canvas, lines, marker_el, satellites, satellite_icon_els } = options;
   const gl = (canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl")) as WebGLRenderingContext | null;
   if (!gl) {
     return null;
@@ -489,11 +538,30 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
 
   const world_segments = build_ring_segments(lines.world);
   const canada_segments = build_ring_segments(lines.canada);
-  const all_segments = [...world_segments, ...canada_segments];
-  const vertex_count = all_segments.length * 2;
-  const world_vertex_count = world_segments.length * 2;
-  const world_rgb = hex_to_rgb01(HUD_PALETTE.secondary);
-  const canada_rgb = hex_to_rgb01(HUD_PALETTE.accent);
+  const geo_ring = satellites?.geo_ring ?? [];
+  // Grouped by orbit class so each class is one contiguous color band.
+  const leo_rings = (satellites?.rings ?? []).filter((r) => r.orbit_class === "leo").flatMap((r) => r.segments);
+  const sso_rings = (satellites?.rings ?? []).filter((r) => r.orbit_class === "sso").flatMap((r) => r.segments);
+  const orbit_rings = [...leo_rings, ...sso_rings];
+  // Two groups, because they spin differently: Earth-fixed geometry turns
+  // with the globe's own spin, while orbit rings live on inertial axes and
+  // are drawn with `inertial_spin` (see orbits.ts). The geostationary ring
+  // is symmetric about the polar axis, so it rides with the Earth-fixed
+  // group.
+  const earth_segments = [...world_segments, ...canada_segments, ...geo_ring];
+  const earth_vertex_count = earth_segments.length * 2;
+  const vertex_count = earth_vertex_count + orbit_rings.length * 2;
+
+  const secondary_rgb = hex_to_rgb01(HUD_PALETTE.secondary);
+  const accent_rgb = hex_to_rgb01(HUD_PALETTE.accent);
+  const text_rgb = hex_to_rgb01(HUD_PALETTE.text);
+  const color_bands: ColorBand[] = [
+    { vertex_count: world_segments.length * 2, rgb: secondary_rgb, alpha_scale: 1 },
+    { vertex_count: canada_segments.length * 2, rgb: accent_rgb, alpha_scale: 1 },
+    { vertex_count: geo_ring.length * 2, rgb: hex_to_rgb01(ORBIT_CLASS_COLORS.geo), alpha_scale: RING_ALPHA_SCALE },
+    { vertex_count: leo_rings.length * 2, rgb: hex_to_rgb01(ORBIT_CLASS_COLORS.leo), alpha_scale: RING_ALPHA_SCALE },
+    { vertex_count: sso_rings.length * 2, rgb: hex_to_rgb01(ORBIT_CLASS_COLORS.sso), alpha_scale: RING_ALPHA_SCALE },
+  ];
 
   // The geometry is static once built, so its transformed buffers are
   // allocated exactly once here and written in place every frame (see
@@ -501,11 +569,27 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   const positions = new Float32Array(vertex_count * 2);
   const depths = new Float32Array(vertex_count);
   const colors = new Float32Array(vertex_count * 4);
+  // Views onto the same buffers, one per spin group.
+  const earth_out = {
+    positions: positions.subarray(0, earth_vertex_count * 2),
+    depths: depths.subarray(0, earth_vertex_count),
+  };
+  const orbit_out = {
+    positions: positions.subarray(earth_vertex_count * 2),
+    depths: depths.subarray(earth_vertex_count),
+  };
+
+  // Satellite dots: moving, so re-propagated every frame, but their count
+  // is fixed, so their buffers are allocated once here too.
+  const dots = satellites?.dots ?? [];
+  const dot_positions = new Float32Array(dots.length * 2);
+  const dot_colors = new Float32Array(dots.length * 4);
 
   const position_buffer = ctx.createBuffer();
   const color_buffer = ctx.createBuffer();
   const position_location = ctx.getAttribLocation(program, "a_position");
   const color_location = ctx.getAttribLocation(program, "a_color");
+  const point_size_location = ctx.getUniformLocation(program, "u_point_size");
 
   ctx.enable(ctx.BLEND);
   ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
@@ -530,6 +614,8 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
     canvas.width = Math.max(1, Math.round(rect.width * dpr));
     canvas.height = Math.max(1, Math.round(rect.height * dpr));
     ctx.viewport(0, 0, canvas.width, canvas.height);
+    ctx.useProgram(program);
+    ctx.uniform1f(point_size_location, DOT_SIZE_PX * dpr);
   }
   size_canvas();
   window.addEventListener("resize", size_canvas);
@@ -539,8 +625,14 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
     const aspect_x = cached_width > 0 ? (min_dimension / cached_width) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
     const aspect_y = cached_height > 0 ? (min_dimension / cached_height) * SPHERE_FILL_RATIO : SPHERE_FILL_RATIO;
 
-    transform_segments(all_segments, spin_rad, tilt, aspect_x, aspect_y, { positions, depths });
-    build_color_buffer(depths, world_vertex_count, world_rgb, canada_rgb, colors);
+    // Satellites are propagated at the real current time, not the globe's
+    // animation clock: the globe's spin is sped up, the satellites are not.
+    const now = new Date();
+    const orbit_spin = inertial_spin(spin_rad, sidereal_time(now));
+
+    transform_segments(earth_segments, spin_rad, tilt, aspect_x, aspect_y, earth_out);
+    transform_segments(orbit_rings, orbit_spin, tilt, aspect_x, aspect_y, orbit_out);
+    build_color_buffer(depths, color_bands, colors);
 
     ctx.clear(ctx.COLOR_BUFFER_BIT);
 
@@ -558,11 +650,58 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
 
     ctx.drawArrays(ctx.LINES, 0, depths.length);
 
+    if (dots.length > 0) {
+      for (let i = 0; i < dots.length; i++) {
+        const position = propagate_to_globe(dots[i].satrec, now);
+        const view = position ? to_view_space(position, orbit_spin, tilt) : null;
+        const rgb = dots[i].canadian ? accent_rgb : text_rgb;
+        dot_positions[i * 2] = view ? view[0] * aspect_x : 0;
+        dot_positions[i * 2 + 1] = view ? view[1] * aspect_y : 0;
+        dot_colors[i * 4] = rgb[0];
+        dot_colors[i * 4 + 1] = rgb[1];
+        dot_colors[i * 4 + 2] = rgb[2];
+        dot_colors[i * 4 + 3] = view ? line_alpha(view[2]) : 0;
+      }
+
+      ctx.bindBuffer(ctx.ARRAY_BUFFER, position_buffer);
+      ctx.bufferData(ctx.ARRAY_BUFFER, dot_positions, ctx.DYNAMIC_DRAW);
+      ctx.vertexAttribPointer(position_location, 2, ctx.FLOAT, false, 0, 0);
+
+      ctx.bindBuffer(ctx.ARRAY_BUFFER, color_buffer);
+      ctx.bufferData(ctx.ARRAY_BUFFER, dot_colors, ctx.DYNAMIC_DRAW);
+      ctx.vertexAttribPointer(color_location, 4, ctx.FLOAT, false, 0, 0);
+
+      ctx.drawArrays(ctx.POINTS, 0, dots.length);
+    }
+
+    const radius_px = (min_dimension / 2) * SPHERE_FILL_RATIO;
+    const center_x = cached_width / 2;
+    const center_y = cached_height / 2;
+
     if (marker_el) {
-      const radius_px = (min_dimension / 2) * SPHERE_FILL_RATIO;
-      const marker = montreal_marker(spin_rad, tilt, radius_px, cached_width / 2, cached_height / 2);
+      const marker = montreal_marker(spin_rad, tilt, radius_px, center_x, center_y);
       marker_el.style.transform = `translate(${marker.x}px, ${marker.y}px) translate(-50%, -50%)`;
       marker_el.style.opacity = String(marker.opacity);
+    }
+
+    for (const flagship of satellites?.flagships ?? []) {
+      const icon_el = satellite_icon_els?.get(flagship.norad_id);
+      if (!icon_el) {
+        continue;
+      }
+      const position = propagate_to_globe(flagship.satrec, now);
+      if (!position) {
+        icon_el.style.opacity = "0";
+        icon_el.style.pointerEvents = "none";
+        continue;
+      }
+      const view = to_view_space(position, orbit_spin, tilt);
+      const screen = project_to_screen(view, radius_px, center_x, center_y);
+      icon_el.style.transform = `translate(${screen.x}px, ${screen.y}px) translate(-50%, -50%)`;
+      const alpha = icon_alpha(view);
+      icon_el.style.opacity = String(alpha);
+      // An icon faded out behind the globe must not catch hover.
+      icon_el.style.pointerEvents = alpha > ICON_HOVER_MIN_ALPHA ? "auto" : "none";
     }
   }
 

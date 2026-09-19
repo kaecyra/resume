@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
   schedule:
-    # Nightly, so the contribution grid refreshes without a code change.
+    # Nightly, so the contribution grid and the globe's satellite
+    # elements refresh without a code change.
     # This re-pushes the same VERSION tag alongside `latest`; Watchtower
     # tracks `latest`, so the repeat tag is harmless.
     - cron: "0 6 * * *"
@@ -42,6 +43,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_PAT }}
         run: npm run fetch-github
+        continue-on-error: true
+
+      # Writes static/landing/satellites.json from CelesTrak (no key needed).
+      # continue-on-error for the same reason as the GitHub fetch: a
+      # CelesTrak outage ships a globe without satellites, never a failed
+      # deploy.
+      - name: Fetch satellite orbital elements
+        run: npm run fetch-satellites
         continue-on-error: true
 
       - uses: docker/login-action@v3

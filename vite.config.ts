@@ -11,6 +11,13 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(version),
   },
   plugins: [tailwindcss(), sveltekit()],
+  // satellite.js (#203) re-exports an optional WASM build from its root
+  // entry, and that build spawns a worker using top-level await, which the
+  // default "iife" worker format can't hold. Only the pure-JS SGP4 path is
+  // used, but the worker is still bundled, so it needs ES output.
+  worker: {
+    format: "es",
+  },
   test: {
     globals: true,
     coverage: {
