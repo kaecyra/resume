@@ -3,6 +3,7 @@ import { env } from "$env/dynamic/public";
 import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
 import { build_contribution_grid, load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
+import { load_pipeline_data, validate_pipeline_data } from "$lib/pipeline.js";
 import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -16,6 +17,18 @@ export const load: PageServerLoad = () => {
   if (errors.length > 0) {
     const messages = errors.map((e) => `${e.path}: ${e.message}`).join("\n");
     throw new Error(`data/landing.yaml failed validation:\n${messages}`);
+  }
+
+  // The "pipeline" section's content is its own document (#209): three
+  // graphs, a terminal, a rack and two readouts, which would have swamped
+  // landing.yaml's six other sections. Validated and thrown on separately
+  // so the error names the file the mistake is actually in.
+  const pipeline = load_pipeline_data();
+  const pipeline_errors = validate_pipeline_data(pipeline);
+
+  if (pipeline_errors.length > 0) {
+    const messages = pipeline_errors.map((e) => `${e.path}: ${e.message}`).join("\n");
+    throw new Error(`data/pipeline.yaml failed validation:\n${messages}`);
   }
 
   const data = load_resume_data();
@@ -68,6 +81,7 @@ export const load: PageServerLoad = () => {
     profile_name: data.profile.name,
     resume_title: variant.title,
     contributions_grid,
+    pipeline,
     og,
     jsonld: { person: person_jsonld, webpage: webpage_jsonld },
   };

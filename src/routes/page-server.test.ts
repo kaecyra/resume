@@ -16,6 +16,14 @@ vi.mock("$lib/landing.js", async (import_original) => {
   return { ...actual, load_landing_data: vi.fn(actual.load_landing_data) };
 });
 
+// data/pipeline.yaml (#209) gets the same treatment for the same reason:
+// wrapped, not replaced, so every test but the malformed-document one
+// below reads and validates the real file.
+vi.mock("$lib/pipeline.js", async (import_original) => {
+  const actual = await import_original<typeof import("$lib/pipeline.js")>();
+  return { ...actual, load_pipeline_data: vi.fn(actual.load_pipeline_data) };
+});
+
 // The real I/O boundary for the GitHub contribution grid is the
 // gitignored data/generated/github.json read inside
 // load_github_contribution_data (src/lib/github.ts's own readFileSync) -
@@ -33,10 +41,11 @@ vi.mock("$lib/github.js", async (import_original) => {
 import { load_resume_data, load_variant } from "$lib/data.js";
 import { load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data } from "$lib/landing.js";
+import { load_pipeline_data } from "$lib/pipeline.js";
 
 import { load } from "./+page.server.js";
 
-import type { LandingData } from "$lib/types.js";
+import type { LandingData, PipelineData } from "$lib/types.js";
 import type { PageData } from "./$types";
 
 async function run_load(): Promise<PageData> {
@@ -78,13 +87,69 @@ describe("landing data wiring", () => {
   beforeEach(() => {
     vi.mocked(load_landing_data).mockClear();
     vi.mocked(load_github_contribution_data).mockClear();
+    vi.mocked(load_pipeline_data).mockClear();
   });
 
   it("returns the validated landing document for a well-formed data/landing.yaml", async () => {
     const result = await run_load();
 
-    expect(result.landing.sections).toEqual(["hero", "divider", "commits", "work", "appearances", "contact"]);
+    expect(result.landing.sections).toEqual([
+      "hero",
+      "divider",
+      "commits",
+      "pipeline",
+      "work",
+      "appearances",
+      "contact",
+    ]);
     expect(result.landing.resume_links).toEqual(["default"]);
+  });
+
+  // The "pipeline" section is the first one whose content is a second data
+  // file, so this is the end-to-end proof that data/pipeline.yaml is read,
+  // validated against the real validator and handed to the page - the
+  // whole thread #209 step (a) adds. Asserts the real document's shape
+  // rather than "is not null", so a loader wired to the wrong file or a
+  // return object missing the key still fails.
+  it("returns the validated pipeline document alongside the landing one", async () => {
+    const result = await run_load();
+
+    expect(result.pipeline.heading).toBeTruthy();
+    expect(result.pipeline.bands.length).toBeGreaterThan(0);
+    for (const band of result.pipeline.bands) {
+      expect(band.nodes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("throws an error naming data/pipeline.yaml when that document is malformed", async () => {
+    const bad_pipeline: PipelineData = {
+      heading: "",
+      lede: "A lede.",
+      bands: [
+        {
+          id: "commit",
+          graph_side: "sideways" as never,
+          nodes: [{ id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" }],
+          edges: [],
+          note: { column: "graph", text: "A note." },
+        },
+      ],
+      crossings: [{ id: "x", after: "nonexistent", label: "a label" }],
+      closer: "A closer.",
+    };
+    vi.mocked(load_pipeline_data).mockReturnValueOnce(bad_pipeline);
+
+    const caught: unknown = await run_load().then(
+      () => undefined,
+      (err: unknown) => err,
+    );
+
+    expect(caught).toBeInstanceOf(Error);
+    const message = (caught as Error).message;
+    expect(message).toContain("data/pipeline.yaml failed validation");
+    expect(message).toContain("heading is required");
+    expect(message).toContain('band "commit" graph_side "sideways" is not a known side');
+    expect(message).toContain('crossing "x" comes after unknown band "nonexistent"');
   });
 
   // #167/#184 fetch and bucket the real GitHub contribution calendar at

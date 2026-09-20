@@ -94,6 +94,7 @@ sections:
   - "hero"
   - "divider"
   - "commits"
+  - "pipeline"
   - "work"
   - "appearances"
   - "contact"
