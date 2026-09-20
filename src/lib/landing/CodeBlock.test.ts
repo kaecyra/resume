@@ -89,11 +89,4 @@ describe("CodeBlock", () => {
     expect(html).not.toContain("<span");
   });
 
-  it("paints its tokens from the palette rather than a literal hex", () => {
-    expect(source_without_comments()).not.toMatch(HEX_COLOUR);
-  });
-
-  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
-    expect(source()).not.toContain("Share Tech Mono");
-  });
 });

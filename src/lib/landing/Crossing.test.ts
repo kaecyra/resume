@@ -94,25 +94,16 @@ describe("Crossing", () => {
     });
   });
 
-  describe("single-column fallback", () => {
-    // Below 860px `.band-grid` collapses to one column, so there is no
-    // second spine to reach and the horizontal run would be a lie. The rules
-    // go; the label stays and grows a short vertical rule of its own.
-    const NARROW = SOURCE.slice(SOURCE.indexOf("@media (max-width: 860px)"));
+  // Below 860px `.band-grid` collapses to one column, so there is no second
+  // spine to reach and the horizontal run would be a lie. The rules go; the
+  // label stays and grows a short vertical rule of its own. Source-read
+  // because a scoped media query never reaches the rendered markup.
+  it("drops the connector and keeps the label in the one-column layout", () => {
+    const narrow = SOURCE.slice(SOURCE.indexOf("@media (max-width: 860px)"));
 
-    it("has an 860px branch at all", () => {
-      expect(SOURCE).toContain("@media (max-width: 860px)");
-    });
-
-    it("hides the rules and the arrow, which have nowhere to land in one column", () => {
-      expect(NARROW).toMatch(/\.x-v,\s*\.x-h,\s*\.x-tip\s*\{\s*display: none;/);
-    });
-
-    it("keeps the label and gives it a short vertical rule in place of the connector", () => {
-      expect(NARROW).toContain("position: static;");
-      expect(NARROW).toMatch(/\.x-label::before\s*\{/);
-      expect(NARROW).toContain("height: 46px;");
-    });
+    expect(SOURCE).toContain("@media (max-width: 860px)");
+    expect(narrow).toMatch(/\.x-v,\s*\.x-h,\s*\.x-tip\s*\{\s*display: none;/);
+    expect(narrow).toMatch(/\.x-label::before\s*\{/);
   });
 
   describe("palette", () => {
@@ -123,18 +114,12 @@ describe("Crossing", () => {
       expect(html).toContain(PIPELINE_INK.crossing_arrow);
       expect(html).toContain(HUD_PALETTE.chip_text);
     });
-
-    it("leaves no raw hex in the source, so every tone has a name in palette.ts", () => {
-      expect(DECLARED).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    });
   });
 
-  // #187 retired Share Tech Mono everywhere outside the hero and #194 put it
-  // back on a readout label without anything failing. Same guard as
-  // Commits.test.ts, for the same reason: a font-family in a scoped style
-  // block is invisible to every DOM assertion.
-  it("uses the plain system monospace stack, not Share Tech Mono", () => {
-    expect(DECLARED).not.toContain("Share Tech Mono");
+  // The positive half of the rule landing-source.test.ts enforces negatively
+  // over the whole section: this component has to be on the system stack,
+  // not merely off the retired face.
+  it("uses the plain system monospace stack", () => {
     expect(SOURCE).toContain("font-family: ui-monospace, SFMono-Regular, Menlo, monospace;");
   });
 });

@@ -81,11 +81,4 @@ describe("VendorMarks", () => {
     expect(html_for([])).not.toMatch(/<[a-z]/i);
   });
 
-  it("takes its colours from the palette rather than a literal hex", () => {
-    expect(source_without_comments()).not.toMatch(HEX_COLOUR);
-  });
-
-  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
-    expect(source()).not.toContain("Share Tech Mono");
-  });
 });

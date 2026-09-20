@@ -103,24 +103,4 @@ describe("Terminal", () => {
     expect(query).toMatch(/\.cursor\s*\{\s*animation: none;/);
   });
 
-  it("paints each speaker's bars from the palette rather than a literal hex", () => {
-    const html = html_for(TERMINAL);
-
-    // The reader's own turn is the brightest of the three, so the
-    // transcript reads as them speaking loudest in their own terminal.
-    expect(html).toContain(HUD_PALETTE.edge);
-    expect(html).toContain(PIPELINE_INK.agent_bar);
-    expect(html).toContain(PIPELINE_INK.tool_bar);
-
-    // The drop shadow is plain black at low alpha and has no token by design
-    // (see palette.ts), so it is the one colour allowed to be written here.
-    // The whole declaration is struck out rather than the value, so the
-    // allowance is tied to that one place and a stray #000 elsewhere in the
-    // file still fails.
-    expect(source_without_comments().replace("0 18px 40px -24px #000", "")).not.toMatch(HEX_COLOUR);
-  });
-
-  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
-    expect(source()).not.toContain("Share Tech Mono");
-  });
 });

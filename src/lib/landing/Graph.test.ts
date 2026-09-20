@@ -170,13 +170,6 @@ describe("Graph", () => {
     expect(html).toContain(`viewBox="${layout.view_box}"`);
   });
 
-  it("leaves no raw hex in the source, so every tone has a name in palette.ts", () => {
-    const style_block = SOURCE.slice(SOURCE.indexOf("<style>"));
-
-    expect(style_block).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    expect(SOURCE.slice(0, SOURCE.indexOf("<style>"))).not.toMatch(/#[0-9a-fA-F]{6}\b/);
-  });
-
   it("takes its text colours from the HUD palette, not from a second set", () => {
     const html = html_for(band());
 

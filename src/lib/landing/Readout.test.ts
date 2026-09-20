@@ -149,12 +149,6 @@ describe("Readout", () => {
     expect(SOURCE).not.toContain("sessionStorage");
   });
 
-  // Every colour in this component comes from palette.ts. #209 widened the
-  // palette precisely so this section would not need literals.
-  it("carries no raw hex", () => {
-    expect(SOURCE_WITHOUT_COMMENTS).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-  });
-
   // The four tells from .memory/no-default-ai-styling.md, plus the mono
   // #187 retired outside the hero. This readout is typographic - scale and
   // space carry it, not a surface.

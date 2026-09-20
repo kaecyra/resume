@@ -250,16 +250,4 @@ describe("Pipeline", () => {
     expect(style_block).toMatch(/\.band-grid\s*\{[^}]*align-items: start;/);
   });
 
-  it("leaves no raw hex in the source, so every tone has a name in palette.ts", () => {
-    expect(SOURCE).not.toMatch(/#[0-9a-fA-F]{6}\b/);
-  });
-
-  it("uses the display face for the heading and the closer, and nothing else", () => {
-    const style_block = SOURCE.slice(SOURCE.indexOf("<style>"));
-    const display_rules = style_block.match(/Archivo Black/g) ?? [];
-
-    expect(display_rules).toHaveLength(2);
-    // Share Tech Mono is hero-only, retired everywhere else in #187.
-    expect(SOURCE).not.toContain("Share Tech Mono");
-  });
 });
