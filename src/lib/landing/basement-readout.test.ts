@@ -86,6 +86,14 @@ describe("format_basement_readout", () => {
       value: "100",
       unit: "%",
     });
+    expect(format_basement_readout({ temperature: -20, humidity: 46 })?.temperature).toEqual({
+      value: "-20.0",
+      unit: "°C",
+    });
+    expect(format_basement_readout({ temperature: 60, humidity: 46 })?.temperature).toEqual({
+      value: "60.0",
+      unit: "°C",
+    });
   });
 });
 

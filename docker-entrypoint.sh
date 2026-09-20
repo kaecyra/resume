@@ -33,9 +33,9 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
         }
 
         while true; do
-            temperature=$(curl -sf -H "Authorization: Bearer $HA_TOKEN" \
+            temperature=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
                 "$HA_BASE_URL/api/states/$HA_TEMP_ENTITY_ID" | jq -r '.state')
-            humidity=$(curl -sf -H "Authorization: Bearer $HA_TOKEN" \
+            humidity=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
                 "$HA_BASE_URL/api/states/$HA_HUMIDITY_ENTITY_ID" | jq -r '.state')
 
             if is_usable_reading "$temperature" && is_usable_reading "$humidity"; then
