@@ -557,6 +557,25 @@ describe("validate_pipeline_data", () => {
 
       expect(messages).toContain('band "commit" already has a crossing after it');
     });
+
+    it("detects a crossing that does not say which band it comes after", () => {
+      const messages = messages_for(
+        make_pipeline({ crossings: [{ id: "to-serve", label: "one" } as never] }),
+      );
+
+      expect(messages).toContain('crossing "to-serve" does not say which band it comes after');
+    });
+
+    // last_band_id reads the last band, not the last band with an id.
+    // Filtering first made an unnamed final band report the crossing
+    // before it as hanging off the end - a false message stacked on a real
+    // one, pointing the reader at the wrong line.
+    it("does not call a legitimate crossing the last one when the final band has no id", () => {
+      const messages = messages_for(with_band(1, { id: "" }));
+
+      expect(messages).toContain("band is missing an id");
+      expect(messages).not.toContainEqual(expect.stringContaining("comes after the last band"));
+    });
   });
 
   describe("readouts, marks and the terminal", () => {
@@ -633,6 +652,22 @@ describe("validate_pipeline_data", () => {
       const messages = messages_for(with_band(1, { marks: [{ id: "docker", label: "" }] }));
 
       expect(messages).toContain('band "serve" mark "docker" is missing a label');
+    });
+
+    // An idless mark skips the duplicate bookkeeping rather than adding an
+    // empty string to the seen set, which would make a second one look
+    // like a repeat of the first.
+    it("does not call two unidentified marks a duplicate", () => {
+      const messages = messages_for(
+        with_band(1, {
+          marks: [
+            { id: "" as never, label: "One" },
+            { id: "" as never, label: "Two" },
+          ],
+        }),
+      );
+
+      expect(messages).not.toContainEqual(expect.stringContaining("repeats mark"));
     });
 
     it("detects a readout entry with no id", () => {
@@ -721,6 +756,38 @@ describe("validate_pipeline_data", () => {
         'band "commit" terminal turn 0 has a bar width of 410, outside 0-100',
       );
     });
+  });
+
+  // A band's label, note, terminal and readout are the fields a YAML author
+  // is most likely to write as a scalar - `note: some text` reads perfectly
+  // naturally. Typed sub-schemas on the band made each of those a type
+  // failure on the array element, which aborted the whole array refinement:
+  // one "Expected object, received string" for the entire document, with no
+  // band name, no field name, and every other fault in the file suppressed.
+  describe("a scalar written where a mapping belongs", () => {
+    const CASES = [
+      ["note", 'band "commit" is missing a note'],
+      ["label", 'band "commit" label is missing its first part'],
+      ["terminal", 'band "commit" terminal is missing a path'],
+      ["readout", 'band "commit" readout entries must be an array'],
+    ] as const;
+
+    for (const [field, expected] of CASES) {
+      it(`reports ${field} by name and keeps checking the rest of the document`, () => {
+        const messages = messages_for(
+          make_pipeline({
+            heading: "",
+            bands: MOCK_PIPELINE_DATA.bands.map((band, i) =>
+              i === 0 ? { ...band, [field]: "just a string" } : band,
+            ),
+          }),
+        );
+
+        expect(messages).toContain(expected);
+        // The document-level pass still runs: the blast radius is one field.
+        expect(messages).toContain("heading is required");
+      });
+    }
   });
 
   it("accumulates errors from more than one branch of the document at once", () => {

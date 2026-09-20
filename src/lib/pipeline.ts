@@ -218,19 +218,31 @@ const _note_schema_covers_type: SchemaCoversType<
   z.infer<typeof PipelineNoteSchema>
 > = true;
 
+// Every field is `z.any().optional()`, including the four that hold a
+// mapping. Declaring `note: PipelineNoteSchema.optional()` here reads like
+// tighter validation and is the opposite: the band schema sits inside
+// `z.array(...).superRefine(...)`, so `note: just a string` is a type
+// failure on the array element, which aborts the array refinement and takes
+// every check for every band down with it - plus the document-level pass.
+// The whole document then reports one "Expected object, received string"
+// with no band name and no field name. The hand-written checks below own
+// these four instead, and `shape()` turns a scalar into an empty object so
+// each field is reported by name. `note: some text` is an easy YAML
+// mistake, and it has to read as "note is missing text", not as a document
+// that failed to parse.
 const PipelineBandSchema = z.object({
   id: z.any().optional(),
-  label: PipelineBandLabelSchema.optional(),
+  label: z.any().optional(),
   graph_side: z.any().optional(),
   nodes: z.any().optional(),
   edges: z.any().optional(),
   tail_arrow: z.any().optional(),
-  note: PipelineNoteSchema.optional(),
-  terminal: PipelineTerminalSchema.optional(),
+  note: z.any().optional(),
+  terminal: z.any().optional(),
   code: z.any().optional(),
   rack: z.any().optional(),
   marks: z.any().optional(),
-  readout: PipelineReadoutSchema.optional(),
+  readout: z.any().optional(),
 });
 const _band_schema_covers_type: SchemaCoversType<
   PipelineBand,
@@ -317,7 +329,7 @@ function check_note(ctx: z.RefinementCtx, band_label: string, note: unknown): vo
     return;
   }
 
-  const { column, text, emphasis } = note as Record<string, unknown>;
+  const { column, text, emphasis } = shape(PipelineNoteSchema, note);
 
   if (!text) {
     issue(ctx, `band ${band_label} note is missing text`);
@@ -659,7 +671,7 @@ const PipelineDataSchema = z
             true,
           );
 
-          if (band.label && !band.label.from) {
+          if (band.label !== undefined && !shape(PipelineBandLabelSchema, band.label).from) {
             issue(ctx, `band ${band_label} label is missing its first part`);
           }
 
@@ -754,7 +766,11 @@ const PipelineDataSchema = z
     );
 
     const band_ids = pipeline.bands.map((band) => band.id).filter(Boolean);
-    const last_band_id = band_ids[band_ids.length - 1];
+    // The last band, not the last band with an id: filtering first would
+    // make a document whose final band is unnamed report the crossing
+    // before it as hanging off the end, which is a false message on top of
+    // a real one.
+    const last_band_id = pipeline.bands[pipeline.bands.length - 1]?.id;
     const spoken_for = new Set<string>();
 
     for (const crossing of pipeline.crossings) {
