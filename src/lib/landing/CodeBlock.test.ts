@@ -14,13 +14,16 @@ function source(): string {
   return readFileSync(new URL("./CodeBlock.svelte", import.meta.url), "utf8");
 }
 
-// The CSS this component ships, which is where a colour would be written
-// by hand. Anything the script block needs is imported from palette.ts and
-// lands in the rendered `style` attribute, which the render assertions
-// check directly.
-function style_block(): string {
-  const src = source();
-  return src.slice(src.indexOf("<style>"));
+// A colour written by hand, anywhere in the component. The scan covers the
+// whole file rather than the `<style>` block alone, because the palette
+// values reach the page through `style="..."` in the markup, which is above
+// that block. Comments come out first: an issue reference like (#209) is
+// three hex digits to a regex. The trailing boundary in HEX_COLOUR is what
+// keeps Svelte's own `{#each` out of it.
+const HEX_COLOUR = /#[0-9a-fA-F]{3,8}\b/;
+
+function source_without_comments(): string {
+  return source().replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|^[ \t]*\/\/[^\n]*$/gm, "");
 }
 
 describe("CodeBlock", () => {
@@ -47,6 +50,22 @@ describe("CodeBlock", () => {
     expect(html).toContain("$PATH is not a prompt");
   });
 
+  it("still reads an indented $ as a prompt, and keeps the indent as plain text", () => {
+    const html = html_for("  $ ls\n\t$ pwd");
+
+    expect([...html.matchAll(/<span class="cb-prompt[^"]*">\$<\/span>/g)]).toHaveLength(2);
+    expect(html.replace(/<[^>]*>/g, "")).toBe("  $ ls\n\t$ pwd");
+  });
+
+  // Vite 7 builds to `safari16`, which is Safari 16.0; a regex lookbehind
+  // needs 16.4. esbuild does not strip one - it rewrites the literal into a
+  // `new RegExp(...)` call, moving the SyntaxError from parse time to module
+  // evaluation - and the tokenizer's pattern is a module-level const, so on
+  // Safari 16.0 through 16.3 the chunk throws and the page never hydrates.
+  it("keeps the tokenizer inside the Safari build target, which has no lookbehind", () => {
+    expect(source()).not.toMatch(/\(\?<[=!]/);
+  });
+
   it("escapes the transcript rather than letting it into the document as markup", () => {
     const html = html_for("$ cat <b>index.html</b>");
 
@@ -71,7 +90,7 @@ describe("CodeBlock", () => {
   });
 
   it("paints its tokens from the palette rather than a literal hex", () => {
-    expect(style_block()).not.toMatch(/#[0-9a-fA-F]{3}/);
+    expect(source_without_comments()).not.toMatch(HEX_COLOUR);
   });
 
   it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {

@@ -50,14 +50,14 @@
     <span class="term-path">{terminal.path}</span>
   </div>
   <div class="term-body">
-    {#each terminal.turns as turn, index (index)}
+    {#each terminal.turns as turn}
       <div
         class="turn"
         style="--glyph-ink: {SPEAKER_GLYPH_INK[turn.speaker]}; --bar-ink: {SPEAKER_BAR_INK[turn.speaker]};"
       >
         <span class="glyph">{SPEAKER_GLYPHS[turn.speaker]}</span>
         <span class="lines">
-          {#each turn.bars ?? [] as bar, bar_index (bar_index)}
+          {#each turn.bars ?? [] as bar}
             <span class="ln" style="width: {bar}%"></span>
           {/each}
           {#if turn.cursor}

@@ -29,13 +29,16 @@ function source(): string {
   return readFileSync(new URL("./Terminal.svelte", import.meta.url), "utf8");
 }
 
-// The CSS this component ships, which is where a colour would be written
-// by hand. Anything the script block needs is imported from palette.ts and
-// lands in the rendered `style` attribute, which the render assertions
-// check directly.
-function style_block(): string {
-  const src = source();
-  return src.slice(src.indexOf("<style>"));
+// A colour written by hand, anywhere in the component. The scan covers the
+// whole file rather than the `<style>` block alone, because the palette
+// values reach the page through `style="..."` in the markup, which is above
+// that block. Comments come out first: an issue reference like (#209) is
+// three hex digits to a regex. The trailing boundary in HEX_COLOUR is what
+// keeps Svelte's own `{#each` out of it.
+const HEX_COLOUR = /#[0-9a-fA-F]{3,8}\b/;
+
+function source_without_comments(): string {
+  return source().replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|^[ \t]*\/\/[^\n]*$/gm, "");
 }
 
 describe("Terminal", () => {
@@ -106,10 +109,12 @@ describe("Terminal", () => {
     expect(html).toContain(PIPELINE_INK.agent_bar);
     expect(html).toContain(PIPELINE_INK.tool_bar);
 
-    // The drop shadow is plain black at low alpha and has no token by
-    // design (see palette.ts), so it is the one colour allowed to be
-    // written here. Nothing else may be.
-    expect(style_block().replace(/#000\b/g, "")).not.toMatch(/#[0-9a-fA-F]{3}/);
+    // The drop shadow is plain black at low alpha and has no token by design
+    // (see palette.ts), so it is the one colour allowed to be written here.
+    // The whole declaration is struck out rather than the value, so the
+    // allowance is tied to that one place and a stray #000 elsewhere in the
+    // file still fails.
+    expect(source_without_comments().replace("0 18px 40px -24px #000", "")).not.toMatch(HEX_COLOUR);
   });
 
   it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {

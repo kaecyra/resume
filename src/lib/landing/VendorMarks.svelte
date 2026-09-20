@@ -12,16 +12,20 @@
   let { marks }: { marks: PipelineMarkEntry[] } = $props();
 </script>
 
-<ul class="marks" style="--mark-ink: {HUD_PALETTE.chip_text}; --mark-lit: {HUD_PALETTE.accent};">
-  {#each marks as mark (mark.id)}
-    <li class="mark{mark.lit ? ' is-lit' : ''}">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d={VENDOR_MARK_PATHS[mark.id]} />
-      </svg>
-      <span class="mark-label">{mark.label}</span>
-    </li>
-  {/each}
-</ul>
+<!-- The list carries the row's top margin, so a band with no marks must not
+     render one: an empty <ul> would leave 38px of space under the rack. -->
+{#if marks.length}
+  <ul class="marks" style="--mark-ink: {HUD_PALETTE.chip_text}; --mark-lit: {HUD_PALETTE.accent};">
+    {#each marks as mark (mark.id)}
+      <li class="mark{mark.lit ? ' is-lit' : ''}">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d={VENDOR_MARK_PATHS[mark.id]} />
+        </svg>
+        <span class="mark-label">{mark.label}</span>
+      </li>
+    {/each}
+  </ul>
+{/if}
 
 <style>
   .marks {

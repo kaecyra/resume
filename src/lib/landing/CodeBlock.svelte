@@ -23,7 +23,13 @@
   // prompt is anchored to the start of its line so `echo $HOME` stays plain
   // text. Both arrow codepoints are matched because Vite prints U+279C and
   // the mockup drew U+27A4.
-  const TOKEN_PATTERN = /(?<=^[ \t]*)\$(?=[ \t]|$)|[➜➤]|https?:\/\/\S+/gm;
+  //
+  // The line's indent is captured rather than asserted with a lookbehind:
+  // Vite builds to `safari16`, meaning Safari 16.0, and a lookbehind needs
+  // 16.4. esbuild does not strip one, it rewrites the literal into a
+  // `new RegExp(...)` call, so on 16.0 through 16.3 evaluating this
+  // module-level const would throw and the page would never hydrate.
+  const TOKEN_PATTERN = /^([ \t]*)\$(?=[ \t]|$)|[➜➤]|https?:\/\/\S+/gm;
 
   function token_for(text: string): CodeToken {
     if (text === "$") {
@@ -40,12 +46,18 @@
     let cursor = 0;
 
     for (const match of transcript.matchAll(TOKEN_PATTERN)) {
-      const start = match.index;
+      // A prompt match swallows the indent in front of it. That whitespace
+      // is ordinary output, so it goes out with the run of text before it
+      // and only the `$` itself is tokenized.
+      const indent = match[1] ?? "";
+      const text = match[0].slice(indent.length);
+      const start = match.index + indent.length;
+
       if (start > cursor) {
         segments.push({ text: transcript.slice(cursor, start), token: null });
       }
-      segments.push({ text: match[0], token: token_for(match[0]) });
-      cursor = start + match[0].length;
+      segments.push({ text, token: token_for(text) });
+      cursor = start + text.length;
     }
 
     if (cursor < transcript.length) {
@@ -65,7 +77,7 @@
 <pre
   class="codeblock"
   style="--code-ground: {ELEVATION.void}; --code-hair: {ELEVATION.hair}; --code-text: {HUD_PALETTE.secondary}; --code-prompt: {HUD_PALETTE.accent}; --code-url: {HUD_PALETTE.text}; --code-arrow: {PIPELINE_INK.pass};"
-><code>{#each segments as segment, index (index)}{#if segment.token}<span class={segment.token}>{segment.text}</span>{:else}{segment.text}{/if}{/each}</code></pre>
+><code>{#each segments as segment}{#if segment.token}<span class={segment.token}>{segment.text}</span>{:else}{segment.text}{/if}{/each}</code></pre>
 
 <style>
   /* The shallower of the section's two recesses: a plain hair of top light
