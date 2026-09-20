@@ -96,6 +96,9 @@ describe("Terminal", () => {
     const style = source();
     const query = style.slice(style.indexOf("@media (prefers-reduced-motion: reduce)"));
 
+    // Both halves matter: without the first, deleting the animation
+    // outright leaves this test green and takes @keyframes blink with it.
+    expect(style).toMatch(/\.cursor\s*\{[^}]*animation: blink/);
     expect(query).toContain("@media (prefers-reduced-motion: reduce)");
     expect(query).toMatch(/\.cursor\s*\{\s*animation: none;/);
   });

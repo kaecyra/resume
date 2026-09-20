@@ -16,7 +16,7 @@
      render one: an empty <ul> would leave 38px of space under the rack. -->
 {#if marks.length}
   <ul class="marks" style="--mark-ink: {HUD_PALETTE.chip_text}; --mark-lit: {HUD_PALETTE.accent};">
-    {#each marks as mark (mark.id)}
+    {#each marks as mark}
       <li class="mark{mark.lit ? ' is-lit' : ''}">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d={VENDOR_MARK_PATHS[mark.id]} />
