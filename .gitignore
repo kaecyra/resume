@@ -72,4 +72,4 @@ tasks/
 .claude/overseer/
 
 # Local feedback drops (screenshots, photos, review notes)
-feedback/
+/feedback/

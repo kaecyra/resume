@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
-    # Base-branch filter. `feature/*` lets a stacked PR into an
-    # integration branch run the same gate as a PR into main.
+    # Base-branch filter. `feature/*` only: stacking PRs onto an
+    # integration branch is a feature-work pattern. Fixes, hotfixes,
+    # releases and docs branches go straight to main, so they need no
+    # entry here. Widen this if a non-feature stack ever appears.
     branches:
       - main
       - "feature/*"
