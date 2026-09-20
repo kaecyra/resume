@@ -342,16 +342,15 @@ bands:
 
     readout:
       column: graph
+      live: basement
       entries:
         - id: temperature
-          label: "In the mechanical room right now"
-          value: "21.5"
-          unit: "°C"
+          label: "In the mechanical room"
+          value: "-"
           tone: accent
         - id: humidity
           label: "Humidity"
-          value: "46"
-          unit: "%"
+          value: "-"
 
   # Band 3 - the serving graph. No label and no tail arrow: the reader is
   # the end of the drawing, so nothing continues past it.
@@ -431,7 +430,7 @@ bands:
 
     readout:
       column: aside
-      live: true
+      live: delivery
       entries:
         - id: edge
           label: "Cloudflare Edge"

@@ -25,6 +25,8 @@
 // values measured, or the reader keeps the static set from
 // data/pipeline.yaml and the caption that says so.
 
+import { covers_exact_fields } from "./readout-fields.js";
+
 // The four entries of band 3's readout, by the ids data/pipeline.yaml
 // gives them.
 export type DeliveryFieldId = "edge" | "first-byte" | "transferred" | "protocol";
@@ -137,13 +139,7 @@ export function parse_trace_fields(body: string): DeliveryTraceFields {
 // ones, so if data/pipeline.yaml ever drifts, the whole readout stays
 // static rather than going half true.
 export function covers_delivery_fields(ids: readonly string[]): boolean {
-  if (ids.length !== DELIVERY_FIELD_IDS.length) {
-    return false;
-  }
-
-  const present = new Set(ids);
-
-  return DELIVERY_FIELD_IDS.every((id) => present.has(id));
+  return covers_exact_fields(ids, DELIVERY_FIELD_IDS);
 }
 
 // The four values, or null if any one of them could not be measured.

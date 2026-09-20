@@ -4,28 +4,26 @@ import { render } from "svelte/server";
 
 import type { PipelineReadout } from "$lib/types.js";
 
-import { HUD_PALETTE } from "./palette.js";
+import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
 import Readout from "./Readout.svelte";
 
 // Band 2's pair and band 3's four, as data/pipeline.yaml carries them. The
-// same component renders both; what differs is entirely in the data.
+// same component renders both; what differs is entirely in the data. "-"
+// rather than a sample number: there is no reading honest enough to print
+// before the page has actually polled for one.
 const BASEMENT: PipelineReadout = {
   column: "graph",
   entries: [
-    {
-      id: "temperature",
-      label: "In the basement right now",
-      value: "21.5",
-      unit: "°C",
-      tone: "accent",
-    },
-    { id: "humidity", label: "Humidity", value: "46", unit: "%" },
+    { id: "temperature", label: "In the basement", value: "-", tone: "accent" },
+    { id: "humidity", label: "Humidity", value: "-" },
   ],
 };
 
+const BASEMENT_LIVE: PipelineReadout = { ...BASEMENT, live: "basement" };
+
 const DELIVERY: PipelineReadout = {
   column: "aside",
-  live: true,
+  live: "delivery",
   entries: [
     { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
     { id: "first-byte", label: "First byte", value: "41", unit: "ms" },
@@ -66,9 +64,32 @@ describe("Readout", () => {
     const html = html_for(BASEMENT);
 
     expect(fields(html)).toEqual([
-      { label: "In the basement right now", value: "21.5<small>°C</small>" },
-      { label: "Humidity", value: "46<small>%</small>" },
+      { label: "In the basement", value: "-" },
+      { label: "Humidity", value: "-" },
     ]);
+  });
+
+  // onMount never runs under svelte/server, so this is exactly what a
+  // reader with no JavaScript sees: the honest "-" pair, an OFFLINE badge,
+  // fully visible - never hidden waiting for a poll that will never happen.
+  // Readout.dom.test.ts covers the live poll itself.
+  it("renders a basement-sourced readout as OFFLINE, visible, before any poll can run", () => {
+    const html = html_for(BASEMENT_LIVE);
+
+    expect(fields(html)).toEqual([
+      { label: "In the basement", value: "-" },
+      { label: "Humidity", value: "-" },
+    ]);
+    expect(html).toContain("OFFLINE");
+    expect(html).not.toContain("LIVE");
+    expect(html).not.toContain("readout-pending");
+    expect(html).toContain(`fill="${HUD_PALETTE.chip_text}"`);
+    expect(html).not.toContain(`fill="${PIPELINE_INK.live}"`);
+  });
+
+  it("draws no LIVE/OFFLINE badge for a readout that is not basement-sourced", () => {
+    expect(html_for(BASEMENT)).not.toContain("live-badge");
+    expect(html_for(DELIVERY)).not.toContain("live-badge");
   });
 
   it("renders the delivery four from its data, with no JavaScript involved", () => {

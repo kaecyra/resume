@@ -331,4 +331,11 @@ export const PIPELINE_INK = {
   // is faintly green-tinted rather than a fourth neutral grey.
   agent_bar: "#232329",
   tool_bar: "#1e2a22",
+  // The mechanical room readout's LIVE dot. The same red as the rack's own
+  // power outlets (`RACK_CHASSIS.outlet`) rather than an import of it - a
+  // status LED and a drawn electrical socket have nothing to do with each
+  // other and either can move alone, same reasoning as `dormant` sharing a
+  // value with `bezel_face` above. The offline state reuses
+  // `HUD_PALETTE.chip_text` rather than a second new token here.
+  live: "#d52b1e",
 } as const;

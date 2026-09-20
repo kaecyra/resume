@@ -66,7 +66,7 @@ const MOCK_PIPELINE_DATA: PipelineData = {
       ],
       readout: {
         column: "aside",
-        live: true,
+        live: "delivery",
         entries: [
           { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
           { id: "ttfb", label: "First byte", value: "41", unit: "ms" },
@@ -698,6 +698,22 @@ describe("validate_pipeline_data", () => {
       );
 
       expect(messages).toContain('band "serve" repeats readout entry id "edge"');
+    });
+
+    it("detects a readout live source that is not a known source", () => {
+      const messages = messages_for(
+        with_band(1, {
+          readout: {
+            column: "aside",
+            live: "airthings" as never,
+            entries: [{ id: "edge", label: "Edge", value: "YYZ" }],
+          },
+        }),
+      );
+
+      expect(messages).toContain(
+        'band "serve" readout live source "airthings" is not a known source',
+      );
     });
 
     it("detects a vendor mark that is not one of the known marks", () => {
