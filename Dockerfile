@@ -29,7 +29,7 @@ RUN (npm run preview &) && \
 
 FROM nginx:stable-alpine
 
-RUN apk add --no-cache apache2-utils
+RUN apk add --no-cache apache2-utils curl jq
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build /usr/share/nginx/html

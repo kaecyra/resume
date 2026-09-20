@@ -309,14 +309,23 @@ export interface PipelineReadoutEntry {
   tone?: PipelineTone;
 }
 
+// Which live source, if any, replaces a readout's sample values once the
+// page is running: `delivery` measures the reader's own request (band 3),
+// `basement` polls the mechanical room's temperature/humidity sensor (band
+// 2). Named for the source rather than left a boolean, because the two
+// swap in on entirely different mechanisms - one measurement on mount, one
+// poll on an interval - and a component branching on `true` would have
+// nothing left to branch on if a third source ever showed up.
+export type PipelineReadoutSource = "delivery" | "basement";
+
 export interface PipelineReadout {
   column: PipelineColumn;
   entries: PipelineReadoutEntry[];
-  // Marks the readout whose values are replaced by measurements of the
-  // reader's own request once the page is running. The values in the YAML
-  // are what a prerendered, no-JavaScript reader sees, so they have to
-  // stand on their own.
-  live?: boolean;
+  // Marks the readout whose values are replaced by measurements from a live
+  // source once the page is running. The values in the YAML are what a
+  // prerendered, no-JavaScript reader sees, so they have to stand on their
+  // own.
+  live?: PipelineReadoutSource;
 }
 
 export interface PipelineMarkEntry {

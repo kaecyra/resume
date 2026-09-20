@@ -25,7 +25,7 @@ const BASEMENT: PipelineReadout = {
 
 const DELIVERY: PipelineReadout = {
   column: "aside",
-  live: true,
+  live: "delivery",
   entries: [
     { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
     { id: "first-byte", label: "First byte", value: "41", unit: "ms" },

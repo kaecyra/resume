@@ -10,6 +10,10 @@ services:
       DASHBOARD_USER: ${DASHBOARD_USER:-}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
       UMAMI_API_TOKEN: ${UMAMI_API_TOKEN:-}
+      HA_BASE_URL: ${HA_BASE_URL:-}
+      HA_TOKEN: ${HA_TOKEN:-}
+      HA_TEMP_ENTITY_ID: ${HA_TEMP_ENTITY_ID:-}
+      HA_HUMIDITY_ENTITY_ID: ${HA_HUMIDITY_ENTITY_ID:-}
     ports:
       - "3000:80"
     restart: unless-stopped

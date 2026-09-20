@@ -37,7 +37,7 @@ const TRACE_BODY = [
 
 const DELIVERY: PipelineReadout = {
   column: "aside",
-  live: true,
+  live: "delivery",
   entries: [
     { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
     { id: "first-byte", label: "First byte", value: "41", unit: "ms" },
@@ -53,6 +53,32 @@ const BASEMENT: PipelineReadout = {
     { id: "humidity", label: "Humidity", value: "46", unit: "%" },
   ],
 };
+
+const BASEMENT_LIVE: PipelineReadout = { ...BASEMENT, live: "basement" };
+
+// Advances vitest's fake timers and drains the microtask queue after, so a
+// fetch mock's promise chain and Svelte's own flush have both settled by the
+// time this returns. See settle_measurement's note below for why a single
+// microtask flush is not enough on its own.
+async function flush(ms = 0): Promise<void> {
+  await vi.advanceTimersByTimeAsync(ms);
+  await tick();
+}
+
+function stub_metrics(bodies: readonly (string | Error)[]): ReturnType<typeof vi.fn> {
+  let call = 0;
+  const fetch_mock = vi.fn(async () => {
+    const body = bodies[Math.min(call, bodies.length - 1)];
+    call += 1;
+    if (body instanceof Error) {
+      throw body;
+    }
+    return new Response(body, { status: 200 });
+  });
+  vi.stubGlobal("fetch", fetch_mock);
+
+  return fetch_mock;
+}
 
 function navigation_entry(overrides: Partial<PerformanceNavigationTiming> = {}): PerformanceEntry {
   return {
@@ -258,5 +284,116 @@ describe("Readout, measuring the reader's own request", () => {
       expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3", "eu"]);
     });
     expect(fetch_mock).not.toHaveBeenCalled();
+  });
+});
+
+describe("Readout, polling the basement sensor", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("polls the metrics endpoint once on mount and swaps the pair in", async () => {
+    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(values(container)).toEqual(["19.2°C", "52%"]);
+    expect(fetch_mock).toHaveBeenCalledWith(
+      "/api/basement/metrics",
+      expect.objectContaining({ cache: "no-store" }),
+    );
+  });
+
+  it("polls again after the interval and shows the newer reading", async () => {
+    const fetch_mock = stub_metrics([
+      '{"temperature":19.2,"humidity":52}',
+      '{"temperature":19.4,"humidity":53}',
+    ]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    expect(values(container)).toEqual(["19.2°C", "52%"]);
+
+    await flush(30_000);
+
+    expect(values(container)).toEqual(["19.4°C", "53%"]);
+    expect(fetch_mock).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the sample values when the metrics endpoint cannot be fetched", async () => {
+    const fetch_mock = stub_metrics([new Error("offline")]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(fetch_mock).toHaveBeenCalled();
+    expect(values(container)).toEqual(["21.5°C", "46%"]);
+  });
+
+  it("keeps the sample values when the endpoint answers with an error status", async () => {
+    const fetch_mock = vi.fn(async () => new Response("", { status: 404 }));
+    vi.stubGlobal("fetch", fetch_mock);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(fetch_mock).toHaveBeenCalled();
+    expect(values(container)).toEqual(["21.5°C", "46%"]);
+  });
+
+  it("keeps the last successful reading when a later poll fails, rather than reverting to the sample", async () => {
+    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}', new Error("offline")]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    expect(values(container)).toEqual(["19.2°C", "52%"]);
+
+    await flush(30_000);
+
+    expect(fetch_mock).toHaveBeenCalledTimes(2);
+    expect(values(container)).toEqual(["19.2°C", "52%"]);
+  });
+
+  it("measures nothing for a readout the data does not mark live", async () => {
+    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT } });
+    await flush();
+
+    expect(values(container)).toEqual(["21.5°C", "46%"]);
+    expect(fetch_mock).not.toHaveBeenCalled();
+  });
+
+  it("measures nothing when the live readout's fields are not the two it can fill", async () => {
+    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+
+    const drifted: PipelineReadout = {
+      ...BASEMENT_LIVE,
+      entries: [...BASEMENT_LIVE.entries, { id: "radon", label: "Radon", value: "0.4" }],
+    };
+
+    const { container } = render(Readout, { props: { readout: drifted } });
+    await flush();
+
+    expect(values(container)).toEqual(["21.5°C", "46%", "0.4"]);
+    expect(fetch_mock).not.toHaveBeenCalled();
+  });
+
+  it("stops polling once the component unmounts", async () => {
+    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+
+    const { unmount } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+
+    unmount();
+    await flush(60_000);
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
   });
 });

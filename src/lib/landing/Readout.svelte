@@ -4,12 +4,17 @@
   import type { PipelineReadout, PipelineTone } from "$lib/types.js";
 
   import {
+    BASEMENT_METRICS_URL,
+    covers_basement_fields,
+    format_basement_readout,
+    parse_basement_metrics,
+  } from "./basement-readout.js";
+  import {
     covers_delivery_fields,
     format_delivery_readout,
     parse_trace_fields,
     DELIVERY_TRACE_URL,
     type DeliveryReadoutValue,
-    type DeliveryReadoutValues,
     type DeliveryTiming,
     type DeliveryTraceFields,
   } from "./delivery-readout.js";
@@ -19,13 +24,15 @@
 
   // One readout, used twice (#209): band 2's basement pair and band 3's
   // four delivery values. The difference is entirely in the data - `live`
-  // says whether the browser should replace the values with measurements of
-  // the reader's own request.
+  // names which source, if either, replaces the values with a live reading:
+  // `delivery` measures the reader's own request once, on mount; `basement`
+  // polls the mechanical room's sensor on an interval.
   //
   // The section is prerendered by adapter-static, so what ships is the
   // values in data/pipeline.yaml. Everything below the markup is an
-  // enhancement: with JavaScript off, with the trace blocked, or with a
-  // timing entry the browser will not fill in, the static values stand.
+  // enhancement: with JavaScript off, with the trace or the metrics
+  // endpoint blocked, or with a timing entry the browser will not fill in,
+  // the static values stand.
   //
   // `follows_note` is placement, not content: it says this readout sits
   // under a note in the same column, which is the one thing its extra
@@ -39,11 +46,19 @@
     follows_note = false,
   }: { readout: PipelineReadout; follows_note?: boolean } = $props();
 
-  // The only thing the measurement ever puts into component state: four
-  // formatted values, or nothing. The trace response itself is read inside
+  // The only thing a measurement ever puts into component state: the
+  // formatted values keyed by entry id, or nothing. Delivery fills four
+  // keys in one shot; basement fills two, and may overwrite this more than
+  // once as later polls come in. The trace response itself is read inside
   // read_trace_fields and does not survive the expression it appears in -
   // see the note there.
-  let measured = $state<DeliveryReadoutValues | null>(null);
+  let measured = $state<Record<string, DeliveryReadoutValue> | null>(null);
+
+  // How often the basement reading is re-fetched once shown. The value
+  // behind it only changes every five minutes (docker-entrypoint.sh's own
+  // poll cadence), so this is about the page feeling alive, not about
+  // catching every update.
+  const BASEMENT_POLL_INTERVAL_MS = 30_000;
 
   // A tone names a role; palette.ts holds the colour. No hex lives here.
   const TONE_COLORS: Record<PipelineTone, string> = {
@@ -59,9 +74,7 @@
   // one thing this readout must never do.
   const entries = $derived(
     readout.entries.map((entry) => {
-      const live: DeliveryReadoutValue | undefined = measured?.[
-        entry.id as keyof DeliveryReadoutValues
-      ];
+      const live = measured?.[entry.id];
 
       return live ? { ...entry, value: live.value, unit: live.unit } : entry;
     }),
@@ -86,11 +99,18 @@
   });
 
   onMount(() => {
-    if (!readout.live || !covers_delivery_fields(readout.entries.map((entry) => entry.id))) {
+    const ids = readout.entries.map((entry) => entry.id);
+
+    if (readout.live === "delivery" && covers_delivery_fields(ids)) {
+      void measure_delivery();
       return;
     }
 
-    void measure_delivery();
+    if (readout.live === "basement" && covers_basement_fields(ids)) {
+      void poll_basement();
+      const interval = setInterval(() => void poll_basement(), BASEMENT_POLL_INTERVAL_MS);
+      return () => clearInterval(interval);
+    }
   });
 
   async function measure_delivery(): Promise<void> {
@@ -98,6 +118,28 @@
     const trace = await read_trace_fields();
 
     measured = format_delivery_readout(timing, trace);
+  }
+
+  // Polled on BASEMENT_POLL_INTERVAL_MS. A failed or malformed reading is
+  // swallowed and leaves `measured` exactly as it was: the sample values if
+  // no poll has ever succeeded, or the last successful reading if one has.
+  // Falling back to the sample after a real reading has already been shown
+  // would be the more misleading state, not less.
+  async function poll_basement(): Promise<void> {
+    try {
+      const response = await fetch(BASEMENT_METRICS_URL, { cache: "no-store" });
+      if (!response.ok) {
+        return;
+      }
+
+      const formatted = format_basement_readout(parse_basement_metrics(await response.text()));
+      if (formatted) {
+        measured = formatted;
+      }
+    } catch {
+      // Offline, or the container's background poller has not written a
+      // first reading yet.
+    }
   }
 
   function read_navigation_timing(): DeliveryTiming {

@@ -22,6 +22,7 @@ import type {
   PipelineNote,
   PipelineReadout,
   PipelineReadoutEntry,
+  PipelineReadoutSource,
   PipelineTerminal,
   PipelineTerminalTurn,
   PipelineTone,
@@ -94,6 +95,13 @@ const _graph_sides_cover: ListCoversUnion<PipelineGraphSide, typeof GRAPH_SIDES>
 
 const COLUMNS = ["graph", "aside"] as const satisfies readonly PipelineColumn[];
 const _columns_cover: ListCoversUnion<PipelineColumn, typeof COLUMNS> = true;
+
+const READOUT_SOURCES = [
+  "delivery",
+  "basement",
+] as const satisfies readonly PipelineReadoutSource[];
+const _readout_sources_cover: ListCoversUnion<PipelineReadoutSource, typeof READOUT_SOURCES> =
+  true;
 
 const TURN_SPEAKERS = ["you", "agent", "tool"] as const satisfies readonly PipelineTurnSpeaker[];
 const _turn_speakers_cover: ListCoversUnion<PipelineTurnSpeaker, typeof TURN_SPEAKERS> = true;
@@ -598,7 +606,7 @@ function check_readout(ctx: z.RefinementCtx, band_label: string, readout: unknow
     return;
   }
 
-  const { column, entries } = shape(PipelineReadoutSchema, readout);
+  const { column, entries, live } = shape(PipelineReadoutSchema, readout);
 
   check_value(
     ctx,
@@ -606,6 +614,13 @@ function check_readout(ctx: z.RefinementCtx, band_label: string, readout: unknow
     COLUMNS,
     (bad) => `band ${band_label} readout column "${bad}" is not a known column`,
     true,
+  );
+
+  check_value(
+    ctx,
+    live,
+    READOUT_SOURCES,
+    (bad) => `band ${band_label} readout live source "${bad}" is not a known source`,
   );
 
   if (!Array.isArray(entries)) {

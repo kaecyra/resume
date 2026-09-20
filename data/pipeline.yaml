@@ -342,6 +342,7 @@ bands:
 
     readout:
       column: graph
+      live: basement
       entries:
         - id: temperature
           label: "In the mechanical room right now"
@@ -431,7 +432,7 @@ bands:
 
     readout:
       column: aside
-      live: true
+      live: delivery
       entries:
         - id: edge
           label: "Cloudflare Edge"
