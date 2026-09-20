@@ -25,7 +25,6 @@ function html_for(crossing: PipelineCrossing, index: number): string {
 
 const SOURCE = readFileSync(new URL("./Crossing.svelte", import.meta.url), "utf8");
 
-
 describe("Crossing", () => {
   describe("content", () => {
     it("renders the label verbatim from the data, not a derived or shortened string", () => {

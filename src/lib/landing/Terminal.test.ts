@@ -29,7 +29,6 @@ function source(): string {
   return readFileSync(new URL("./Terminal.svelte", import.meta.url), "utf8");
 }
 
-
 describe("Terminal", () => {
   it("draws one bar per width the data gives it, at that width", () => {
     const html = html_for(TERMINAL);
@@ -91,7 +90,6 @@ describe("Terminal", () => {
     expect(query).toContain("@media (prefers-reduced-motion: reduce)");
     expect(query).toMatch(/\.cursor\s*\{\s*animation: none;/);
   });
-
 
   it("paints each speaker's bars from the palette rather than a literal hex", () => {
     const html = html_for(TERMINAL);

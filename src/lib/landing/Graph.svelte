@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PipelineBand } from "$lib/types.js";
 
-  import { HUD_PALETTE } from "./palette.js";
   import {
     PIPELINE_ARROW_TIP,
     detail_lines,
@@ -10,8 +9,10 @@
   import { VENDOR_MARK_PATHS } from "./vendor-marks.js";
 
   // The drawing for one band. Every coordinate, path string and ink comes
-  // from `pipeline-graph.ts`; this file spends them and owns no geometry of
-  // its own. The text comes from the band, because a label is content and
+  // from `pipeline-graph.ts`; this file spends them and owns neither. It
+  // does not import palette.ts at all, which is what keeps that true: a
+  // colour cannot be chosen here because there is nothing here to choose
+  // from. The text comes from the band, because a label is content and
   // the layout module only knows where to put it - `layout.nodes` is built
   // by mapping `band.nodes`, so the two stay parallel by index.
   let { band, layout }: { band: PipelineBand; layout: PipelineGraphLayout } = $props();
@@ -129,7 +130,7 @@
           class="detail"
           x={placed.label_x}
           y={placed.detail_ys[line]}
-          fill={HUD_PALETTE.secondary}
+          fill={placed.detail_ink}
         >
           {text}
         </text>

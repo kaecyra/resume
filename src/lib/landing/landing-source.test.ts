@@ -44,13 +44,17 @@ function source_of(name: string): string {
   return readFileSync(new URL(name, DIR), "utf8");
 }
 
-// Comments go before either rule runs, in all three of the syntaxes these
-// files use. A comment naming the retired face is the opposite of using it
-// - several of these carry one explaining why the system stack is there
-// instead - and an issue number like `#209` is three hex digits as far as a
-// regular expression cares.
-function without_comments(source: string): string {
+// What neither rule should be reading: comments, in all three of the
+// syntaxes these files use, and SVG fragment references.
+//
+// A comment naming the retired face is the opposite of using it - several
+// of these carry one explaining why the system stack is there instead - and
+// an issue number like `#209` is three hex digits as far as a regular
+// expression cares. `url(#fade)` is a reference, not a colour, however
+// hex-shaped the id happens to be.
+function without_noise(source: string): string {
   return source
+    .replace(/url\(#[^)]*\)/g, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^[ \t]*\/\/[^\n]*$/gm, "");
@@ -59,15 +63,29 @@ function without_comments(source: string): string {
 describe("the pipeline section's components", () => {
   it("names every colour in palette.ts rather than writing a hex literal", () => {
     const offenders = COMPONENTS.filter((name) =>
-      HEX_LITERAL.test(without_comments(source_of(name)).replaceAll(ALLOWED_SHADOW, "")),
+      HEX_LITERAL.test(without_noise(source_of(name)).replaceAll(ALLOWED_SHADOW, "")),
     );
 
     expect(offenders).toEqual([]);
   });
 
+  // The list is hand-maintained, and a ninth component added to the section
+  // would escape both rules with the suite still green - the same silent
+  // shrink this file was written to stop. Anchored to what the section
+  // actually renders rather than to a directory glob, which would drag in
+  // the fifteen older components the header excludes.
+  it("covers every component the section renders", () => {
+    const imported = [
+      ...source_of("Pipeline.svelte").matchAll(/from "\.\/(\w+\.svelte)"/g),
+    ].map(([, name]) => name);
+
+    expect(imported.length).toBeGreaterThan(4);
+    expect(COMPONENTS).toEqual(expect.arrayContaining(imported));
+  });
+
   it("keeps Share Tech Mono out, which #187 retired everywhere but the hero", () => {
     const offenders = COMPONENTS.filter((name) =>
-      without_comments(source_of(name)).includes("Share Tech Mono"),
+      without_noise(source_of(name)).includes("Share Tech Mono"),
     );
 
     expect(offenders).toEqual([]);

@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import { render } from "svelte/server";
 
 import type { PipelineMarkEntry } from "$lib/types.js";
@@ -19,11 +17,6 @@ const MARKS: PipelineMarkEntry[] = [
 function html_for(marks: PipelineMarkEntry[]): string {
   return render(VendorMarks, { props: { marks } }).body;
 }
-
-function source(): string {
-  return readFileSync(new URL("./VendorMarks.svelte", import.meta.url), "utf8");
-}
-
 
 describe("VendorMarks", () => {
   it("names every vendor, in the order the data lists them", () => {

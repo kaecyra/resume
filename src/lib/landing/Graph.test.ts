@@ -1,7 +1,8 @@
+import { readFileSync } from "node:fs";
+
 import { render } from "svelte/server";
 
 import Graph from "./Graph.svelte";
-import { HUD_PALETTE } from "./palette.js";
 import { build_pipeline_graph } from "./pipeline-graph.js";
 import type { PipelineBand, PipelineNode } from "$lib/types.js";
 
@@ -170,12 +171,17 @@ describe("Graph", () => {
     const layout = build_pipeline_graph(source);
     const html = html_for(source);
 
-    for (const placed of layout.nodes) {
-      expect(html).toContain(`fill="${placed.label_ink}"`);
-    }
-    // The two differ, so this is a comparison rather than one colour
-    // appearing twice.
-    expect(layout.nodes[0].label_ink).not.toBe(layout.nodes[1].label_ink);
+    // Scoped to the label elements: a node's circle is painted with the
+    // same ink, so matching over the whole document would pass on a
+    // component that hardcoded every label instead of spending label_ink.
+    const labels = [...html.matchAll(/<text[^>]*class="[^"]*\blabel\b[^"]*"[^>]*>/g)].map(
+      ([element]) => element,
+    );
+
+    expect(labels).toHaveLength(layout.nodes.length);
+    layout.nodes.forEach((placed, index) => {
+      expect(labels[index]).toContain(`fill="${placed.label_ink}"`);
+    });
   });
 
   it("sizes the drawing from the layout's own view box", () => {
@@ -185,10 +191,24 @@ describe("Graph", () => {
     expect(html).toContain(`viewBox="${layout.view_box}"`);
   });
 
-  it("takes its text colours from the HUD palette, not from a second set", () => {
-    const html = html_for(band());
+  it("spends the layout's detail ink too, rather than reaching for a colour", () => {
+    const source = band();
+    const layout = build_pipeline_graph(source);
+    const html = html_for(source);
+    const details = [...html.matchAll(/<text[^>]*class="[^"]*\bdetail\b[^"]*"[^>]*>/g)].map(
+      ([element]) => element,
+    );
 
-    expect(html).toContain(HUD_PALETTE.text);
-    expect(html).toContain(HUD_PALETTE.secondary);
+    expect(details).toHaveLength(1);
+    expect(details[0]).toContain(`fill="${layout.nodes[0].detail_ink}"`);
+  });
+
+  it("cannot choose a colour, because it never reaches the palette", () => {
+    // The structural version of the rule the two tests above check by
+    // value: with no import there is nothing to pick from, so a colour
+    // decision cannot be reintroduced here without this failing first.
+    const source = readFileSync(new URL("./Graph.svelte", import.meta.url), "utf8");
+
+    expect(source).not.toContain("palette.js");
   });
 });

@@ -14,7 +14,6 @@ function source(): string {
   return readFileSync(new URL("./CodeBlock.svelte", import.meta.url), "utf8");
 }
 
-
 describe("CodeBlock", () => {
   it("colours the prompt, the arrow and the URL apart from the rest of the line", () => {
     const html = html_for(CODE);
