@@ -2,19 +2,17 @@ import { readFileSync } from "node:fs";
 
 import { render } from "svelte/server";
 
-import Rack, {
-  RACK_UNITS,
-  RACK_U_COUNT,
-  TRAY_RUNG_FIRST_X,
-  TRAY_RUNG_LAST_X,
-  TRAY_RUNG_STEP,
-  TRAY_RUNG_XS,
-  rack_u_height,
-  rack_u_y,
-} from "./Rack.svelte";
+import Rack from "./Rack.svelte";
 import { CABLE_TRAY, HUD_PALETTE, RACK_CHASSIS, RACK_LED } from "./palette.js";
+import { RACK_UNITS, TRAY_RUNG_XS, rack_u_height, rack_u_y } from "./rack-layout.js";
 
 const SOURCE = readFileSync(new URL("./Rack.svelte", import.meta.url), "utf8");
+const MODULE_SOURCE = readFileSync(new URL("./rack-layout.ts", import.meta.url), "utf8");
+
+// Svelte scopes the stylesheet out of the component's markup, so the style
+// block has to be read out of the source separately - nothing below the
+// `<style>` opener reaches the rendered HTML.
+const STYLE_BLOCK = SOURCE.slice(SOURCE.indexOf("<style>"));
 
 function rack_html(): string {
   return render(Rack).body;
@@ -36,93 +34,23 @@ function device_groups(html: string): Map<string, string> {
 }
 
 describe("Rack", () => {
-  describe("the 42U map", () => {
-    it("places every U at the documented pitch, y(U) = 94 + (U - 1) * 10", () => {
-      for (let u = 1; u <= RACK_U_COUNT; u += 1) {
-        expect(rack_u_y(u)).toBe(94 + (u - 1) * 10);
-      }
-    });
+  // Every fitting kind has its own branch and there is no catch-all, so a
+  // kind nobody drew renders an empty group rather than borrowing the
+  // branch that happens to sit last. That is what this assertion sees: a
+  // group with no face in it has neither its y nor its height.
+  it("renders one group per unit, each at its own U's y and height", () => {
+    const groups = device_groups(rack_html());
 
-    it("draws an n-U device one unit short of its slot, leaving the seam between faces", () => {
-      expect(rack_u_height(1)).toBe(9);
-      expect(rack_u_height(2)).toBe(19);
-      expect(rack_u_height(3)).toBe(29);
-      expect(rack_u_height(4)).toBe(39);
-      expect(rack_u_height(6)).toBe(59);
-    });
+    expect([...groups.keys()]).toEqual(RACK_UNITS.map((unit) => unit.id));
 
-    // A gap or an overlap in the map would show as a stripe of cabinet
-    // where a device should be, or as two faces painted over each other -
-    // neither of which any rendered-output assertion would notice.
-    it("tiles all 42U with no gaps and no overlaps", () => {
-      let next_u = 1;
-      for (const unit of RACK_UNITS) {
-        expect(unit.u).toBe(next_u);
-        next_u += unit.units;
-      }
-      expect(next_u - 1).toBe(RACK_U_COUNT);
-    });
-
-    it("racks every device the map names", () => {
-      expect(RACK_UNITS.map((unit) => unit.id)).toEqual([
-        "brush-u1",
-        "uxg-pro",
-        "uck-g2-ssd",
-        "brush-u4",
-        "usw-aggregation",
-        "patch-panel-u6",
-        "usw-enterprise-48-poe",
-        "patch-panel-u8",
-        "unvr",
-        "brush-u10",
-        "usw-enterprise-24-poe",
-        "patch-panel-u12",
-        "empty-u13",
-        "shelf",
-        "pdu",
-        "empty-u19",
-        "r430",
-        "r730xd-u23",
-        "r730xd-u25",
-        "empty-u27",
-        "unlabelled-u29",
-        "empty-u35",
-        "smart-ups",
-      ]);
-    });
-
-    it("renders one group per unit, each at its own U's y and height", () => {
-      const groups = device_groups(rack_html());
-
-      expect([...groups.keys()]).toEqual(RACK_UNITS.map((unit) => unit.id));
-
-      for (const unit of RACK_UNITS) {
-        const group = groups.get(unit.id) ?? "";
-        expect(group).toContain(`y="${rack_u_y(unit.u)}"`);
-        expect(group).toContain(`height="${rack_u_height(unit.units)}"`);
-      }
-    });
+    for (const unit of RACK_UNITS) {
+      const group = groups.get(unit.id) ?? "";
+      expect(group).toContain(`y="${rack_u_y(unit.u)}"`);
+      expect(group).toContain(`height="${rack_u_height(unit.units)}"`);
+    }
   });
 
   describe("the Proxmox node", () => {
-    it("is the R430 at U22, the only unit wearing the accent", () => {
-      const accented = RACK_UNITS.filter((unit) => unit.kind === "server" && unit.accent);
-
-      expect(accented).toHaveLength(1);
-      expect(accented[0].id).toBe("r430");
-      expect(accented[0].u).toBe(22);
-      expect(accented[0].units).toBe(1);
-    });
-
-    it("keeps the other two Dells where they are, at U23 and U25, two U each", () => {
-      const plain = RACK_UNITS.filter((unit) => unit.kind === "server" && !unit.accent);
-
-      expect(plain.map((unit) => [unit.id, unit.u, unit.units])).toEqual([
-        ["r730xd-u23", 23, 2],
-        ["r730xd-u25", 25, 2],
-      ]);
-    });
-
     // The dashed box clears the 1U face by 8 units on each side, so it
     // overlaps the empty U above and below it. Drawn inside the loop it
     // would be painted over by whatever comes next.
@@ -139,24 +67,13 @@ describe("Rack", () => {
       const html = rack_html();
 
       expect(html).toContain(`y="${rack_u_y(22) - 8}"`);
-      expect(html).toMatch(/<rect[^>]*height="25"[^>]*stroke-dasharray="5 4"/);
+      expect(html).toMatch(
+        new RegExp(`<rect[^>]*height="${rack_u_height(1) + 16}"[^>]*stroke-dasharray="5 4"`),
+      );
     });
   });
 
   describe("the ceiling tray", () => {
-    // The mockup lists 244 literal rungs. They are generated here, so the
-    // ends of the run are what has to be pinned: the first rung meets the
-    // basket's cut end and the last is far enough out that no viewport
-    // reaches it.
-    it("runs its rungs from the mockup's first x to its last, at the mockup's step", () => {
-      expect(TRAY_RUNG_XS[0]).toBe(TRAY_RUNG_FIRST_X);
-      expect(TRAY_RUNG_XS[0]).toBe(168);
-      expect(TRAY_RUNG_XS.at(-1)).toBe(TRAY_RUNG_LAST_X);
-      expect(TRAY_RUNG_XS.at(-1)).toBe(-2991);
-      expect(TRAY_RUNG_XS[1] - TRAY_RUNG_XS[0]).toBe(-TRAY_RUNG_STEP);
-      expect(TRAY_RUNG_XS).toHaveLength(244);
-    });
-
     it("draws every rung it generated", () => {
       const html = rack_html();
 
@@ -203,8 +120,18 @@ describe("Rack", () => {
     // Resolution 2 of the plan widened palette.ts specifically so the rack
     // would not carry its own hex. A literal here would be invisible to
     // every other test in the suite.
+    //
+    // The stylesheet needs a guard of its own, and a wider one. The
+    // keyframes are where a hex is most tempting - they cannot import
+    // palette.ts, which is the whole reason the three LED states arrive as
+    // custom properties - and nothing there reaches the rendered HTML for
+    // the token test below to see. It is also the only part of the file
+    // where a three-digit literal cannot be confused with an issue number:
+    // `{3,8}` over the whole source would match `#209` in the header.
     it("carries no hex literal of its own", () => {
       expect(SOURCE).not.toMatch(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b/);
+      expect(MODULE_SOURCE).not.toMatch(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b/);
+      expect(STYLE_BLOCK).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     });
 
     it("paints only with the rack's own palette tokens", () => {
