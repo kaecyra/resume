@@ -65,38 +65,27 @@ describe("Crossing", () => {
     });
 
     it("gives the same crossing the opposite direction at the next index, so nothing is hardcoded per band", () => {
-      expect(html_for(TO_EDGE, 0)).not.toContain("crossing--back");
-      expect(html_for(TO_EDGE, 1)).not.toContain("crossing--out");
+      expect(html_for(TO_EDGE, 0)).toContain("crossing--out");
+      expect(html_for(TO_EDGE, 1)).toContain("crossing--back");
     });
   });
 
   // happy-dom performs no layout and `svelte/server` emits no stylesheet, so
   // nothing here can assert that a connector's far end lands on the next
-  // band's spine - that is verified by eye. What these do check is that the
-  // numbers the join is derived from are the mockup's, unchanged. They read
+  // band's spine - that is verified by eye. What this does check is that the
+  // endpoints are still derived from the named properties rather than from a
+  // pixel position, which the source could plausibly violate. Asserting the
+  // property values themselves was dropped: `tasks/` is gitignored, so there
+  // is no shipped drawing for them to be "the same as", and swapping the
+  // --out and --back rule bodies wholesale left all of them green. It reads
   // the component's own source because Svelte extracts scoped `<style>` to a
   // separate stylesheet, which never appears in the rendered HTML
   // (Commits.test.ts uses the same technique for the same reason).
   describe("geometry", () => {
-    const DECLARATIONS = [
-      "--gap: 56px;",
-      "--col: calc((100% - var(--gap)) / 2);",
-      "--graph: min(440px, var(--col));",
-      "--spine: calc(var(--graph) * 0.1);",
-      "--near: var(--spine);",
-      "--far: calc(var(--col) + var(--gap) + var(--spine));",
-      "--turn: 66px;",
-      "--tip: 12px;",
-    ];
-
-    it.each(DECLARATIONS)("declares %s, the same number .band-grid lays the columns out with", (declaration) => {
-      expect(SOURCE).toContain(declaration);
-    });
-
-    it("derives every endpoint from those properties instead of hardcoding a pixel position", () => {
+    it("derives every endpoint from the named properties instead of hardcoding a pixel position", () => {
       // The only bare lengths left in the positioning rules are the arrow's
-      // own half-width (4px) and the label's vertical centring (11px), both
-      // of which are properties of the glyph, not of the column.
+      // own half-width (--tip-half) and the label's vertical centring (11px),
+      // both of which are properties of the glyph, not of the column.
       expect(SOURCE).toContain("left: var(--near);");
       expect(SOURCE).toContain("left: var(--far);");
       expect(SOURCE).toContain("right: calc(100% - var(--far));");

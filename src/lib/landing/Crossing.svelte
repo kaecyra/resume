@@ -45,7 +45,12 @@
     --near: var(--spine);
     --far: calc(var(--col) + var(--gap) + var(--spine));
     --turn: 66px;
+    /* The arrow glyph is 8px tall; --tip reserves 12px, so its point sits
+       4px clear of the bottom edge. --tip-half is the glyph's half-width,
+       which is also what each rule has to back off by to centre on the
+       spine - the same number in three places, named once. */
     --tip: 12px;
+    --tip-half: 4px;
   }
 
   .x-v,
@@ -70,8 +75,8 @@
   .x-tip {
     width: 0;
     height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
+    border-left: var(--tip-half) solid transparent;
+    border-right: var(--tip-half) solid transparent;
     border-top: 8px solid var(--ink-arrow);
     top: calc(100% - var(--tip));
   }
@@ -89,7 +94,7 @@
   }
 
   .crossing--out .x-tip {
-    left: calc(var(--far) - 4px);
+    left: calc(var(--far) - var(--tip-half));
   }
 
   .crossing--back .x-start {
@@ -105,7 +110,7 @@
   }
 
   .crossing--back .x-tip {
-    left: calc(var(--near) - 4px);
+    left: calc(var(--near) - var(--tip-half));
   }
 
   /* The system monospace stack, not Share Tech Mono: #187 retired that face

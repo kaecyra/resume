@@ -566,6 +566,39 @@ describe("validate_pipeline_data", () => {
       expect(messages).toContain('crossing "to-serve" does not say which band it comes after');
     });
 
+    // Crossing.svelte takes { crossing, index } and reads its direction off
+    // the index alone, which is only right while the crossings are listed in
+    // band order and the graphs alternate. Neither was enforced, so a
+    // reordered document validated clean and drew both connectors backwards.
+    it("detects crossings listed out of band order", () => {
+      const [first, last] = MOCK_PIPELINE_DATA.bands;
+      const middle = { ...first, id: "deploy", graph_side: "right" as const };
+      const messages = messages_for(
+        make_pipeline({
+          bands: [first, middle, { ...last, graph_side: "left" as const }],
+          crossings: [
+            { id: "to-serve", after: "deploy", label: "one" },
+            { id: "to-deploy", after: "commit", label: "two" },
+          ],
+        }),
+      );
+
+      expect(messages).toContain('crossing "to-serve" must come after band "commit", not "deploy"');
+      expect(messages).toContain('crossing "to-deploy" must come after band "deploy", not "commit"');
+    });
+
+    it("detects a band whose graph does not alternate sides", () => {
+      const messages = messages_for(with_band(1, { graph_side: "left" }));
+
+      expect(messages).toContain('band "serve" graph_side must be "right", not "left"');
+    });
+
+    it("detects a first band whose graph is not on the left", () => {
+      const messages = messages_for(with_band(0, { graph_side: "right" }));
+
+      expect(messages).toContain('band "commit" graph_side must be "left", not "right"');
+    });
+
     // last_band_id reads the last band, not the last band with an id.
     // Filtering first made an unnamed final band report the crossing
     // before it as hanging off the end - a false message stacked on a real
