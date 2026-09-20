@@ -219,7 +219,7 @@ function stub_rect(el: Element, rect: Partial<DOMRect>) {
 }
 
 // The divider itself is a sibling component (Divider.svelte via
-// LandingSections), not rendered inside Hero - update_spin_boost looks it
+// LandingSections), not rendered inside Hero - apply_spin_boost looks it
 // up by id, so these tests stand a bare #divider element in for it rather
 // than pulling in the whole landing tree.
 function stub_divider(height: number): HTMLDivElement {
@@ -228,6 +228,14 @@ function stub_divider(height: number): HTMLDivElement {
   document.body.appendChild(divider);
   stub_rect(divider, { height });
   return divider;
+}
+
+// Keeps the divider flush under the hero (divider.top === hero.top +
+// hero.height), matching the real markup, whenever a test moves the hero.
+function stub_flush(hero: HTMLElement, divider: HTMLElement, hero_top: number, hero_height: number) {
+  stub_rect(hero, { top: hero_top, height: hero_height });
+  const divider_height = divider.getBoundingClientRect().height;
+  stub_rect(divider, { top: hero_top + hero_height, height: divider_height });
 }
 
 function last_spin_boost(set_spin_boost: ReturnType<typeof vi.fn>): number {
@@ -248,10 +256,27 @@ describe("Hero globe spin-up on scroll (client)", () => {
     load_satellite_payload.mockReset();
     load_satellite_payload.mockResolvedValue(null);
     divider = stub_divider(200);
+    // apply_spin_boost now runs batched through requestAnimationFrame (one
+    // read per paint, not per scroll event) rather than synchronously off
+    // the scroll listener. Deferred to a microtask rather than run
+    // synchronously: a synchronous stub lets the callback's own
+    // `spin_boost_frame_id = null` reset run *before* on_scroll's
+    // `spin_boost_frame_id = requestAnimationFrame(...)` assignment
+    // completes, so that assignment clobbers the reset back to non-null and
+    // every scroll after the first is silently dropped - a real browser
+    // never calls requestAnimationFrame's callback before returning, so
+    // this ordering only exists in an over-eager test double. Each test
+    // awaits a microtask after firing `scroll` to observe the result.
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      Promise.resolve().then(() => cb(0));
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     divider.remove();
   });
 
@@ -259,7 +284,7 @@ describe("Hero globe spin-up on scroll (client)", () => {
     stub_matchmedia(false);
     const { container } = render_hero();
     const hero = container.querySelector("#hero") as HTMLElement;
-    stub_rect(hero, { top: 0, height: 800 });
+    stub_flush(hero, divider, 0, 800);
 
     await vi.waitFor(() => {
       expect(start_globe).toHaveBeenCalledTimes(1);
@@ -279,24 +304,62 @@ describe("Hero globe spin-up on scroll (client)", () => {
 
     // The very first pixel of scroll already ramps it, however slightly -
     // no dead zone before the boost kicks in.
-    stub_rect(hero, { top: -1, height: 800 });
+    stub_flush(hero, divider, -1, 800);
     await fireEvent.scroll(window);
+    await Promise.resolve();
     const just_started = last_spin_boost(set_spin_boost);
     expect(just_started).toBeGreaterThan(1);
     expect(just_started).toBeLessThan(20);
 
     // Short of the divider clearing the top: partway through the ramp.
-    stub_rect(hero, { top: -700, height: 800 });
+    stub_flush(hero, divider, -700, 800);
     await fireEvent.scroll(window);
+    await Promise.resolve();
     const mid = last_spin_boost(set_spin_boost);
     expect(mid).toBeGreaterThan(just_started);
     expect(mid).toBeLessThan(20);
 
     // Divider fully within the vanish buffer of the viewport top: full
     // boost.
-    stub_rect(hero, { top: -960, height: 800 });
+    stub_flush(hero, divider, -960, 800);
     await fireEvent.scroll(window);
+    await Promise.resolve();
     expect(last_spin_boost(set_spin_boost)).toBeCloseTo(20);
+  });
+
+  it("collapses multiple scroll events between paints into a single boundingClientRect read", async () => {
+    stub_matchmedia(false);
+    const { container } = render_hero();
+    const hero = container.querySelector("#hero") as HTMLElement;
+    stub_flush(hero, divider, 0, 800);
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    // Deferred, not the eager beforeEach stub: batching only shows up when
+    // requestAnimationFrame doesn't run its callback until explicitly
+    // flushed, so several scroll events fired before that flush have a
+    // chance to collapse into the one pending frame.
+    let pending_frame: FrameRequestCallback | null = null;
+    const raf = vi.fn((cb: FrameRequestCallback) => {
+      pending_frame = cb;
+      return 1;
+    });
+    vi.stubGlobal("requestAnimationFrame", raf);
+
+    const hero_rect_spy = vi.spyOn(hero, "getBoundingClientRect");
+    hero_rect_spy.mockClear();
+
+    window.dispatchEvent(new Event("scroll"));
+    window.dispatchEvent(new Event("scroll"));
+    window.dispatchEvent(new Event("scroll"));
+
+    expect(raf).toHaveBeenCalledTimes(1);
+    expect(hero_rect_spy).not.toHaveBeenCalled();
+
+    pending_frame!(0);
+    expect(hero_rect_spy).toHaveBeenCalledTimes(1);
   });
 
   it("never starts the globe, so never boosts its spin, when prefers-reduced-motion matches", async () => {

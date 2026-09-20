@@ -22,17 +22,24 @@ export const GLOBE_SCROLL_END_BUFFER_PX = 48;
 export const GLOBE_SPIN_BOOST_MAX = 20;
 
 // 0 (untouched) to 1 (fully ramped), given the hero's own top/height and
-// the divider's height, all viewport-relative px from
-// getBoundingClientRect(). divider.top is never passed directly: it sits
-// flush under the hero (divider.top === hero.top + hero.height), so the
-// hero's own rect is enough to derive both ends of the range.
+// the divider's own measured top/height, all viewport-relative px from
+// getBoundingClientRect(). Takes divider_top rather than assuming Divider
+// sits flush under Hero (divider.top === hero.top + hero.height): that
+// assumption breaks silently - no crash, just a visually wrong ramp - the
+// moment another section lands between them, since `sections` in the
+// landing data is a plain, unordered string[] with no adjacency
+// constraint. hero_top and divider_top move by the same amount as the
+// page scrolls regardless of the gap between them, so subtracting one
+// from the other still gives the true, current gap on every call.
 export function compute_globe_scroll_progress({
   hero_top,
   hero_height,
+  divider_top,
   divider_height,
 }: {
   hero_top: number;
   hero_height: number;
+  divider_top: number;
   divider_height: number;
 }): number {
   if (hero_height <= 0) {
@@ -40,7 +47,9 @@ export function compute_globe_scroll_progress({
   }
 
   const start = -GLOBE_SCROLL_START_FRACTION * hero_height;
-  const end = -(hero_height + divider_height) + GLOBE_SCROLL_END_BUFFER_PX;
+  const end_divider_top = -divider_height + GLOBE_SCROLL_END_BUFFER_PX;
+  const gap = divider_top - hero_top;
+  const end = end_divider_top - gap;
   if (start <= end) {
     return hero_top <= start ? 1 : 0;
   }

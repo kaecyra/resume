@@ -300,6 +300,13 @@ export const MONTREAL_START_SPIN_RAD = -to_radians(MONTREAL_LON);
 // the clock starts. Split out as its own pure function (rather than left
 // inline in start_globe's frame()) so the phase shift itself is directly
 // testable, the same way every other piece of this module's maths is.
+//
+// No longer start_globe's own source of spin - frame() now integrates via
+// advance_spin below, so the scroll-driven boost can change the rate
+// without the angle jumping, which a pure function of total elapsed time
+// can't do. Kept exported and tested in its own right: it's still the
+// simplest correct statement of "constant-rate spin, Montreal-centred at
+// t=0", useful as a reference/fixture even with no production caller left.
 export function globe_spin_at(elapsed_ms: number, ms_per_turn: number): number {
   return rotation_angle(elapsed_ms, ms_per_turn) + MONTREAL_START_SPIN_RAD;
 }

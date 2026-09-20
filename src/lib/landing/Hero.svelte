@@ -158,20 +158,33 @@
     // prefers-reduced-motion and the globe not having started yet (the
     // controller only exists once start_globe's async setup below
     // resolves).
-    function update_spin_boost() {
+    let spin_boost_frame_id: number | null = null;
+    function apply_spin_boost() {
+      spin_boost_frame_id = null;
       if (motion_query.matches || !hero_el || !controller) {
         return;
       }
       const hero_rect = hero_el.getBoundingClientRect();
-      const divider_height = document.getElementById("divider")?.getBoundingClientRect().height ?? 0;
+      const divider_rect = document.getElementById("divider")?.getBoundingClientRect();
       const progress = compute_globe_scroll_progress({
         hero_top: hero_rect.top,
         hero_height: hero_rect.height,
-        divider_height,
+        divider_top: divider_rect?.top ?? hero_rect.top + hero_rect.height,
+        divider_height: divider_rect?.height ?? 0,
       });
       controller.set_spin_boost(compute_globe_spin_boost(progress));
     }
-    window.addEventListener("scroll", update_spin_boost, { passive: true });
+    // Scroll events fire far more often than the display repaints,
+    // especially during momentum/trackpad scrolling - collapsing every
+    // event between two paints into a single getBoundingClientRect() read
+    // matches the caching size_canvas/draw already do in globe.ts (see the
+    // comment at globe.ts:619) to avoid forcing a layout flush every frame.
+    function on_scroll() {
+      if (spin_boost_frame_id === null) {
+        spin_boost_frame_id = requestAnimationFrame(apply_spin_boost);
+      }
+    }
+    window.addEventListener("scroll", on_scroll, { passive: true });
 
     if (!motion_query.matches) {
       // Independent of the globe's own async geometry fetch below - the
@@ -212,7 +225,7 @@
           // scrolled to by the time the globe actually starts, rather than
           // opening at the normal rate and only catching up on the next
           // scroll event.
-          update_spin_boost();
+          apply_spin_boost();
         } catch {
           // Geometry fetch or WebGL setup failed - leave canvas_animating
           // false so the static still image is what's shown.
@@ -223,7 +236,10 @@
     return () => {
       cancelled = true;
       motion_query.removeEventListener("change", on_motion_change);
-      window.removeEventListener("scroll", update_spin_boost);
+      window.removeEventListener("scroll", on_scroll);
+      if (spin_boost_frame_id !== null) {
+        cancelAnimationFrame(spin_boost_frame_id);
+      }
       controller?.stop();
       clearInterval(vitals_timer);
     };
