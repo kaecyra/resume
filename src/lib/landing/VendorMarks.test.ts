@@ -76,13 +76,23 @@ describe("VendorMarks", () => {
   // its own the way it did before the narrow block existed.
   it("keeps all five marks on one row at 360px", () => {
     const source = readFileSync(new URL("./VendorMarks.svelte", import.meta.url), "utf8");
-    const narrow = source.match(/@media \(max-width: 480px\) \{(.*)\n  \}/s);
+    // Lazy, so the block ends at its own `\n  }` rather than at the last one
+    // in the file: greedy, this reads correctly only while the media query
+    // is the stylesheet's final rule. The two-space close cannot match the
+    // four-space one that ends a rule inside the block, so the lazy form
+    // still stops in the right place.
+    const narrow = source.match(/@media \(max-width: 480px\) \{(.*?)\n  \}/s);
     expect(narrow, "the narrow-width block").not.toBeNull();
 
-    const gap = narrow![1].match(/gap: \d+px (\d+)px/);
-    const width = narrow![1].match(/width: (\d+)px/);
-    expect(gap, "a column gap under 480px").not.toBeNull();
-    expect(width, "a mark width under 480px").not.toBeNull();
+    // Each number is read out of the rule that owns it, and the lookbehind
+    // keeps `width` from matching `min-width` or `max-width`. Taking the
+    // first `width:` in the block instead made the guard fail open: a
+    // `min-width` on `.marks` is a plausible edit, and it fed this
+    // arithmetic a number belonging to neither the box nor the row.
+    const gap = narrow![1].match(/\.marks \{[^}]*\bgap: \d+px (\d+)px/);
+    const width = narrow![1].match(/\.mark \{[^}]*(?<![-\w])width: (\d+)px/);
+    expect(gap, "a column gap on .marks under 480px").not.toBeNull();
+    expect(width, "a width on .mark under 480px").not.toBeNull();
 
     const row = MARKS.length * Number(width![1]) + (MARKS.length - 1) * Number(gap![1]);
 
