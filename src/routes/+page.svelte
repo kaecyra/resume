@@ -107,6 +107,7 @@
     profile_name={data.profile_name}
     resume_title={data.resume_title}
     contributions_grid={data.contributions_grid}
+    pipeline={data.pipeline}
   />
 </main>
 

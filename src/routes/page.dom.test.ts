@@ -11,7 +11,7 @@
 import { fireEvent, render } from "@testing-library/svelte";
 
 import { HUD_PALETTE } from "$lib/landing/palette.js";
-import type { LandingData } from "$lib/types.js";
+import type { LandingData, PipelineData } from "$lib/types.js";
 
 import Page from "./+page.svelte";
 
@@ -30,12 +30,37 @@ const LANDING: LandingData = {
   sections: ["hero", "divider", "commits", "work", "contact"],
 };
 
+// Required by PageData since #209, though LANDING.sections leaves
+// "pipeline" out - nothing here is about that section. Kept to a shape
+// validate_pipeline_data would accept even so: a lone unconnected node is
+// rejected twice over, and a fixture nothing validates is the easiest place
+// for an impossible document to take root.
+const PIPELINE: PipelineData = {
+  heading: "Building a pipeline",
+  lede: "It leaves my laptop and arrives somewhere else.",
+  bands: [
+    {
+      id: "commit",
+      graph_side: "left",
+      nodes: [
+        { id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" },
+        { id: "merged", label: "merged", style: "ring", tone: "default", lane: "trunk" },
+      ],
+      edges: [{ id: "main", from: "repo", to: "merged", kind: "trunk", tone: "default" }],
+      note: { column: "aside", text: "Work starts on a branch." },
+    },
+  ],
+  crossings: [],
+  closer: "A machine in my basement hands you this page.",
+};
+
 const PAGE_DATA = {
   umami_website_id: "",
   landing: LANDING,
   profile_name: "Test Person",
   resume_title: "Chief Technology Officer",
   contributions_grid: null,
+  pipeline: PIPELINE,
   og: {
     title: "Test Person",
     description: "I build things.",
