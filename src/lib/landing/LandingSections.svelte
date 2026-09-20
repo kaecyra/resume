@@ -8,6 +8,7 @@
   import Divider from "./Divider.svelte";
   import Hero from "./Hero.svelte";
   import Pipeline from "./Pipeline.svelte";
+  import SatelliteFlybys from "./SatelliteFlybys.svelte";
   import Work from "./Work.svelte";
 
   // `validate_landing_data` guarantees `sections` only contains known ids
@@ -23,6 +24,10 @@
   // `pipeline` is #209's data source (data/pipeline.yaml, loaded and
   // validated by src/lib/pipeline.ts); like `contributions_grid` it does
   // not live on `landing`, so it is threaded through as its own prop.
+  // `<SatelliteFlybys>` below (the lower-page ambient flyby effect) takes no
+  // props and is not itself a "section" in `landing.sections` - it's a
+  // decorative sibling rendered alongside `hero`, self-contained, so it
+  // needs no entry threaded through this component's own props.
   let {
     landing,
     profile_name,
@@ -43,6 +48,7 @@
 {#each landing.sections as section (section)}
   {#if section === "hero"}
     <Hero hero={landing.hero} github={landing.github} {resume_link} {profile_name} {resume_title} />
+    <SatelliteFlybys />
   {:else if section === "divider"}
     <Divider hero={landing.hero} contact={landing.contact} />
   {:else if section === "commits"}
