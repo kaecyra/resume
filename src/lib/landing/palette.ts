@@ -189,9 +189,12 @@ export const RACK_CHASSIS = {
   // Nothing in the rack is drawn with it since U29-34 was described; the
   // fitting and this tone are kept for the next block that has not been.
   slot_unnamed: "#101013",
-  // The brush panels, and the slot cables pass through.
-  brush_face: "#141418",
-  brush_slot: "#0b0b0d",
+  // The brush panels, and the slot cables pass through. The face was
+  // `#141418`, a few values off `slot_empty`, so three blanking plates read
+  // as three holes in a column of hardware. It is a plate bolted across a U
+  // and is lit like one.
+  brush_face: "#44444c",
+  brush_slot: "#1d1d22",
   // The power strips, their outlets (the mockup's `--red`), and the rocker
   // switches on the Pyle at the floor of the rack.
   pdu_face: "#18181c",

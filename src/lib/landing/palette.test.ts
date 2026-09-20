@@ -177,6 +177,20 @@ describe("RACK_CHASSIS", () => {
     expect(luminance(RACK_CHASSIS.slot_unnamed)).toBeGreaterThan(luminance(RACK_CHASSIS.slot_empty));
   });
 
+  // A blanking panel is a plate bolted across a U, not a gap in the rack.
+  // At `#141418` it sat a few values off `slot_empty` and read as one, which
+  // put three holes in a column of hardware. It stays well behind the patch
+  // plates - that ladder is checked below - but it has to clear the cabinet
+  // it is mounted in, and its brush slot has to stay darker than the plate
+  // that slot is cut into.
+  it("keeps a blanking panel reading as a plate rather than a gap", () => {
+    expect(contrast_ratio(RACK_CHASSIS.brush_face, RACK_CHASSIS.slot_empty)).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(luminance(RACK_CHASSIS.brush_face)).toBeGreaterThan(luminance(RACK_CHASSIS.cabinet));
+    expect(luminance(RACK_CHASSIS.brush_slot)).toBeLessThan(luminance(RACK_CHASSIS.brush_face));
+  });
+
   // The cabinet is a dark box on a dark page; its outline is the only thing
   // separating it from the section behind it.
   it("keeps the cabinet outline lighter than the cabinet body", () => {
