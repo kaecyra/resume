@@ -25,17 +25,20 @@ export const BASEMENT_FIELD_IDS: readonly BasementFieldId[] = ["temperature", "h
 export const BASEMENT_METRICS_URL = "/api/basement/metrics";
 
 // A reading older than this is shown as offline rather than as a number,
-// regardless of how plausible the number itself is. Matches "recently
-// synced" - the sensor's own last report to Home Assistant, not merely
-// "our container's last successful poll."
+// regardless of how plausible the number itself is. Answers "are we still
+// in contact with Home Assistant" - not "did the sensor's value change" -
+// since this sensor only pushes a new value into HA when the reading
+// actually moves, and a stable, perfectly healthy room can otherwise sit on
+// the same HA-side timestamp for hours.
 export const MAX_READING_AGE_MS = 30 * 60 * 1000;
 
 // Everything this codebase is willing to know about a metrics file.
 export interface BasementMetrics {
   temperature?: number;
   humidity?: number;
-  // ISO 8601, from Home Assistant's `last_reported` (or `last_updated` on
-  // older HA versions) - see docker-entrypoint.sh.
+  // ISO 8601 - docker-entrypoint.sh's own clock at the moment it last
+  // successfully talked to Home Assistant and got two usable readings back,
+  // not anything HA itself reports about the entities.
   updated_at?: string;
 }
 

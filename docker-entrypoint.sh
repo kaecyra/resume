@@ -47,29 +47,17 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
 
             temperature=$(printf '%s' "$temp_response" | jq -r '.state')
             humidity=$(printf '%s' "$humidity_response" | jq -r '.state')
-            # `last_reported` (HA 2024.9+) is when the entity last reported in
-            # at all, changed or not - the truest "is this still syncing"
-            # signal. `last_updated` is the fallback for older HA versions.
-            temp_updated_at=$(printf '%s' "$temp_response" | jq -r '.last_reported // .last_updated // empty')
-            humidity_updated_at=$(printf '%s' "$humidity_response" | jq -r '.last_reported // .last_updated // empty')
 
-            # This write only proves Home Assistant itself is reachable and
-            # syncing - not that both individual sensors are healthy, which
-            # is format_basement_readout's job on the values this timestamp
-            # ends up attached to. So the newer of the two: either reading
-            # being recent is enough to write. ISO 8601 UTC timestamps from
-            # the same HA instance sort correctly as plain text.
-            if [ -z "$temp_updated_at" ]; then
-                updated_at=$humidity_updated_at
-            elif [ -z "$humidity_updated_at" ]; then
-                updated_at=$temp_updated_at
-            elif [ "$temp_updated_at" ">" "$humidity_updated_at" ]; then
-                updated_at=$temp_updated_at
-            else
-                updated_at=$humidity_updated_at
-            fi
-
-            if is_usable_reading "$temperature" && is_usable_reading "$humidity" && [ -n "$updated_at" ]; then
+            if is_usable_reading "$temperature" && is_usable_reading "$humidity"; then
+                # This container's own clock at the moment it last talked to
+                # HA and got two usable readings back - not HA's
+                # `last_reported`/`last_changed` for the entities. This
+                # sensor only pushes a new value into HA when the reading
+                # actually changes, so a stable room can sit on the same
+                # HA-side timestamp for hours with nothing wrong; the reader
+                # needs to know whether the site is still in contact with
+                # HA, not whether the room's temperature happened to move.
+                updated_at=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
                 jq -n --arg t "$temperature" --arg h "$humidity" --arg u "$updated_at" \
                     '{temperature: ($t | tonumber), humidity: ($h | tonumber), updated_at: $u}' \
                     > /usr/share/nginx/html/api/basement/metrics.json.tmp \
