@@ -38,6 +38,7 @@
     RISER_SHAPES,
     SHELF_SURFACE_DY,
     SPARK_MESH_INSET,
+    SPARK_MESH_SLAT_W,
     SPARK_MESH_XS,
     TRAY_BUNDLES,
     TRAY_RUNG_XS,
@@ -334,7 +335,12 @@
           />
           <g fill={RACK_CHASSIS.spark_face}>
             {#each SPARK_MESH_XS as slat_x (slat_x)}
-              <rect x={mesh_x + slat_x} y={mesh_y} width="1.4" height={mesh_h} />
+              <rect
+                x={mesh_x + slat_x}
+                y={mesh_y}
+                width={SPARK_MESH_SLAT_W}
+                height={mesh_h}
+              />
             {/each}
           </g>
         {/if}

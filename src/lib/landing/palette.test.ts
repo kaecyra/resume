@@ -242,6 +242,23 @@ describe("RACK_CHASSIS", () => {
     expect(contrast_ratio(RACK_CHASSIS.pi_case, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
   });
 
+  // The Pyle's three rockers and its nine sockets are drawn on one face,
+  // about 8px apart. They are two rows of controls on the same strip, so
+  // they stand off that face by the same distance - a rocker at half the
+  // socket's separation reads as a smudge beside a row of lit outlets. The
+  // ratio between the two separations is what is pinned, not either value,
+  // so the face and the red stay free to move together.
+  it("stands the Pyle's rockers off its face as far as the outlets beside them", () => {
+    const outlet_gap = contrast_ratio(RACK_CHASSIS.outlet, RACK_CHASSIS.pdu_face);
+    const rocker_gap = contrast_ratio(RACK_CHASSIS.pdu_switch, RACK_CHASSIS.pdu_face);
+
+    expect(rocker_gap).toBeGreaterThanOrEqual(3);
+    expect(rocker_gap / outlet_gap).toBeGreaterThanOrEqual(0.85);
+    expect(rocker_gap / outlet_gap).toBeLessThanOrEqual(1.15);
+    // A switch on a power strip, not one of the drawing's light parts.
+    expect(luminance(RACK_CHASSIS.pdu_switch)).toBeLessThan(luminance(RACK_CHASSIS.faceplate));
+  });
+
   // The Spark's mesh front is cut into its own face, the same relationship
   // the keystones have to their plate. It is also deliberately duller than
   // the page's amber, which already means "the node this site runs on" and

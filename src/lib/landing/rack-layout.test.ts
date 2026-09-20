@@ -4,9 +4,14 @@ import {
   EQUIP_X,
   OUTLET_W,
   PDU_SWITCH_W,
+  PUCK_DY,
+  PUCK_H,
   RACK_UNITS,
   RACK_U_COUNT,
   RISER_SHAPES,
+  SPARK_MESH_INSET,
+  SPARK_MESH_SLAT_W,
+  SPARK_MESH_XS,
   TRAY_RUNG_FIRST_X,
   TRAY_RUNG_LAST_X,
   TRAY_RUNG_STEP,
@@ -221,6 +226,39 @@ describe("gear standing on a unit", () => {
 
     expect(stack.spark_height).toBeLessThan(stack.height);
     expect(stack.spark_width).toBeLessThan(stack.width);
+  });
+
+  // One level further down, and the same failure: the grille is a run of
+  // slats across the Spark's inset face, offset from its left edge. Nothing
+  // relates the end of that run to the width of the face, so a narrower
+  // Spark draws slats out past the box they belong to.
+  it("keeps the mesh slats inside the face they are cut into", () => {
+    const face_w = RISER_SHAPES.lenovo_spark.spark_width - SPARK_MESH_INSET * 2;
+    const last_slat = SPARK_MESH_XS[SPARK_MESH_XS.length - 1];
+
+    expect(SPARK_MESH_XS[0]).toBeGreaterThanOrEqual(0);
+    expect(last_slat + SPARK_MESH_SLAT_W).toBeLessThanOrEqual(face_w);
+  });
+
+  // The u17 pair is the older reading of gear on a shelf: compressed into
+  // the shelf's own U rather than standing on it. They moved out of a
+  // `unit.id === "shelf-u17"` branch in the template and into the map, so
+  // the map is now the only thing saying they exist.
+  it("compresses the u17 shelf's Hue bridge and Apple TV into its own U", () => {
+    const shelf = RACK_UNITS.find((unit) => unit.id === "shelf-u17");
+
+    expect(shelf?.kind).toBe("shelf");
+    if (shelf?.kind !== "shelf") return;
+
+    expect(shelf.pucks.map((puck) => puck.fill)).toEqual(["puck", "trim"]);
+    // Drawn from the top of the U down, so the pair has to finish inside
+    // the U's own height rather than over the shelf below it.
+    expect(PUCK_DY + PUCK_H).toBeLessThanOrEqual(rack_u_height(shelf.units));
+
+    for (const puck of shelf.pucks) {
+      expect(puck.x).toBeGreaterThanOrEqual(EQUIP_X);
+      expect(puck.x + puck.width).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+    }
   });
 
   // The rule the bottom 6U was designed around: gear rises into the U above

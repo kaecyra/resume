@@ -196,10 +196,14 @@ export const RACK_CHASSIS = {
   brush_face: "#44444c",
   brush_slot: "#1d1d22",
   // The power strips, their outlets (the mockup's `--red`), and the rocker
-  // switches on the Pyle at the floor of the rack.
+  // switches on the Pyle at the floor of the rack. The rocker was `#3d3d45`,
+  // 1.65:1 against the face it is mounted on where an outlet 8px away is
+  // 3.54:1 - two rows of controls on one strip, one of them half as far off
+  // it as the other. It is lifted to meet the outlets rather than the
+  // outlets dropped to meet it: the sockets are where the mockup put them.
   pdu_face: "#18181c",
   outlet: "#d52b1e",
-  pdu_switch: "#3d3d45",
+  pdu_switch: "#6f6f75",
   // The two Raspberry Pi 5 cases standing on the U29 switch. A second red,
   // and deliberately not `outlet`: one is a socket, the other is the
   // plastic a machine is wearing. Not the amber accent either - that
