@@ -23,8 +23,18 @@ export const REVEAL_TIMING = {
 // Resolution 4: a quarter of the band in view, with the bottom tenth of
 // the viewport discounted so a band does not arrive the instant its top
 // edge appears.
+//
+// The threshold is not self-enforcing. An observer queues an entry when
+// either its threshold index *or* `isIntersecting` changes, and
+// `isIntersecting` is true the moment the target touches the root at all,
+// whatever the thresholds say. A callback that only asks `isIntersecting`
+// therefore fires at the first pixel of contact and the 0.25 is inert -
+// which is what `reveal` used to do. It compares `intersectionRatio`
+// against `REVEAL_THRESHOLD` itself now.
+export const REVEAL_THRESHOLD = 0.25;
+
 export const REVEAL_OBSERVER = {
-  threshold: 0.25,
+  threshold: REVEAL_THRESHOLD,
   rootMargin: "0px 0px -10% 0px",
 } as const satisfies IntersectionObserverInit;
 
@@ -102,7 +112,14 @@ export function reveal(
       return;
     }
 
-    if (!entries.some((entry) => entry.isIntersecting)) {
+    // `isIntersecting` alone would fire at the first pixel of contact; the
+    // ratio is what the threshold actually means. `intersectionRatio` is a
+    // fraction of the *target*, so an element more than four times the
+    // root's height can never reach 0.25 and would never reveal. Nothing in
+    // this section is close - the tallest band is around 1050px against a
+    // root of roughly 810px, a ratio of 0.77 - but the phone layout in step
+    // (g) is where that headroom gets spent, so it is worth measuring there.
+    if (!entries.some((entry) => entry.intersectionRatio >= REVEAL_THRESHOLD)) {
       if (!armed) {
         armed = true;
         on_phase("armed");

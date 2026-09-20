@@ -155,11 +155,23 @@ describe("Crossing", () => {
       // Sliced to the rule's own closing brace: reading to the end of the
       // stylesheet instead lets the regex fall through to the next rule's
       // delay, which reports one animation's timing under another's name.
+      //
+      // Throws rather than defaulting to 0 on a missing rule. A fallback
+      // would make the first assertion below - that the opening rule has no
+      // delay - pass just as well if the animation were deleted outright,
+      // which is the one edit this test exists to catch.
       const delay_of = (selector: string): number => {
         const start = style.indexOf(`.is-revealed ${selector} {`);
+        if (start === -1) {
+          throw new Error(`no .is-revealed ${selector} rule`);
+        }
         const rule = style.slice(start, style.indexOf("}", start));
-        const match = rule.match(/animation: [\w-]+ \d+ms [\w-]+(?:\([^)]*\))? (\d+)ms/);
-        return match === null ? 0 : Number(match[1]);
+        const match = rule.match(/animation: [\w-]+ \d+ms [\w-]+(?:\([^)]*\))?(?: (\d+)ms)?/);
+        if (match === null) {
+          throw new Error(`.is-revealed ${selector} has no animation`);
+        }
+        // The opening rule carries no delay at all, which is a delay of 0.
+        return match[1] === undefined ? 0 : Number(match[1]);
       };
 
       expect(delay_of(".x-start")).toBe(0);

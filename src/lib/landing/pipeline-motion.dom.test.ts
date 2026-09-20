@@ -6,7 +6,12 @@
 // globe.dom.test.ts drives the globe's.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { REVEAL_OBSERVER, reveal, type RevealPhase } from "./pipeline-motion.js";
+import {
+  REVEAL_OBSERVER,
+  REVEAL_THRESHOLD,
+  reveal,
+  type RevealPhase,
+} from "./pipeline-motion.js";
 
 class FakeIntersectionObserver {
   static instances: FakeIntersectionObserver[] = [];
@@ -29,9 +34,12 @@ class FakeIntersectionObserver {
     this.disconnect_calls++;
   }
 
-  fire(is_intersecting: boolean) {
+  // Both fields, because the two disagree in exactly the case that
+  // matters: the observer reports `isIntersecting: true` from the first
+  // pixel of contact, long before the ratio reaches any threshold.
+  fire(is_intersecting: boolean, ratio = is_intersecting ? 1 : 0) {
     this.callback(
-      [{ isIntersecting: is_intersecting } as IntersectionObserverEntry],
+      [{ isIntersecting: is_intersecting, intersectionRatio: ratio } as IntersectionObserverEntry],
       this as unknown as IntersectionObserver,
     );
   }
@@ -78,7 +86,10 @@ describe("reveal", () => {
     expect(phases).toEqual([]);
     const observer = FakeIntersectionObserver.instances[0];
     expect(observer.observed).toEqual([node]);
-    expect(observer.options).toEqual(REVEAL_OBSERVER);
+    // The literal values, not `REVEAL_OBSERVER` - comparing the constant to
+    // itself passes for anything the constant is ever changed to.
+    expect(observer.options).toEqual({ threshold: 0.25, rootMargin: "0px 0px -10% 0px" });
+    expect(REVEAL_OBSERVER.threshold).toBe(REVEAL_THRESHOLD);
   });
 
   it("arms an element that is below the fold on its first observation", () => {
@@ -110,6 +121,41 @@ describe("reveal", () => {
 
     expect(phases).toEqual([]);
     expect(observer.disconnect_calls).toBe(1);
+  });
+
+  // The bug this guards: the observer reports `isIntersecting: true` from
+  // the first pixel of contact, and queues that entry whether or not any
+  // threshold was crossed. A callback that asks only `isIntersecting`
+  // reveals there, and the threshold does nothing at all.
+  it("does not reveal on contact alone, below the threshold", () => {
+    const { phases } = observed_element();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    observer.fire(false);
+    observer.fire(true, REVEAL_THRESHOLD - 0.01);
+
+    expect(phases).toEqual(["armed"]);
+    expect(observer.disconnect_calls).toBe(0);
+  });
+
+  it("reveals exactly at the threshold", () => {
+    const { phases } = observed_element();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    observer.fire(false);
+    observer.fire(true, REVEAL_THRESHOLD);
+
+    expect(phases).toEqual(["armed", "revealed"]);
+  });
+
+  // An element in contact but under the threshold is not "already on
+  // screen" either: it still has an arrival to play.
+  it("arms an element touching the root but not yet a quarter in view", () => {
+    const { phases } = observed_element();
+
+    FakeIntersectionObserver.instances[0].fire(true, 0.05);
+
+    expect(phases).toEqual(["armed"]);
   });
 
   it("arms only once, however many times it is told the element is out of view", () => {
