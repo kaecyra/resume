@@ -184,19 +184,48 @@ export const RACK_CHASSIS = {
   trim: "#1a1a1e",
   // An unoccupied U, and the shelf face.
   slot_empty: "#0a0a0c",
-  // The six U holding something deliberately unlabelled. Lighter than
+  // A U holding something deliberately unlabelled. Lighter than
   // `slot_empty` so the block reads as occupied rather than as a hole.
+  // Nothing in the rack is drawn with it since U29-34 was described; the
+  // fitting and this tone are kept for the next block that has not been.
   slot_unnamed: "#101013",
-  // The brush panels, and the slot cables pass through.
-  brush_face: "#141418",
-  brush_slot: "#0b0b0d",
-  // The power strip and its eight outlets (the mockup's `--red`).
+  // The brush panels, and the slot cables pass through. The face was
+  // `#141418`, a few values off `slot_empty`, so three blanking plates read
+  // as three holes in a column of hardware. It is a plate bolted across a U
+  // and is lit like one.
+  brush_face: "#44444c",
+  brush_slot: "#1d1d22",
+  // The power strips, their outlets (the mockup's `--red`), and the rocker
+  // switches on the Pyle at the floor of the rack. The rocker was `#3d3d45`,
+  // 1.65:1 against the face it is mounted on where an outlet 8px away is
+  // 3.54:1 - two rows of controls on one strip, one of them half as far off
+  // it as the other. It is lifted to meet the outlets rather than the
+  // outlets dropped to meet it: the sockets are where the mockup put them.
   pdu_face: "#18181c",
   outlet: "#d52b1e",
+  pdu_switch: "#6f6f75",
+  // The two Raspberry Pi 5 cases standing on the U29 switch. A second red,
+  // and deliberately not `outlet`: one is a socket, the other is the
+  // plastic a machine is wearing. Not the amber accent either - that
+  // already means "the node this site runs on", and these are not it.
+  pi_case: "#b4372e",
+  // The DGX Spark's gold, and the mesh cut into its front. Duller than the
+  // page's amber for the same reason the case red is not the accent.
+  spark_face: "#a98b4a",
+  spark_mesh: "#6f5a2f",
+  // The Lenovo the Spark stands on, and the line of light along its top
+  // edge - the only thing separating two dark boxes stacked on a shelf.
+  lenovo_face: "#242429",
+  lenovo_top_light: "#3a3a42",
   // The UPS at the floor, and the window its two LEDs sit behind.
   ups_body: "#1d1d22",
   ups_display: "#0d0d10",
-  // The patch panels' keystone openings.
+  // The patch panels: the plate, and the keystone openings cut into it. The
+  // plate is deliberately not one of the light parts below. It was drawn six
+  // values off `faceplate`, and at that distance u6, u8 and u12 read as three
+  // more switches - a patch panel is a plate with holes in it, and a switch
+  // is the thing with the lights on.
+  patch_face: "#8a8a90",
   keystone: "#3a3a42",
   // The servers' front bezels, lit from above: a bright strip along the top
   // edge, the face below it, end caps in shadow at either side. `bezel_face`
@@ -211,7 +240,6 @@ export const RACK_CHASSIS = {
   // hardware rather than as a stack of empty slots, so they sit far clear of
   // `cabinet` rather than a step away from it.
   faceplate: "#d8d8dc",
-  faceplate_dim: "#d2d2d5",
   drive_bay: "#b4b4ba",
   puck: "#c9c9cc",
 } as const;
