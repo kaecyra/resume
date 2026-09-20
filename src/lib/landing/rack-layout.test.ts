@@ -2,6 +2,8 @@ import {
   BLINK_PERIOD_SCALE,
   EQUIP_W,
   EQUIP_X,
+  OUTLET_W,
+  PDU_SWITCH_W,
   RACK_UNITS,
   RACK_U_COUNT,
   RISER_SHAPES,
@@ -13,6 +15,7 @@ import {
   rack_seam_offsets,
   rack_u_height,
   rack_u_y,
+  riser_base_y,
   riser_box,
 } from "./rack-layout.js";
 
@@ -143,13 +146,22 @@ describe("the bottom six U", () => {
     if (pdu?.kind !== "pdu" || strip?.kind !== "pdu") return;
 
     expect(pdu.outlet_xs).toHaveLength(9);
-    expect(pdu.switch_xs.length).toBeGreaterThan(0);
+    expect(pdu.switch_xs).toHaveLength(3);
     expect(strip.outlet_xs).toHaveLength(8);
     expect(strip.switch_xs).toEqual([]);
 
-    for (const x of [...pdu.outlet_xs, ...pdu.switch_xs]) {
-      expect(x).toBeGreaterThanOrEqual(EQUIP_X);
-      expect(x).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+    // Right edges, not just where each rect starts: an outlet is OUTLET_W
+    // wide and a switch PDU_SWITCH_W, and a run that starts inside the area
+    // can still finish painted over the right mounting rail.
+    for (const [xs, width] of [
+      [pdu.outlet_xs, OUTLET_W],
+      [strip.outlet_xs, OUTLET_W],
+      [pdu.switch_xs, PDU_SWITCH_W],
+    ] as const) {
+      for (const x of xs) {
+        expect(x).toBeGreaterThanOrEqual(EQUIP_X);
+        expect(x + width).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+      }
     }
   });
 });
@@ -171,23 +183,54 @@ describe("gear standing on a unit", () => {
   });
 
   // A box standing on something is drawn above it, not inside its own U -
-  // that is the whole decision. Getting the sign wrong here buries the gear
-  // under the unit it stands on, which every other assertion would miss.
-  it("draws each riser above the surface it stands on, and no wider than its shape", () => {
-    for (const { riser, box } of RISERS) {
-      const shape = RISER_SHAPES[riser.kind];
+  // that is the whole decision, and these are the four boxes it produces.
+  // `rack_u_y(29)` is 374, so a 6-tall Pi standing on that face starts at
+  // 368; the shelf's lip is `rack_u_y(33) + SHELF_SURFACE_DY`, 421, so a
+  // 30-tall stack starts at 391. A sign flip, a changed shape or a moved
+  // lip all land here.
+  it("draws each riser above the surface it stands on", () => {
+    expect(RISERS.map(({ box }) => [box.x, box.y, box.width, box.height])).toEqual([
+      [97, 368, 26, 6],
+      [133, 368, 26, 6],
+      [71, 391, 50, 30],
+      [135, 391, 50, 30],
+    ]);
+  });
 
-      expect(box.height).toBe(shape.height);
-      expect(box.width).toBe(shape.width);
+  // The relationship the box is derived from, stated once: a riser's
+  // underside sits on the surface it stands on, whatever that surface is.
+  it("sits each riser's underside on the surface it stands on", () => {
+    for (const { unit, box } of RISERS) {
+      expect(box.y + box.height).toBe(riser_base_y(unit));
+    }
+  });
+
+  it("keeps every riser inside the equipment area", () => {
+    for (const { box } of RISERS) {
       expect(box.x).toBeGreaterThanOrEqual(EQUIP_X);
       expect(box.x + box.width).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
     }
+  });
+
+  // `Rack.svelte` carves the Spark off the top of the stack's box and
+  // centres it, so a Spark taller or wider than the box it comes out of
+  // emits a negative height or a negative inset on a rect. Invalid SVG, and
+  // nothing downstream would say so.
+  it("keeps the Spark inside the stack it is carved out of", () => {
+    const stack = RISER_SHAPES.lenovo_spark;
+
+    expect(stack.spark_height).toBeLessThan(stack.height);
+    expect(stack.spark_width).toBeLessThan(stack.width);
   });
 
   // The rule the bottom 6U was designed around: gear rises into the U above
   // it, so that U has to be air. Rack something there later and the drawing
   // silently paints two faces over each other.
   it("rises only into U the map leaves empty", () => {
+    // The pitch from the module rather than a literal 10: if it ever moves,
+    // this arithmetic would otherwise go on reporting confidently about the
+    // wrong U.
+    const pitch = rack_u_y(2) - rack_u_y(1);
     const kind_of_u = new Map<number, string>();
     for (const unit of RACK_UNITS) {
       for (let u = unit.u; u < unit.u + unit.units; u += 1) {
@@ -196,10 +239,10 @@ describe("gear standing on a unit", () => {
     }
 
     for (const { unit, box } of RISERS) {
-      const top_u = Math.floor((box.y - rack_u_y(1)) / 10) + 1;
+      const top_u = Math.floor((box.y - rack_u_y(1)) / pitch) + 1;
       // Exclusive at the bottom: a riser's base edge sits on the surface it
       // stands on, which is the unit's own U, not a U it rises into.
-      const bottom_u = Math.ceil((box.y + box.height - rack_u_y(1)) / 10);
+      const bottom_u = Math.ceil((box.y + box.height - rack_u_y(1)) / pitch);
 
       expect(top_u).toBeLessThan(unit.u);
       for (let u = top_u; u <= bottom_u; u += 1) {

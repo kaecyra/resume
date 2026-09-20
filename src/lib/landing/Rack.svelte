@@ -28,6 +28,10 @@
     EQUIP_W,
     EQUIP_X,
     KEYSTONE_XS,
+    OUTLET_W,
+    PDU_SWITCH_W,
+    PUCK_DY,
+    PUCK_H,
     RAIL_HOLE_US,
     RAIL_W,
     RACK_UNITS,
@@ -201,23 +205,30 @@
           height="2"
           fill={RACK_CHASSIS.trim}
         />
-        <!-- The u17 shelf's own pair, compressed into its U rather than
-             drawn standing: they predate the riser rule and are left as the
-             mockup had them. -->
-        {#if unit.id === "shelf-u17"}
-          <rect x="76" y={unit_y + 1} width="18" height="6" rx="2" fill={RACK_CHASSIS.puck} />
-          <rect x="104" y={unit_y + 1} width="20" height="6" rx="1.5" fill={RACK_CHASSIS.trim} />
-        {/if}
+        <!-- What is compressed into the shelf's own U rather than drawn
+             standing on it: the u17 pair predates the riser rule and stays
+             as the mockup had it. The u33 shelf carries none - both its
+             stacks stand. -->
+        {#each unit.pucks as puck (puck.x)}
+          <rect
+            x={puck.x}
+            y={unit_y + PUCK_DY}
+            width={puck.width}
+            height={PUCK_H}
+            rx={puck.rx}
+            fill={RACK_CHASSIS[puck.fill]}
+          />
+        {/each}
       {:else if unit.kind === "pdu"}
         <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.pdu_face} />
         <g fill={RACK_CHASSIS.pdu_switch}>
           {#each unit.switch_xs as switch_x (switch_x)}
-            <rect x={switch_x} y={unit_y + 2} width="8" height="5" rx="1" />
+            <rect x={switch_x} y={unit_y + 2} width={PDU_SWITCH_W} height="5" rx="1" />
           {/each}
         </g>
         <g fill={RACK_CHASSIS.outlet}>
           {#each unit.outlet_xs as outlet_x (outlet_x)}
-            <rect x={outlet_x} y={unit_y + 3} width="9" height="4" />
+            <rect x={outlet_x} y={unit_y + 3} width={OUTLET_W} height="4" />
           {/each}
         </g>
       {:else if unit.kind === "unlabelled"}
@@ -283,7 +294,7 @@
             fill={RACK_CHASSIS.pi_case}
           />
         {:else}
-          {@const spark = RISER_SHAPES.lenovo_spark}
+          {@const spark = RISER_SHAPES[riser.kind]}
           {@const spark_x = box.x + (box.width - spark.spark_width) / 2}
           {@const lenovo_y = box.y + spark.spark_height}
           <!-- The Lenovo below, the Spark on top of it and narrower, with

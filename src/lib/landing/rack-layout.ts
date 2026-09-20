@@ -77,6 +77,21 @@ type RackDriveBay = RackBlink & {
   x: number;
 };
 
+// A box sitting on a shelf, drawn inside the shelf's own U. `fill` names a
+// `RACK_CHASSIS` tone rather than carrying a colour, because no hex is
+// written outside `palette.ts`.
+type RackPuck = {
+  x: number;
+  width: number;
+  rx: number;
+  fill: "puck" | "trim";
+};
+
+// The height every puck is drawn at, and the offset from the shelf's U to
+// its top edge: they sit on the lip, which is `SHELF_SURFACE_DY` below.
+export const PUCK_DY = 1;
+export const PUCK_H = 6;
+
 type RackFitting =
   // A blanking panel with a brush strip for cables to pass through.
   | { kind: "brush" }
@@ -90,8 +105,11 @@ type RackFitting =
   | { kind: "switch"; port_w: number; ports: RackPort[] }
   // The NVR: green health LED plus four drive bays.
   | { kind: "nvr"; bays: RackDriveBay[] }
-  // The shelf, with the Hue bridge and the Apple TV sitting on it.
-  | { kind: "shelf" }
+  // A shelf, and whatever is compressed into its own U rather than drawn
+  // standing on it - the u17 shelf's Hue bridge and Apple TV, which predate
+  // the riser rule and stay as the mockup had them. A shelf whose gear
+  // stands carries an empty list and a `risers` list instead.
+  | { kind: "shelf"; pucks: readonly RackPuck[] }
   // A power strip: a row of outlets, and on the Pyle at the bottom of the
   // rack, a row of switches beside them. The two strips carry their own
   // runs rather than sharing one: nine outlets and three switches do not
@@ -177,6 +195,12 @@ export function riser_box(
 export const OUTLET_XS = Array.from({ length: 8 }, (_, i) => 58 + i * 15);
 export const PYLE_OUTLET_XS = Array.from({ length: 9 }, (_, i) => 94 + i * 12);
 export const PYLE_SWITCH_XS = [54, 66, 78];
+
+// Both runs' widths live here rather than in the template, so the test that
+// checks a run fits the equipment area can see the right edge of a rect and
+// not just where it starts.
+export const OUTLET_W = 9;
+export const PDU_SWITCH_W = 8;
 
 // The Pro Max's sixteen ports, one run at one pitch: unlike the two access
 // switches above it, nothing on it is dark and nothing on it blinks.
@@ -296,7 +320,16 @@ export const RACK_UNITS: readonly RackUnit[] = [
   },
   { id: "patch-panel-u12", u: 12, units: 1, kind: "patch_panel" },
   { id: "empty-u13", u: 13, units: 4, kind: "empty" },
-  { id: "shelf-u17", u: 17, units: 1, kind: "shelf" },
+  {
+    id: "shelf-u17",
+    u: 17,
+    units: 1,
+    kind: "shelf",
+    pucks: [
+      { x: 76, width: 18, rx: 2, fill: "puck" },
+      { x: 104, width: 20, rx: 1.5, fill: "trim" },
+    ],
+  },
   { id: "pdu-u18", u: 18, units: 1, kind: "pdu", outlet_xs: OUTLET_XS, switch_xs: [] },
   { id: "empty-u19", u: 19, units: 3, kind: "empty" },
   {
@@ -330,6 +363,8 @@ export const RACK_UNITS: readonly RackUnit[] = [
     u: 33,
     units: 1,
     kind: "shelf",
+    // Nothing is compressed into this shelf's U: both stacks stand on it.
+    pucks: [],
     // Each stack is a Lenovo with a Spark on top, and the pair of them rise
     // off the shelf through the three U of air above it. That air is what
     // U30-32 is for: the shelf is 1U and what stands on it is not.
