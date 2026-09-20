@@ -279,6 +279,26 @@ location / {
 
 Umami must be running before you can create a website and obtain its ID. On first deploy, leave `PUBLIC_UMAMI_WEBSITE_ID` unset — the tracking script won't render. Once Umami is up, create the website, copy the ID, set the variable, and rebuild.
 
+## Mechanical Room Readout
+
+The "Pipelines" section's mechanical-room readout can show a live temperature and humidity reading instead of its static sample, sourced from a Home Assistant sensor on the same network as the deploy host.
+
+A background loop in `docker-entrypoint.sh` polls two HA sensor entities every 5 minutes and writes the reading to a static file nginx serves at `/api/basement/metrics`; the landing page polls that endpoint every 30 seconds once loaded. Unset any of the four variables below and the readout falls back to its static sample - no error, no visible change beyond that.
+
+### First-Time Setup
+
+1. In Home Assistant, go to your profile > Security and create a long-lived access token
+2. Confirm the entity IDs for the room's temperature and humidity sensors (Developer Tools > States)
+3. Set the four variables below in `.env` (see `.env.example`)
+4. Restart the resume container - the poller starts automatically once all four are set
+
+| Variable | Purpose |
+|---|---|
+| `HA_BASE_URL` | Base URL of the Home Assistant instance (e.g. `http://homeassistant.local:8123`) |
+| `HA_TOKEN` | Long-lived access token, minted in HA |
+| `HA_TEMP_ENTITY_ID` | Entity ID of the temperature sensor |
+| `HA_HUMIDITY_ENTITY_ID` | Entity ID of the humidity sensor |
+
 ## Project Documentation
 
 - [ENGINEERING.md](./ENGINEERING.md) - Coding standards and project conventions

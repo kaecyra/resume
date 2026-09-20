@@ -13,6 +13,8 @@
 // delivery readout: a measured number beside a sample one, with nothing to
 // tell them apart, is the one thing this readout must never show.
 
+import { covers_exact_fields } from "./readout-fields.js";
+
 export type BasementFieldId = "temperature" | "humidity";
 
 export const BASEMENT_FIELD_IDS: readonly BasementFieldId[] = ["temperature", "humidity"];
@@ -72,13 +74,7 @@ export function parse_basement_metrics(body: string): BasementMetrics {
 // drift from these two ids, the whole readout stays static rather than
 // going half true.
 export function covers_basement_fields(ids: readonly string[]): boolean {
-  if (ids.length !== BASEMENT_FIELD_IDS.length) {
-    return false;
-  }
-
-  const present = new Set(ids);
-
-  return BASEMENT_FIELD_IDS.every((id) => present.has(id));
+  return covers_exact_fields(ids, BASEMENT_FIELD_IDS);
 }
 
 // The two values, or null if either one could not be measured.

@@ -21,14 +21,24 @@ fi
 if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] && [ -n "$HA_HUMIDITY_ENTITY_ID" ]; then
     (
         mkdir -p /usr/share/nginx/html/api/basement
+
+        # HA reports a disconnected or not-yet-initialized sensor's state as
+        # the string "unavailable" or "unknown" rather than null, and `jq
+        # tonumber` on either would abort the write with a parse error.
+        is_usable_reading() {
+            case "$1" in
+                "" | null | unavailable | unknown) return 1 ;;
+                *) return 0 ;;
+            esac
+        }
+
         while true; do
             temperature=$(curl -sf -H "Authorization: Bearer $HA_TOKEN" \
                 "$HA_BASE_URL/api/states/$HA_TEMP_ENTITY_ID" | jq -r '.state')
             humidity=$(curl -sf -H "Authorization: Bearer $HA_TOKEN" \
                 "$HA_BASE_URL/api/states/$HA_HUMIDITY_ENTITY_ID" | jq -r '.state')
 
-            if [ -n "$temperature" ] && [ -n "$humidity" ] \
-                && [ "$temperature" != "null" ] && [ "$humidity" != "null" ]; then
+            if is_usable_reading "$temperature" && is_usable_reading "$humidity"; then
                 jq -n --arg t "$temperature" --arg h "$humidity" \
                     '{temperature: ($t | tonumber), humidity: ($h | tonumber)}' \
                     > /usr/share/nginx/html/api/basement/metrics.json.tmp \

@@ -14,7 +14,6 @@
     format_delivery_readout,
     parse_trace_fields,
     DELIVERY_TRACE_URL,
-    type DeliveryReadoutValue,
     type DeliveryTiming,
     type DeliveryTraceFields,
   } from "./delivery-readout.js";
@@ -46,13 +45,18 @@
     follows_note = false,
   }: { readout: PipelineReadout; follows_note?: boolean } = $props();
 
+  // Both live sources format to this same shape (see DeliveryReadoutValue
+  // and BasementReadoutValue) - named neutrally here rather than after
+  // either one, since this state holds whichever source the readout uses.
+  type ReadoutValue = { value: string; unit?: string };
+
   // The only thing a measurement ever puts into component state: the
   // formatted values keyed by entry id, or nothing. Delivery fills four
   // keys in one shot; basement fills two, and may overwrite this more than
   // once as later polls come in. The trace response itself is read inside
   // read_trace_fields and does not survive the expression it appears in -
   // see the note there.
-  let measured = $state<Record<string, DeliveryReadoutValue> | null>(null);
+  let measured = $state<Record<string, ReadoutValue> | null>(null);
 
   // How often the basement reading is re-fetched once shown. The value
   // behind it only changes every five minutes (docker-entrypoint.sh's own
