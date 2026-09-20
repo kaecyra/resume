@@ -682,7 +682,7 @@ describe("fork and merge curves", () => {
     expect(detail_lines({ detail: ["one", ""] })).toEqual(["one"]);
   });
 
-  it("inks an emphasised label with its node's own tone and a plain one with page text", () => {
+  it("inks labels by emphasis, and every detail line page-secondary", () => {
     // The mockup's rule, and the only colour decision the drawing used to
     // make for itself: every font-weight="500" label carries the node's
     // ink, every plain one is the page's text colour whatever tone its node

@@ -56,7 +56,10 @@ function without_noise(source: string): string {
   return source
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^[ \t]*\/\/[^\n]*$/gm, "")
+    // Not anchored to the line start: a trailing `// see #209` would
+    // otherwise reach the hex rule, and this repo cites issue numbers
+    // constantly.
+    .replace(/\/\/[^\n]*$/gm, "")
     // Last, so an unterminated `url(#` inside a comment cannot run past the
     // comment and swallow a real literal on its way to the next `)`.
     .replace(/url\(#[^)]*\)/g, "");

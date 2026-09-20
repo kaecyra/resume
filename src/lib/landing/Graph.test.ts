@@ -117,11 +117,18 @@ describe("Graph", () => {
 
     expect(html).toContain(`x="${repo.label_x}" y="${repo.label_y}"`);
     expect(html).toContain("the repo");
+    // Paired, not four independent searches: two ys existing somewhere and
+    // two strings existing somewhere stays true when the lines swap places.
+    const details = [
+      ...html.matchAll(/<text[^>]*class="[^"]*\bdetail\b[^"]*"[^>]*>([^<]*)</g),
+    ];
+
     expect(repo.detail_ys).toHaveLength(2);
-    expect(html).toContain(`x="${repo.label_x}" y="${repo.detail_ys[0]}"`);
-    expect(html).toContain(`x="${repo.label_x}" y="${repo.detail_ys[1]}"`);
-    expect(html).toContain("main");
-    expect(html).toContain("and the tags on it");
+    expect(details).toHaveLength(2);
+    details.forEach(([element, text], line) => {
+      expect(element).toContain(`x="${repo.label_x}" y="${repo.detail_ys[line]}"`);
+      expect(text.trim()).toBe((source.nodes[0].detail as string[])[line]);
+    });
   });
 
   it("leaves out the detail line for a node that has none", () => {
@@ -213,13 +220,18 @@ describe("Graph", () => {
 
   it("does not import the palette", () => {
     // The structural half of the rule the two tests above check by value.
-    // Matched on the specifier rather than one spelling of it: `./palette`
-    // without the extension resolves just as happily, and checking for the
-    // literal string "palette.js" walked straight past it. Still not proof
-    // against a colour re-exported through some other module, which is why
-    // this test claims only what it does.
+    // Matched on the specifier wherever it starts, not on one spelling of
+    // it: `./palette.js`, `./palette` and `$lib/landing/palette.js` all
+    // resolve, and this file already imports `$lib/types.js`, so the alias
+    // is the spelling someone working here would actually type. Two
+    // narrower versions of this test missed two of those three.
+    //
+    // Still not proof against a colour re-exported through another module,
+    // which is why the name claims only what it checks. Nothing re-exports
+    // one today: pipeline-graph.ts has no re-export and vendor-marks.ts
+    // exports path strings.
     const source = readFileSync(new URL("./Graph.svelte", import.meta.url), "utf8");
 
-    expect(source).not.toMatch(/from "\.[^"]*palette/);
+    expect(source).not.toMatch(/from\s+["'][^"']*palette/);
   });
 });
