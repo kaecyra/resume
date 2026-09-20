@@ -114,22 +114,28 @@ describe("select_pop_runways", () => {
 });
 
 describe("CLOUDFLARE_POPS", () => {
-  it("lists every PoP with a unique id, a valid IATA/ICAO/country, and (today) every entry in Canada", () => {
+  it("lists every PoP with a unique id, a unique IATA code, and a valid IATA/ICAO/country shape", () => {
     const ids = CLOUDFLARE_POPS.map((pop) => pop.id);
     expect(new Set(ids).size).toBe(ids.length);
+
+    const iatas = CLOUDFLARE_POPS.map((pop) => pop.iata);
+    expect(new Set(iatas).size).toBe(iatas.length);
 
     for (const pop of CLOUDFLARE_POPS) {
       expect(pop.iata).toMatch(/^[A-Z]{3}$/);
       expect(pop.icao).toMatch(/^[A-Z]{4}$/);
       expect(pop.country).toMatch(/^[A-Z]{2}$/);
-      // Canada's ICAO prefix happens to be "C" - true of every entry right
-      // now because the catalog is Canada-only today, not a rule the
-      // parsing/selection code enforces (a non-Canadian PoP is just another
-      // POP_IDENTITY row away).
+      // Canada's ICAO prefix happens to be "C": true for every Canadian
+      // entry, not a rule the parsing/selection code enforces for anyone else.
       if (pop.country === "CA") {
         expect(pop.icao).toBe(`C${pop.iata}`);
       }
     }
+  });
+
+  it("includes PoPs from more than one country", () => {
+    const countries = new Set(CLOUDFLARE_POPS.map((pop) => pop.country));
+    expect(countries.size).toBeGreaterThan(1);
   });
 
   it("carries YUL's three physical runways, each end at its own real coordinate", () => {
