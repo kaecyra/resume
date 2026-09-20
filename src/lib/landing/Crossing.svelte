@@ -30,7 +30,7 @@
   class:is-revealed={phase === "revealed"}
   data-crossing={crossing.id}
   use:reveal={(next) => (phase = next)}
-  style="--ink-rule: {PIPELINE_INK.crossing_rule}; --ink-arrow: {PIPELINE_INK.crossing_arrow}; --hud-bg: {HUD_PALETTE.background}; --hud-edge: {HUD_PALETTE.edge}; --hud-accent: {HUD_PALETTE.accent}; --hud-chip-text: {HUD_PALETTE.chip_text};"
+  style="--ink-rule: {PIPELINE_INK.crossing_rule}; --ink-arrow: {PIPELINE_INK.crossing_arrow}; --hud-bg: {HUD_PALETTE.background}; --hud-chip-text: {HUD_PALETTE.chip_text};"
 >
   <span class="x-v x-start"></span>
   <span class="x-h"></span>
@@ -228,47 +228,12 @@
 
   /* Below 860px `.band-grid` collapses to a single column, so there is no
      second spine to reach and the horizontal run would be drawing a join
-     that does not exist. The rules and the arrow go; the label stays, moves
-     into the flow between the two bands, and keeps a short vertical rule so
-     the handoff still reads as a handoff. */
+     that does not exist - and in a stack read straight top to bottom, the
+     label between two bands that already carry their own spacing
+     (`.band`'s top padding in Pipeline.svelte) reads as clutter rather
+     than information. The whole connector goes, label included; only the
+     two-column desktop layout keeps it. */
   @media (max-width: 860px) {
-    .crossing {
-      height: auto;
-    }
-
-    .x-v,
-    .x-h,
-    .x-tip {
-      display: none;
-    }
-
-    .x-label {
-      position: static;
-      left: auto;
-      transform: none;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 0 0 0 4px;
-      margin-block: 26px;
-      background: none;
-      color: var(--hud-accent);
-    }
-
-    .x-label::before {
-      content: "";
-      flex: none;
-      width: 2px;
-      height: 46px;
-      background: linear-gradient(var(--hud-edge), var(--hud-accent));
-    }
-  }
-
-  /* At phone widths even the 860px layout's in-flow label reads as
-     clutter between two stacked bands that already carry their own
-     spacing (`.band`'s top padding in Pipeline.svelte) - the connector
-     goes entirely rather than shrinking further. */
-  @media (max-width: 480px) {
     .crossing {
       display: none;
     }

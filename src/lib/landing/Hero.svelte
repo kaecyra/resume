@@ -836,11 +836,39 @@
 
 
 
+  /* Untouched otherwise (#196/#205's fixed 1080x960 box, same globe
+     size), just shifted right: below tablet width the sphere's centre
+     (540px in from the box's own edges) starts running past the hero's
+     left edge, invisible or barely peeking in. Pushing the box further
+     right than its flush `right: 0` puts the centre a fixed distance in
+     from the hero's right edge at any width a query covers, so the globe
+     reads as anchored to the right side rather than centred in a box
+     wider than the viewport - the amount just tapers in two steps rather
+     than jumping straight to the phone shift at tablet width. The right
+     side is expected to run past the edge - `.hero`'s overflow: hidden
+     crops it there the same way it already crops the box's top and
+     bottom. Order matters: the second block's phone-width match has to
+     win over the first's for a viewport narrow enough for both. */
+  @media (max-width: 1024px) {
+    /* iPad portrait and landscape: centre 300px in from the right edge. */
+    .hero-visual,
+    .hero-globe-marker-layer {
+      right: -240px;
+    }
+  }
+
   @media (max-width: 640px) {
     .hero {
       min-height: auto;
       padding: 3rem 1.25rem 2.25rem;
       gap: 3rem;
+    }
+
+    /* Phone: centre 60px in from the right edge - narrower than a
+       tablet's, so it needs the bigger push to stay anchored right. */
+    .hero-visual,
+    .hero-globe-marker-layer {
+      right: -480px;
     }
   }
 

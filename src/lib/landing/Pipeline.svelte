@@ -169,7 +169,7 @@
   .wrap {
     max-width: 1180px;
     margin: 0 auto;
-    padding-inline: 20px;
+    padding-inline: 40px;
     padding-block: 0 72px;
   }
 
@@ -295,6 +295,16 @@
     .band--flip .col-graph,
     .band--flip .col-aside {
       order: 0;
+    }
+  }
+
+  /* Matches Appearances.svelte and Work.svelte, this section's nearest
+     neighbours: 40px down to 20px at the same 700px breakpoint, so the
+     section doesn't read as less padded than the ones around it below
+     desktop width. */
+  @media (max-width: 700px) {
+    .wrap {
+      padding-inline: 20px;
     }
   }
 </style>
