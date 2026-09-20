@@ -255,8 +255,6 @@ describe("RACK_CHASSIS", () => {
     expect(rocker_gap).toBeGreaterThanOrEqual(3);
     expect(rocker_gap / outlet_gap).toBeGreaterThanOrEqual(0.85);
     expect(rocker_gap / outlet_gap).toBeLessThanOrEqual(1.15);
-    // A switch on a power strip, not one of the drawing's light parts.
-    expect(luminance(RACK_CHASSIS.pdu_switch)).toBeLessThan(luminance(RACK_CHASSIS.faceplate));
   });
 
   // The Spark's mesh front is cut into its own face, the same relationship

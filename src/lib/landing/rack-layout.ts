@@ -67,10 +67,10 @@ export const BLINK_PERIOD_SCALE = 1.25;
 
 // A port: lit and holding link, or dark. `x` is absolute in the viewBox,
 // and the width it is drawn at is its switch's `port_w` - every port on one
-// switch is the same size, and the switches are not. The two access
-// switches' rows are literal lists at the mockup's own 5.4 pitch, so they
-// land exactly where it put them; the Pro Max's sixteen came later and are
-// generated, because the mockup never drew that switch.
+// switch is the same size, and the switches are not. The rows the mockup
+// drew are literal lists, each at its own pitch, so they land exactly where
+// it put them; the Pro Max's sixteen came later and are generated, because
+// the mockup never drew that switch.
 type RackPort = RackBlink & {
   x: number;
   state: "off" | "link";

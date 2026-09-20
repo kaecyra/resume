@@ -231,13 +231,17 @@ describe("gear standing on a unit", () => {
   // One level further down, and the same failure: the grille is a run of
   // slats across the Spark's inset face, offset from its left edge. Nothing
   // relates the end of that run to the width of the face, so a narrower
-  // Spark draws slats out past the box they belong to.
+  // Spark draws slats out past the box they belong to. The inset is taken
+  // off both axes, so a short enough Spark empties the slats' height the
+  // same way - that is the `height="-10"` this shape was written after.
   it("keeps the mesh slats inside the face they are cut into", () => {
-    const face_w = RISER_SHAPES.lenovo_spark.spark_width - SPARK_MESH_INSET * 2;
+    const stack = RISER_SHAPES.lenovo_spark;
+    const face_w = stack.spark_width - SPARK_MESH_INSET * 2;
     const last_slat = SPARK_MESH_XS[SPARK_MESH_XS.length - 1];
 
     expect(SPARK_MESH_XS[0]).toBeGreaterThanOrEqual(0);
     expect(last_slat + SPARK_MESH_SLAT_W).toBeLessThanOrEqual(face_w);
+    expect(SPARK_MESH_INSET * 2).toBeLessThan(stack.spark_height);
   });
 
   // The u17 pair is the older reading of gear on a shelf: compressed into
