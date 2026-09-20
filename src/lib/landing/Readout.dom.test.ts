@@ -4,8 +4,7 @@
 // /cdn-cgi/trace body - the reader's IP address and user agent included -
 // and a real navigation timing entry, and proves three things:
 //
-//   1. the four values swap to the measurement together, and the caption
-//      that called them samples goes with them,
+//   1. the four values swap to the measurement together,
 //   2. nothing but the airport code survives the trace, in particular not
 //      the address, and
 //   3. every failure falls back to the values data/pipeline.yaml carries,
@@ -39,7 +38,6 @@ const TRACE_BODY = [
 const DELIVERY: PipelineReadout = {
   column: "aside",
   live: true,
-  caption: "Sample values until the page measures your own request.",
   entries: [
     { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
     { id: "first-byte", label: "First byte", value: "41", unit: "ms" },
@@ -104,7 +102,7 @@ afterEach(() => {
 });
 
 describe("Readout, measuring the reader's own request", () => {
-  it("replaces all four values at once and drops the sample caption", async () => {
+  it("replaces all four values at once", async () => {
     stub_timing([navigation_entry()]);
     const fetch_mock = stub_trace(TRACE_BODY);
 
@@ -113,7 +111,6 @@ describe("Readout, measuring the reader's own request", () => {
     await waitFor(() => {
       expect(values(container)).toEqual(["AMS", "94ms", "21KB", "h3"]);
     });
-    expect(container.textContent).not.toContain("Sample values");
 
     // What was asked for, not just that something was. The privacy
     // argument rests on the trace being a relative, same-origin path: the
@@ -128,6 +125,24 @@ describe("Readout, measuring the reader's own request", () => {
       "/cdn-cgi/trace",
       expect.objectContaining({ cache: "no-store" }),
     );
+  });
+
+  it("redraws the runway diagram for the measured PoP, not the sample one", async () => {
+    // Sample value is YYZ (Toronto); the trace below measures AMS
+    // (Amsterdam) - both have generated runway data, so this proves the
+    // diagram tracks the live value rather than freezing at first render.
+    stub_timing([navigation_entry()]);
+    stub_trace(TRACE_BODY);
+
+    const { container } = render(Readout, { props: { readout: DELIVERY } });
+
+    expect(container.textContent).toContain("Toronto");
+
+    await waitFor(() => {
+      expect(values(container)).toEqual(["AMS", "94ms", "21KB", "h3"]);
+    });
+    expect(container.textContent).toContain("Amsterdam");
+    expect(container.textContent).not.toContain("Toronto");
   });
 
   it("cannot put the reader's address, or anything else from the trace, on the page", async () => {
@@ -173,7 +188,6 @@ describe("Readout, measuring the reader's own request", () => {
 
     expect(fetch_mock).toHaveBeenCalled();
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
-    expect(container.textContent).toContain("Sample values");
   });
 
   it("keeps the sample values when the trace answers with something else", async () => {
@@ -186,7 +200,6 @@ describe("Readout, measuring the reader's own request", () => {
 
     expect(fetch_mock).toHaveBeenCalled();
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
-    expect(container.textContent).toContain("Sample values");
   });
 
   it("keeps the sample values when the trace answers with an error status", async () => {
@@ -202,7 +215,6 @@ describe("Readout, measuring the reader's own request", () => {
 
     expect(fetch_mock).toHaveBeenCalled();
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
-    expect(container.textContent).toContain("Sample values");
   });
 
   it("keeps the sample values when the browser reports no timing entry", async () => {
@@ -217,7 +229,6 @@ describe("Readout, measuring the reader's own request", () => {
     // A measured edge beside three sample numbers would be the lie. All
     // four stay static instead.
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
-    expect(container.textContent).toContain("Sample values");
   });
 
   it("measures nothing for a readout the data does not mark live", async () => {

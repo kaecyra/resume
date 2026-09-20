@@ -26,7 +26,6 @@ const BASEMENT: PipelineReadout = {
 const DELIVERY: PipelineReadout = {
   column: "aside",
   live: true,
-  caption: "Sample values until the page measures your own request.",
   entries: [
     { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
     { id: "first-byte", label: "First byte", value: "41", unit: "ms" },
@@ -75,8 +74,7 @@ describe("Readout", () => {
   it("renders the delivery four from its data, with no JavaScript involved", () => {
     // This is the prerendered document: adapter-static writes exactly this
     // HTML, and a reader with JavaScript off never sees anything else. The
-    // values have to stand on their own here, which is what the caption is
-    // for.
+    // values have to stand on their own here.
     const html = html_for(DELIVERY);
 
     expect(fields(html)).toEqual([
@@ -85,7 +83,6 @@ describe("Readout", () => {
       { label: "Transferred", value: "47<small>KB</small>" },
       { label: "Protocol", value: "h2<small>TLS 1.3</small>" },
     ]);
-    expect(html).toContain("Sample values until the page measures your own request.");
   });
 
   it("puts the label before the value in the markup, and flips them in CSS", () => {
@@ -129,8 +126,36 @@ describe("Readout", () => {
     expect(html_for(DELIVERY)).not.toContain("readout-after-note");
   });
 
-  it("renders no caption when the data carries none", () => {
-    expect(html_for(BASEMENT)).not.toContain("readout-caption");
+  // #226's runway diagram, wired in here: the "edge" entry names a
+  // Cloudflare PoP, and that PoP's own airport has real runways. YYZ
+  // (Toronto Pearson) is DELIVERY's sample value and has generated runway
+  // data, so the default, pre-measurement render already shows it.
+  it("draws the edge PoP's runway diagram and labels it, below the values", () => {
+    const html = html_for(DELIVERY);
+
+    expect(html).toContain("runway-diagram");
+    expect(html).toMatch(/<figcaption[^>]*>YYZ.*?Toronto.*?<\/figcaption>/s);
+    expect(html.indexOf("</dl>")).toBeLessThan(html.indexOf("runway-diagram"));
+  });
+
+  it("draws no runway diagram for a readout with no edge entry", () => {
+    expect(html_for(BASEMENT)).not.toContain("runway-diagram");
+    expect(html_for(BASEMENT)).not.toContain("edge-airport");
+  });
+
+  it("draws no runway diagram when the edge value names no known PoP", () => {
+    const unknown: PipelineReadout = {
+      ...DELIVERY,
+      entries: [
+        { id: "edge", label: "Edge that answered", value: "ZZZ", tone: "accent" },
+        ...DELIVERY.entries.slice(1),
+      ],
+    };
+
+    const html = html_for(unknown);
+
+    expect(html).not.toContain("runway-diagram");
+    expect(html).not.toContain("edge-airport");
   });
 
   // The trace response is the reader's own IP address plus their user

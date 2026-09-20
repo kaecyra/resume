@@ -21,10 +21,10 @@ subtitle: "... so hot right now"
 
 lede: >-
   I write this site on a laptop. Five minutes or so after I merge a change, it is
-  running on a server downstairs in my basement and being handed to whoever asks
-  for it. What follows is the route it takes and the tools that do the work along
-  the way.
-lede_emphasis: "a server downstairs in my basement"
+  running on a server downstairs in my mechanical room and being served to
+  visitors via Cloudflare. What follows is the route it takes and the tools that
+  do the work along the way.
+lede_emphasis: "a server downstairs in my mechanical room"
 
 bands:
   # Band 1 - the commit graph. main is the trunk, the feature branch leaves
@@ -197,7 +197,7 @@ bands:
         Work starts on a branch. Two commits in, I bring the whole site up on my
         laptop and click around it. Then it becomes a pull request, and GitHub
         Actions runs the typecheck, the tests and a production build against it.
-        A red run blocks the merge button.
+        A red run blocks merges.
       emphasis: "Work starts on a branch."
 
     terminal:
@@ -226,7 +226,7 @@ bands:
   # trunk and the new image is what branches into it.
   - id: deploy
     label:
-      from: "My basement"
+      from: "My mechanical room"
     graph_side: right
     tail_arrow: true
 
@@ -321,7 +321,7 @@ bands:
       column: graph
       text: >-
         Watchtower runs in an Ubuntu VM on the Proxmox host downstairs and watches
-        the registry from there, so the basement pulls its own updates. I have
+        the registry from there, so the VM pulls its own updates. I have
         never deployed this site by hand.
       emphasis: "Watchtower runs in an Ubuntu VM"
 
@@ -344,7 +344,7 @@ bands:
       column: graph
       entries:
         - id: temperature
-          label: "In the basement right now"
+          label: "In the mechanical room right now"
           value: "21.5"
           unit: "°C"
           tone: accent
@@ -423,19 +423,18 @@ bands:
     note:
       column: graph
       text: >-
-        cloudflared opens the connection from inside the basement and holds it
-        there, so Cloudflare has somewhere to put your request without anything on
-        my router listening for it. That is also why I am relaxed about running
+        cloudflared opens the connection from inside the mechanical room and holds
+        it open, so Cloudflare has somewhere to send your request without anything
+        on my router listening for it. That is also why I am relaxed about running
         this on a home network.
-      emphasis: "cloudflared opens the connection from inside the basement"
+      emphasis: "cloudflared opens the connection from inside the mechanical room"
 
     readout:
       column: aside
       live: true
-      caption: "Sample values until the page measures your own request."
       entries:
         - id: edge
-          label: "Edge that answered"
+          label: "Cloudflare Edge"
           value: "YYZ"
           tone: accent
         - id: first-byte
@@ -463,5 +462,5 @@ crossings:
 
 closer: >-
   All of this was for you. I merge a branch on my laptop, and about five minutes
-  later a machine in my basement is serving this silly page to you.
+  later a machine in my mechanical room is serving this silly page to you.
 closer_emphasis: "All of this was for you."

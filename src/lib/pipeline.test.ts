@@ -67,7 +67,6 @@ const MOCK_PIPELINE_DATA: PipelineData = {
       readout: {
         column: "aside",
         live: true,
-        caption: "Samples until measured.",
         entries: [
           { id: "edge", label: "Edge that answered", value: "YYZ", tone: "accent" },
           { id: "ttfb", label: "First byte", value: "41", unit: "ms" },

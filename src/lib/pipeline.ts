@@ -182,7 +182,6 @@ const PipelineReadoutSchema = z.object({
   column: z.any().optional(),
   entries: z.any().optional(),
   live: z.any().optional(),
-  caption: z.any().optional(),
 });
 const _readout_schema_covers_type: SchemaCoversType<
   PipelineReadout,

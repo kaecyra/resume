@@ -315,9 +315,8 @@ export interface PipelineReadout {
   // Marks the readout whose values are replaced by measurements of the
   // reader's own request once the page is running. The values in the YAML
   // are what a prerendered, no-JavaScript reader sees, so they have to
-  // stand on their own - see `caption`.
+  // stand on their own.
   live?: boolean;
-  caption?: string;
 }
 
 export interface PipelineMarkEntry {
