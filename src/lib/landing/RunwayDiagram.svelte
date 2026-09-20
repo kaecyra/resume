@@ -87,7 +87,7 @@
         <polygon class="runway-aiming-point" points={points(block)} fill={HUD_PALETTE.text} />
       {/each}
 
-      {#each runway.numbers as label (label.lines.join("") + label.rotation)}
+      {#each runway.numbers as label (label.lines.join("|") + ":" + label.rotation)}
         <text
           class="runway-number"
           x={label.x}

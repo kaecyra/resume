@@ -311,6 +311,20 @@ describe("layout_runway_diagram", () => {
     }
   });
 
+  it("skips a runway whose ends project to the same point instead of producing NaN geometry", () => {
+    const degenerate = runway({
+      designator: "XX/26A",
+      low_end: { ident: "XX", lat: LAT0, lon: -73.75 },
+      high_end: { ident: "26A", lat: LAT0, lon: -73.75 },
+    });
+    const healthy = runway({ designator: "01/19" });
+
+    const { runways } = layout_runway_diagram([degenerate, healthy]);
+
+    expect(runways).toHaveLength(1);
+    expect(runways[0].designator).toBe("01/19");
+  });
+
   it("gives a closed runway no centerline, stripes, aiming points or numbers, but a corner-to-corner X", () => {
     const { runways } = layout_runway_diagram([runway({ designator: "10/28", closed: true })]);
     const r = runways[0];

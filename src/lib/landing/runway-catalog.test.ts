@@ -106,6 +106,11 @@ describe("select_pop_runways", () => {
     const by_icao = select_pop_runways(rows, ["CYUL", "CYVR"]);
     expect(by_icao.CYVR).toBeUndefined();
   });
+
+  it("honours a quoted field holding a comma and an escaped literal quote", () => {
+    const rows = parse_runways_csv(`${CSV_HEADER}\n${csv_row({ airport_ident: '"CY,UL""A"' })}`);
+    expect(rows[0].airport_ident).toBe('CY,UL"A');
+  });
 });
 
 describe("CLOUDFLARE_POPS", () => {

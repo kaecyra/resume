@@ -189,10 +189,15 @@ export function layout_runway_diagram(runways: readonly Runway[] | undefined): R
 
   const { points: view_points, metres_to_px } = project_ends(runways);
 
-  const geometries = runways.map((runway): RunwayGeometry => {
+  const geometries = runways.flatMap((runway): RunwayGeometry[] => {
     const p_low = view_points.get(runway.low_end)!;
     const p_high = view_points.get(runway.high_end)!;
     const len = Math.hypot(p_high.x - p_low.x, p_high.y - p_low.y);
+    if (len === 0) {
+      // Degenerate coordinates (low_end and high_end project to the same point) would make
+      // forward/across NaN and every downstream point undrawable. Skip rather than render garbage.
+      return [];
+    }
     const forward = { x: (p_high.x - p_low.x) / len, y: (p_high.y - p_low.y) / len };
     const across = { x: -forward.y, y: forward.x };
 
@@ -215,20 +220,22 @@ export function layout_runway_diagram(runways: readonly Runway[] | undefined): R
     ];
 
     if (runway.closed) {
-      return {
-        designator: runway.designator,
-        closed: true,
-        length_ft: runway.length_ft,
-        pavement,
-        centerline: null,
-        threshold_stripes: [],
-        aiming_points: [],
-        numbers: [],
-        closed_cross: [
-          [pavement[0], pavement[2]],
-          [pavement[1], pavement[3]],
-        ],
-      };
+      return [
+        {
+          designator: runway.designator,
+          closed: true,
+          length_ft: runway.length_ft,
+          pavement,
+          centerline: null,
+          threshold_stripes: [],
+          aiming_points: [],
+          numbers: [],
+          closed_cross: [
+            [pavement[0], pavement[2]],
+            [pavement[1], pavement[3]],
+          ],
+        },
+      ];
     }
 
     // `dir` points from each threshold toward the runway's interior: +forward
@@ -299,17 +306,19 @@ export function layout_runway_diagram(runways: readonly Runway[] | undefined): R
       move(p_high, forward, -centerline_clearance(high_font_size)),
     ];
 
-    return {
-      designator: runway.designator,
-      closed: false,
-      length_ft: runway.length_ft,
-      pavement,
-      centerline,
-      threshold_stripes,
-      aiming_points,
-      numbers,
-      closed_cross: [],
-    };
+    return [
+      {
+        designator: runway.designator,
+        closed: false,
+        length_ft: runway.length_ft,
+        pavement,
+        centerline,
+        threshold_stripes,
+        aiming_points,
+        numbers,
+        closed_cross: [],
+      },
+    ];
   });
 
   // Stable sort: closed runways move to the front (painted first, so

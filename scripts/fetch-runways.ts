@@ -71,7 +71,7 @@ ${entries}
   console.log(`Runway data written: ${OUTPUT_PATH}`);
 }
 
-main().catch((err) => {
-  console.error("Failed to fetch runway data:", err);
+main().catch((err: unknown) => {
+  console.error("Failed to fetch runway data:", err instanceof Error ? err.stack ?? err.message : err);
   process.exit(1);
 });
