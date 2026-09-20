@@ -81,20 +81,16 @@ describe("Crossing", () => {
   });
 
   // Below 860px `.band-grid` collapses to one column, so there is no second
-  // spine to reach and the horizontal run would be a lie. The rules go; the
-  // label stays and grows a short vertical rule of its own. Source-read
-  // because a scoped media query never reaches the rendered markup.
-  it("drops the connector and keeps the label in the one-column layout", () => {
+  // spine to reach and the horizontal run would be a lie - and in a stack
+  // read straight top to bottom, the label is clutter rather than
+  // information. The whole connector goes, mobile and tablet alike; only
+  // the two-column desktop layout keeps it. Source-read because a scoped
+  // media query never reaches the rendered markup.
+  it("hides the whole connector, label included, below desktop width", () => {
     const narrow = SOURCE.slice(SOURCE.indexOf("@media (max-width: 860px)"));
 
     expect(SOURCE).toContain("@media (max-width: 860px)");
-    expect(narrow).toMatch(/\.x-v,\s*\.x-h,\s*\.x-tip\s*\{\s*display: none;/);
-    // The label stops being positioned against a connector that is no
-    // longer there, and its substitute rule has to have a height - a
-    // declared ::before with none is an invisible replacement.
-    expect(narrow).toContain("position: static;");
-    expect(narrow).toMatch(/\.x-label::before\s*\{/);
-    expect(narrow).toContain("height: 46px;");
+    expect(narrow).toMatch(/\.crossing\s*\{\s*display: none;/);
   });
 
   describe("palette", () => {

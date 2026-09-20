@@ -23,6 +23,7 @@ const COMPONENTS = [
   "Pipeline.svelte",
   "Rack.svelte",
   "Readout.svelte",
+  "RunwayDiagram.svelte",
   "Terminal.svelte",
   "VendorMarks.svelte",
 ];

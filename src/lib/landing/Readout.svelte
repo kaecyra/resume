@@ -14,6 +14,8 @@
     type DeliveryTraceFields,
   } from "./delivery-readout.js";
   import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
+  import RunwayDiagram from "./RunwayDiagram.svelte";
+  import { find_pop } from "./runway-catalog.js";
 
   // One readout, used twice (#209): band 2's basement pair and band 3's
   // four delivery values. The difference is entirely in the data - `live`
@@ -23,8 +25,7 @@
   // The section is prerendered by adapter-static, so what ships is the
   // values in data/pipeline.yaml. Everything below the markup is an
   // enhancement: with JavaScript off, with the trace blocked, or with a
-  // timing entry the browser will not fill in, the static values stand and
-  // the caption says they are samples.
+  // timing entry the browser will not fill in, the static values stand.
   //
   // `follows_note` is placement, not content: it says this readout sits
   // under a note in the same column, which is the one thing its extra
@@ -66,9 +67,23 @@
     }),
   );
 
-  // The caption explains that the values are samples, so it goes once they
-  // are not.
-  const caption = $derived(measured ? undefined : readout.caption);
+  // The "edge" entry names a Cloudflare PoP by its IATA code - this band's
+  // only one, `find_pop` takes the lowercase id `runway-catalog.ts` keys
+  // its list by. Reading it off `entries` rather than `readout` or
+  // `measured` directly means it tracks whichever value is currently on
+  // screen: the sample until the request is measured, the reader's own
+  // edge after. Undefined unless the PoP is both known and has generated
+  // runway data - RunwayDiagram degrades to an empty square otherwise,
+  // which would look broken rather than simply absent.
+  const edge_pop = $derived.by(() => {
+    const edge = entries.find((entry) => entry.id === "edge");
+    if (!edge) {
+      return undefined;
+    }
+
+    const pop = find_pop(edge.value.toLowerCase());
+    return pop?.runways && pop.runways.length > 0 ? pop : undefined;
+  });
 
   onMount(() => {
     if (!readout.live || !covers_delivery_fields(readout.entries.map((entry) => entry.id))) {
@@ -142,10 +157,13 @@
   {/each}
 </dl>
 
-{#if caption}
-  <!-- A sibling of the <dl>, as in the mockup, so it carries its own
-       colour rather than inheriting the list's custom properties. -->
-  <p class="readout-caption" style="color: {HUD_PALETTE.chip_text};">{caption}</p>
+{#if edge_pop}
+  <!-- #226's runway diagram, wired in: the edge value above is an
+       airport, and this is what its runways actually look like. -->
+  <figure class="edge-airport" style="color: {HUD_PALETTE.chip_text};">
+    <RunwayDiagram pop={edge_pop} />
+    <figcaption>{edge_pop.iata}&nbsp;&middot;&nbsp;{edge_pop.city}</figcaption>
+  </figure>
 {/if}
 
 <style>
@@ -208,9 +226,20 @@
     margin-block: 30px 0;
   }
 
-  .readout-caption {
-    margin: 14px 0 0;
-    font-size: 0.85rem;
+  /* Centered like Rack's standalone visual (.rack-row), sized to read as
+     its own figure rather than a small supporting icon. No panel around it
+     (see .memory/no-default-ai-styling.md). */
+  .edge-airport {
+    margin: 28px auto 0;
+    max-width: 320px;
+    text-align: center;
+  }
+
+  .edge-airport figcaption {
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
   }
 
   @media (max-width: 720px) {

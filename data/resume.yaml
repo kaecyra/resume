@@ -101,7 +101,7 @@ field_deployments:
   - id: odette
     category: "Open Source"
     title: "Odette"
-    venue: "The Basement Network... for now"
+    venue: "The Mechanical Room Network... for now"
     date: "2026-02"
     description: |
       Built a sandboxing and orchestration harness for running AI coding agents safely: network egress gatekept through a host-side proxy, shell commands broken out to a host-side execution daemon with per-project mount and volume isolation and configurable approval gates (Manual, Judge, Yolo). Lets an agent session run a real toolchain without direct access to credentials or the open internet. Promotes continuous harness evolution by making skills and agent guidance portable between unrelated projects.
