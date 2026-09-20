@@ -349,6 +349,13 @@ function check_note(ctx: z.RefinementCtx, band_label: string, note: unknown): vo
   );
 }
 
+function is_detail(detail: unknown): boolean {
+  if (typeof detail === "string") {
+    return true;
+  }
+  return Array.isArray(detail) && detail.every((line) => typeof line === "string");
+}
+
 function check_nodes(ctx: z.RefinementCtx, band_label: string, nodes: unknown): Set<string> {
   const ids = new Set<string>();
 
@@ -375,6 +382,13 @@ function check_nodes(ctx: z.RefinementCtx, band_label: string, nodes: unknown): 
 
     if (!node.label) {
       issue(ctx, `band ${band_label} node ${label} is missing a label`);
+    }
+
+    // A detail is one line or the lines the copy breaks it over. Anything
+    // else reaches the drawing as a node with no detail at all, which is a
+    // line silently missing from the page rather than an error.
+    if (node.detail !== undefined && !is_detail(node.detail)) {
+      issue(ctx, `band ${band_label} node ${label} detail must be a line or a list of lines`);
     }
 
     check_value(

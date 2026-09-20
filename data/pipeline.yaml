@@ -359,7 +359,9 @@ bands:
 
       - id: cloudflare
         label: "Cloudflare"
-        detail: "your TLS session ends at whichever edge is nearest you"
+        detail:
+          - "your TLS session ends at whichever"
+          - "edge is nearest you"
         style: ring
         tone: accent
         lane: trunk

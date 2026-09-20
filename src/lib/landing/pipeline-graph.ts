@@ -118,6 +118,10 @@ export const PIPELINE_GRAPH_GEOMETRY = {
   // The reader node's label is set in the display face at 18px, so its
   // detail line needs more room under it than a 13px label does.
   reader_detail_dy: 16,
+  // A detail written as more than one line steps by this much. The mockup's
+  // own spacing for band 3's Cloudflare node, which it broke over two
+  // <text> elements.
+  detail_line_dy: 16,
 
   // The arrow off the bottom of a band that continues into the next one,
   // and the room left under the last node of one that does not.
@@ -209,8 +213,11 @@ export interface PipelineGraphNode {
   emphasis: boolean;
   label_x: number;
   label_y: number;
-  // Null where the node carries no detail line.
-  detail_y: number | null;
+  // One y per line of the node's detail, empty where it carries none. A
+  // list rather than a single y because the copy chooses its own breaks:
+  // nothing here can measure a proportional face, so a detail long enough
+  // to run past the drawing's box would be clipped rather than wrapped.
+  detail_ys: number[];
 }
 
 // Absence is `null` everywhere in this module's output - never an optional
@@ -492,6 +499,20 @@ function place_nodes(band: PipelineBand): Rhythm {
 
 // --- Node paint -----------------------------------------------------------
 
+// A node's detail as the lines it will be drawn on. One string is one
+// line; a list is the copy choosing its own breaks, which is the only way
+// the break can be chosen at all - nothing here can measure text. Exported
+// because the drawing needs the same reading the geometry was built from.
+export function detail_lines(node: Pick<PipelineNode, "detail">): string[] {
+  if (typeof node.detail === "string") {
+    return node.detail.length > 0 ? [node.detail] : [];
+  }
+  if (Array.isArray(node.detail)) {
+    return node.detail.filter((line) => typeof line === "string" && line.length > 0);
+  }
+  return [];
+}
+
 function node_radius(node: PipelineNode): number {
   if (node.style === "reader") {
     return GEO.reader_radius;
@@ -510,7 +531,8 @@ function build_node(node: PipelineNode, at: PipelinePoint): PipelineGraphNode {
   const radius = node_radius(node);
   const is_reader = node.style === "reader";
   const is_ring = node.style === "ring";
-  const has_detail = typeof node.detail === "string" && node.detail.length > 0;
+  const lines = detail_lines(node);
+  const has_detail = lines.length > 0;
   const detail_dy = is_reader ? GEO.reader_detail_dy : GEO.detail_dy;
 
   return {
@@ -552,7 +574,7 @@ function build_node(node: PipelineNode, at: PipelinePoint): PipelineGraphNode {
     emphasis: node.emphasis === true,
     label_x: GEO.label_x,
     label_y: at.y + (has_detail ? GEO.label_dy : GEO.label_dy_solo),
-    detail_y: has_detail ? at.y + detail_dy : null,
+    detail_ys: lines.map((_unused, line) => at.y + detail_dy + line * GEO.detail_line_dy),
   };
 }
 
