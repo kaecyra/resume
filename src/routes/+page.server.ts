@@ -4,7 +4,12 @@ import { list_variants, load_resume_data, load_variant } from "$lib/data.js";
 import { build_contribution_grid, load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
 import { load_pipeline_data, validate_pipeline_data } from "$lib/pipeline.js";
-import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
+import {
+  build_og_metadata,
+  build_person_jsonld,
+  build_webpage_jsonld,
+  LANDING_OG_SLUG,
+} from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
 
@@ -50,15 +55,17 @@ export const load: PageServerLoad = () => {
   // signal. The landing page leads with the person and what they build
   // rather than the role pitch, so its title and description are sourced
   // from data/landing.yaml's hero (name, tagline) instead of the variant's
-  // title and summary. The OG image itself does reuse the linked variant's
-  // generated card (scripts/generate-og-images.ts renders one PNG per
-  // variant via list_variants()), since the landing page has no OG image of
-  // its own.
+  // title and summary. The image is its own for the same reason: the
+  // landing page used to borrow the linked variant's card, which is the
+  // headshot-and-title layout every variant page shares and looks nothing
+  // like this page. LANDING_OG_SLUG names the card built from the hero's
+  // own frame instead (src/routes/og/landing), which is also the PNG
+  // scripts/generate-og-images.ts writes alongside the per-variant ones.
   const og = {
     ...build_og_metadata(
       landing.hero.name, landing.hero.role,
       landing.hero.tagline,
-      base_url, landing.resume_links[0],
+      base_url, LANDING_OG_SLUG,
     ),
     title: landing.hero.name,
     url: canonical_url,

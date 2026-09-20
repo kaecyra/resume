@@ -90,6 +90,12 @@ export function build_webpage_jsonld(
   return page;
 }
 
+// The site root's own OG card (src/routes/og/landing), which is neither a
+// resume variant nor named after one. Shared so the meta tag the root page
+// emits and the PNG scripts/generate-og-images.ts writes cannot drift apart
+// into a card that exists and a card nothing points at.
+export const LANDING_OG_SLUG = "landing";
+
 export interface OgMetadata {
   title: string;
   description: string;

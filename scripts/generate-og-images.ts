@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import puppeteer from "puppeteer";
 
 import { list_variants } from "../src/lib/data.js";
+import { LANDING_OG_SLUG } from "../src/lib/seo.js";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173";
 
@@ -12,7 +13,12 @@ function delay(ms: number): Promise<void> {
 }
 
 async function generate_og_images(): Promise<void> {
-  const variants = list_variants();
+  // The site root's card first, then one per resume variant. It is a route
+  // (`/og/landing`) rather than a variant, so it is prepended here instead
+  // of coming out of list_variants(); LANDING_OG_SLUG is what the root
+  // page's og:image points at, so the name is shared rather than typed
+  // twice.
+  const cards = [LANDING_OG_SLUG, ...list_variants()];
   const output_dir = resolve("build", "og");
   mkdirSync(output_dir, { recursive: true });
 
@@ -22,9 +28,9 @@ async function generate_og_images(): Promise<void> {
   });
 
   try {
-    for (const variant of variants) {
-      const url = `${BASE_URL}/og/${variant}`;
-      const output_path = resolve(output_dir, `${variant}.png`);
+    for (const card of cards) {
+      const url = `${BASE_URL}/og/${card}`;
+      const output_path = resolve(output_dir, `${card}.png`);
 
       const page = await browser.newPage();
       await page.setRequestInterception(true);
@@ -37,6 +43,11 @@ async function generate_og_images(): Promise<void> {
       });
       await page.setViewport({ width: 1200, height: 630 });
       await page.goto(url, { waitUntil: "load" });
+      // The cards are set in faces served from this origin
+      // (src/routes/og/+layout.svelte), and `load` does not wait for a font
+      // the CSS only asks for once it is parsed. Without this the screenshot
+      // can catch the block period and render nothing where the name goes.
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
       await delay(500);
       await page.screenshot({ path: output_path, type: "png" });
       await page.close();

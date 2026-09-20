@@ -44,7 +44,7 @@ npm install
 | `npm test` | Run tests once |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
-| `npm run generate-og` | Generate Open Graph images for all variants |
+| `npm run generate-og` | Generate Open Graph images: the landing card plus one per variant |
 | `npm run generate-geo` | Regenerate the landing hero globe's line geometry from world-atlas |
 | `npm run generate-pdf` | Generate PDF from built site using Puppeteer |
 | `npm run linkedin` | Export resume data as LinkedIn-ready copy/paste text |
@@ -114,6 +114,12 @@ The landing page is not a resume theme: it has no PDF path and no variant resolu
 The "Pipelines" section keeps its content in a second file, `data/pipeline.yaml`, loaded and validated by `src/lib/pipeline.ts` and threaded to the page as its own prop. It carries more structure than the other sections put together, so it stays out of `landing.yaml`: three bands of graph nodes and edges, a terminal transcript, the rack, and two readouts. There are no coordinates in it. `src/lib/landing/pipeline-graph.ts` turns the nodes and edges into positions and path strings, and each tone is named by role (`default`, `muted`, `dim`, `accent`, `green`), resolved against `src/lib/landing/palette.ts` when the section renders, so a colour change never touches the data file.
 
 The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [flag-icons](https://github.com/lipis/flag-icons) project, MIT licensed; the upstream license notice is reproduced in a comment at the top of the file.
+
+#### Open Graph Cards
+
+Every card is a prerendered route screenshotted at 1200x630 by `npm run generate-og` (`scripts/generate-og-images.ts`) during the Docker build. `/og/{variant}` is the resume card - headshot, name, title, in the variant's own theme palette. `/og/landing` is the site root's own card and follows the landing page instead: the hero's frame, its globe still, the name in `Archivo Black` and the flat amber role badge. `LANDING_OG_SLUG` in `src/lib/seo.ts` is the one name shared by the meta tag the root page emits and the PNG the script writes.
+
+The renderer aborts every request that does not come from its own origin, so the Google Fonts `@import` in `src/app.css` never resolves while a card is being captured. The three faces the cards need are therefore served from the site itself (`static/fonts/`, declared in `src/routes/og/+layout.svelte`), which is scoped to `/og/*` - the live site and the PDF pipeline still load fonts from Google Fonts. See `static/fonts/README.md` for provenance and licensing.
 
 #### GitHub Contribution Data
 
