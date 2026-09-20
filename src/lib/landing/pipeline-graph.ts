@@ -170,6 +170,11 @@ export interface PipelineGraphTick {
   d: string;
   stroke: string;
   width: number;
+  // A 2-unit checkmark drawn with mitred ends spikes at the elbow and reads
+  // nothing like the mockup's, which rounds both. Carried here because this
+  // module owns the tick's paint.
+  linecap: "round";
+  linejoin: "round";
 }
 
 export interface PipelineGraphNode {
@@ -196,6 +201,9 @@ export interface PipelineGraphNode {
   detail_y: number | null;
 }
 
+// Absence is `null` everywhere in this module's output - never an optional
+// property and never `undefined` - so the render side writes one idiom for
+// one idea and `{#if segment.dash}` reads the same as `{#if node.tick}`.
 export interface PipelineGraphSegment {
   // Unique within the band: the edge id, suffixed where one edge splits.
   id: string;
@@ -203,8 +211,10 @@ export interface PipelineGraphSegment {
   d: string;
   ink: string;
   width: number;
-  dash?: string;
-  linecap?: "round";
+  // Null on a solid line, and null on a line whose dash the split gave to
+  // its dormant stretch only.
+  dash: string | null;
+  linecap: "round" | null;
 }
 
 export interface PipelineGraphTail {
@@ -228,7 +238,8 @@ export interface PipelineGraphLayout {
   merge_y: number | null;
   nodes: PipelineGraphNode[];
   segments: PipelineGraphSegment[];
-  tail?: PipelineGraphTail;
+  // Null in a band that ends rather than continuing into the next one.
+  tail: PipelineGraphTail | null;
 }
 
 // --- Curves ---------------------------------------------------------------
@@ -292,16 +303,11 @@ function merge_curve(leave_y: number, land_y: number): PipelinePoint[] {
 
 // --- Placement ------------------------------------------------------------
 
-interface Placement {
-  x: number;
-  y: number;
-}
-
 interface Rhythm {
   // Parallel to `band.nodes`, so the layout can stay in data order, plus
   // the same placements by id for the edges to look up.
-  at: Placement[];
-  by_id: Map<string, Placement>;
+  at: PipelinePoint[];
+  by_id: Map<string, PipelinePoint>;
   fork_y: number | null;
   merge_y: number | null;
 }
@@ -323,17 +329,36 @@ function fork_lead_of(band: PipelineBand): number {
   return has_live_head ? GEO.fork_lead : 0;
 }
 
+// The single merge curve's endpoints, or null where the band has no merge
+// edge or names nodes it does not carry. One reading, shared by the drawn
+// segment and by whatever rides it.
+function merge_endpoints(
+  band: PipelineBand,
+  by_id: ReadonlyMap<string, PipelinePoint>,
+): { leave_y: number; land_y: number } | null {
+  for (const edge of band.edges) {
+    if (edge.kind !== "merge") {
+      continue;
+    }
+    const leave = by_id.get(edge.from);
+    const land = by_id.get(edge.to);
+    if (leave !== undefined && land !== undefined) {
+      return { leave_y: leave.y, land_y: land.y };
+    }
+  }
+  return null;
+}
+
 // Walks the band's nodes in data order, which data/pipeline.yaml keeps
 // topological: down the trunk, out along the branch, back onto the trunk.
 // Merge-lane nodes are skipped here and hung off the merge curve afterwards.
 function place_nodes(band: PipelineBand): Rhythm {
-  const at: Placement[] = [];
-  const by_id = new Map<string, Placement>();
+  const at: PipelinePoint[] = [];
+  const by_id = new Map<string, PipelinePoint>();
   const fork_lead = fork_lead_of(band);
 
   let fork_y: number | null = null;
   let merge_y: number | null = null;
-  let last_branch: Placement | null = null;
   let previous: PipelineNode | null = null;
   let cursor = GEO.first_node_y;
 
@@ -358,30 +383,33 @@ function place_nodes(band: PipelineBand): Rhythm {
       cursor += GEO.trunk_pitch;
     }
 
-    const placement: Placement = { x: lane_x(node), y: cursor };
+    const placement: PipelinePoint = { x: lane_x(node), y: cursor };
     at[index] = placement;
     by_id.set(node.id, placement);
-    if (node.lane === "branch") {
-      last_branch = placement;
-    }
     previous = node;
   }
 
-  // The merge riders, hung off the curve rather than laid out. A band with
-  // no merge curve has nothing for them to ride, so they fall back onto the
-  // spine one trunk pitch on.
+  // The merge riders, hung off the curve rather than laid out. The curve is
+  // the one `build_segments` draws, read off the merge edge's own endpoints
+  // rather than re-derived from whichever branch node happens to come last
+  // in the data - those agree only when the band merges from its last
+  // branch node, and a rider hung off the wrong one floats in open space.
+  // A band with no merge curve has nothing to ride, so its riders fall back
+  // onto the spine one trunk pitch on.
+  const merge_ends = merge_endpoints(band, by_id);
+
   for (let index = 0; index < band.nodes.length; index += 1) {
     const node = band.nodes[index];
     if (node.lane !== "merge") {
       continue;
     }
 
-    let placement: Placement;
-    if (last_branch === null || merge_y === null) {
+    let placement: PipelinePoint;
+    if (merge_ends === null) {
       cursor += GEO.trunk_pitch;
       placement = { x: GEO.spine_x, y: cursor };
     } else {
-      const [p0, c1, c2, p3] = merge_curve(last_branch.y, merge_y);
+      const [p0, c1, c2, p3] = merge_curve(merge_ends.leave_y, merge_ends.land_y);
       placement = cubic_point_at(p0, c1, c2, p3, 0.5);
     }
 
@@ -407,7 +435,7 @@ function node_radius(node: PipelineNode): number {
   return node.emphasis === true ? GEO.disc_emphasis_radius : GEO.disc_radius;
 }
 
-function build_node(node: PipelineNode, at: Placement): PipelineGraphNode {
+function build_node(node: PipelineNode, at: PipelinePoint): PipelineGraphNode {
   const ink = NODE_TONE_INK[node.tone];
   const radius = node_radius(node);
   const is_reader = node.style === "reader";
@@ -434,6 +462,8 @@ function build_node(node: PipelineNode, at: Placement): PipelineGraphNode {
             d: `M${coord(at.x - 5)},${coord(at.y)} l4,4 l7,-8`,
             stroke: ELEVATION.void,
             width: GEO.tick_width,
+            linecap: "round",
+            linejoin: "round",
           }
         : null,
     mark:
@@ -461,9 +491,9 @@ function dash_of(edge: PipelineEdge): Pick<PipelineGraphSegment, "dash" | "linec
     return { dash: GEO.dotted_dash, linecap: "round" };
   }
   if (edge.dash === "dashed") {
-    return { dash: GEO.dashed_dash };
+    return { dash: GEO.dashed_dash, linecap: null };
   }
-  return {};
+  return { dash: null, linecap: null };
 }
 
 function segment(
@@ -479,7 +509,7 @@ function segment(
     d,
     ink,
     width: GEO.edge_width,
-    ...(carries_dash ? dash_of(edge) : {}),
+    ...(carries_dash ? dash_of(edge) : { dash: null, linecap: null }),
   };
 }
 
@@ -495,24 +525,44 @@ function split_points(from_y: number, to_y: number, rhythm: Rhythm): number[] {
   );
 }
 
+// The one stretch the branch is out for: between the fork and the merge.
+// Everything outside that is the live tip again.
+function is_dormant(start: number, end: number, rhythm: Rhythm): boolean {
+  return (
+    rhythm.fork_y !== null && start >= rhythm.fork_y && (rhythm.merge_y === null || end <= rhythm.merge_y)
+  );
+}
+
 function trunk_segments(edge: PipelineEdge, from_y: number, to_y: number, rhythm: Rhythm): PipelineGraphSegment[] {
   const head_tone = edge.head_tone;
-  const cuts = head_tone === undefined ? [] : split_points(from_y, to_y, rhythm);
-  if (head_tone === undefined || cuts.length === 0) {
+  if (head_tone === undefined) {
+    // No live head declared, so the whole edge is the dormant line.
     return [segment(edge, edge.id, line_path(GEO.spine_x, from_y, to_y), EDGE_TONE_INK[edge.tone], true)];
   }
 
   const head_ink = EDGE_TONE_INK[head_tone];
+  const cuts = split_points(from_y, to_y, rhythm);
+  if (cuts.length === 0) {
+    // Nothing to cut, but a head was declared: an edge that lies wholly
+    // outside the fork-to-merge stretch is live for its whole length and
+    // takes the head ink, not the dormant one.
+    const dormant = is_dormant(from_y, to_y, rhythm);
+    return [
+      segment(
+        edge,
+        edge.id,
+        line_path(GEO.spine_x, from_y, to_y),
+        dormant ? EDGE_TONE_INK[edge.tone] : head_ink,
+        dormant,
+      ),
+    ];
+  }
+
   const bounds = [from_y, ...cuts, to_y];
-  const dormant_from = rhythm.fork_y;
-  const dormant_to = rhythm.merge_y;
 
   return bounds.slice(0, -1).map((start, index) => {
     const end = bounds[index + 1];
-    // The one stretch the branch is out for: between the fork and the
-    // merge. Everything outside that is the live tip again.
-    const dormant =
-      dormant_from !== null && start >= dormant_from && (dormant_to === null || end <= dormant_to);
+    const dormant = is_dormant(start, end, rhythm);
 
     return segment(
       edge,
@@ -562,7 +612,7 @@ function build_segments(band: PipelineBand, rhythm: Rhythm): PipelineGraphSegmen
 // --- The band -------------------------------------------------------------
 
 interface TailPlan {
-  tail: PipelineGraphTail | undefined;
+  tail: PipelineGraphTail | null;
   height: number;
 }
 
@@ -574,7 +624,7 @@ function plan_tail(band: PipelineBand, nodes: readonly PipelineGraphNode[]): Tai
   const anchor = [...nodes].reverse().find((node) => node.x === GEO.spine_x);
 
   if (band.tail_arrow !== true || anchor === undefined) {
-    return { tail: undefined, height: lowest + GEO.terminus_pad };
+    return { tail: null, height: lowest + GEO.terminus_pad };
   }
 
   const start = anchor.y + anchor.radius + GEO.tail_gap;
@@ -586,7 +636,10 @@ function plan_tail(band: PipelineBand, nodes: readonly PipelineGraphNode[]): Tai
       ink: HUD_PALETTE.accent,
       width: GEO.edge_width,
     },
-    height: end + GEO.tail_pad,
+    // The arrow hangs off the last node on the spine, which in both real
+    // bands is also the deepest node - but a band that forks and never
+    // returns has branch nodes below it, and they have to stay in frame.
+    height: Math.max(end + GEO.tail_pad, lowest + GEO.terminus_pad),
   };
 }
 
@@ -608,7 +661,7 @@ export function build_pipeline_graph(band: PipelineBand): PipelineGraphLayout {
     merge_y: rhythm.merge_y,
     nodes,
     segments: build_segments(band, rhythm),
-    ...(tail === undefined ? {} : { tail }),
+    tail,
   };
 }
 
