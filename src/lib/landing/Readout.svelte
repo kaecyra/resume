@@ -8,6 +8,7 @@
     covers_basement_fields,
     format_basement_readout,
     parse_basement_metrics,
+    type BasementMetrics,
   } from "./basement-readout.js";
   import {
     covers_delivery_fields,
@@ -25,11 +26,15 @@
   // four delivery values. The difference is entirely in the data - `live`
   // names which source, if either, replaces the values with a live reading:
   // `delivery` measures the reader's own request once, on mount; `basement`
-  // polls the mechanical room's sensor on an interval.
+  // polls the mechanical room's sensor on an interval and carries its own
+  // LIVE/OFFLINE badge, since unlike delivery it has no fixed number of
+  // fields that either all measure or none do - a stale reading is a valid,
+  // renderable state of its own.
   //
   // The section is prerendered by adapter-static, so what ships is the
-  // values in data/pipeline.yaml. Everything below the markup is an
-  // enhancement: with JavaScript off, with the trace or the metrics
+  // values in data/pipeline.yaml - "-" for band 2, since there is no sample
+  // reading honest enough to print in advance. Everything below the markup
+  // is an enhancement: with JavaScript off, with the trace or the metrics
   // endpoint blocked, or with a timing entry the browser will not fill in,
   // the static values stand.
   //
@@ -63,6 +68,36 @@
   // poll cadence), so this is about the page feeling alive, not about
   // catching every update.
   const BASEMENT_POLL_INTERVAL_MS = 30_000;
+
+  // The last metrics file body that actually parsed to a complete reading.
+  // Not `$state`: nothing reads it directly, only what `poll_basement`
+  // derives from it each tick. Kept even across a failed or malformed poll,
+  // so a network blip does not itself erase a reading that is still fresh -
+  // format_basement_readout, not fetch success, is what decides freshness.
+  let last_basement_metrics: BasementMetrics = {};
+
+  // Whether the current reading is within the freshness window - drives the
+  // LIVE/OFFLINE badge. Recomputed on every poll tick, not only a successful
+  // one: a poller that has silently stopped writing still has to age out to
+  // OFFLINE on its own once 30 minutes pass, rather than freezing on the
+  // last number it ever saw.
+  let basement_fresh = $state(false);
+
+  // `false` at prerender time (onMount never runs there) and stays `false`
+  // for a reader with no JavaScript, so the honest "-"/OFFLINE baseline in
+  // data/pipeline.yaml is what they see, same as always. A JS-capable
+  // reader flips it the instant onMount's basement branch runs.
+  let basement_hydrated = $state(false);
+
+  // Whether the first poll (success or failure) has resolved. Together with
+  // `basement_hydrated`, this is what lets the readout stay invisible for
+  // one fetch's worth of time rather than showing the "-" baseline only to
+  // immediately replace it - the swap this section exists to avoid.
+  let basement_ready = $state(false);
+
+  const basement_pending = $derived(
+    readout.live === "basement" && basement_hydrated && !basement_ready,
+  );
 
   // A tone names a role; palette.ts holds the colour. No hex lives here.
   const TONE_COLORS: Record<PipelineTone, string> = {
@@ -111,6 +146,7 @@
     }
 
     if (readout.live === "basement" && covers_basement_fields(ids)) {
+      basement_hydrated = true;
       void poll_basement();
       const interval = setInterval(() => void poll_basement(), BASEMENT_POLL_INTERVAL_MS);
       return () => clearInterval(interval);
@@ -124,26 +160,36 @@
     measured = format_delivery_readout(timing, trace);
   }
 
-  // Polled on BASEMENT_POLL_INTERVAL_MS. A failed or malformed reading is
-  // swallowed and leaves `measured` exactly as it was: the sample values if
-  // no poll has ever succeeded, or the last successful reading if one has.
-  // Falling back to the sample after a real reading has already been shown
-  // would be the more misleading state, not less.
+  // Polled on BASEMENT_POLL_INTERVAL_MS. A successful fetch with a complete
+  // reading replaces the cache; anything else (network error, non-200, a
+  // malformed or partial body) leaves it as it was. Either way, freshness is
+  // then recomputed against the current time - never skipped - so a poller
+  // that has stopped updating the file still reads as OFFLINE once the
+  // cached reading ages past the freshness window, rather than staying LIVE
+  // forever on the last number it ever saw.
   async function poll_basement(): Promise<void> {
     try {
       const response = await fetch(BASEMENT_METRICS_URL, { cache: "no-store" });
-      if (!response.ok) {
-        return;
-      }
-
-      const formatted = format_basement_readout(parse_basement_metrics(await response.text()));
-      if (formatted) {
-        measured = formatted;
+      if (response.ok) {
+        const parsed = parse_basement_metrics(await response.text());
+        if (
+          parsed.temperature !== undefined &&
+          parsed.humidity !== undefined &&
+          parsed.updated_at !== undefined
+        ) {
+          last_basement_metrics = parsed;
+        }
       }
     } catch {
       // Offline, or the container's background poller has not written a
-      // first reading yet.
+      // first reading yet. last_basement_metrics is untouched; the
+      // recompute below still runs.
     }
+
+    const reading = format_basement_readout(last_basement_metrics, Date.now());
+    measured = reading.values;
+    basement_fresh = reading.fresh;
+    basement_ready = true;
   }
 
   function read_navigation_timing(): DeliveryTiming {
@@ -193,6 +239,7 @@
 <dl
   class="readout"
   class:readout-after-note={follows_note}
+  class:readout-pending={basement_pending}
   style="--readout-label: {HUD_PALETTE.chip_text}; --readout-unit: {HUD_PALETTE.secondary};"
 >
   {#each entries as entry (entry.id)}
@@ -202,6 +249,22 @@
     </div>
   {/each}
 </dl>
+
+{#if readout.live === "basement"}
+  <p
+    class="live-badge"
+    class:readout-pending={basement_pending}
+    style="color: {basement_fresh ? PIPELINE_INK.live : HUD_PALETTE.chip_text};"
+  >
+    <!-- A drawn LED, same idiom as the rack's own (RACK_LED, Rack.svelte) -
+         fill, not a CSS background, so a status dot never reads as the
+         panel/surface treatment .memory/no-default-ai-styling.md rejects. -->
+    <svg class="live-dot" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
+      <circle cx="4" cy="4" r="4" fill={basement_fresh ? PIPELINE_INK.live : HUD_PALETTE.chip_text} />
+    </svg>
+    {basement_fresh ? "LIVE" : "OFFLINE"}
+  </p>
+{/if}
 
 {#if edge_pop}
   <!-- #226's runway diagram, wired in: the edge value above is an
@@ -270,6 +333,35 @@
      basement pair is the case that has it today. */
   .readout-after-note {
     margin-block: 30px 0;
+  }
+
+  /* Invisible rather than absent: the space stays reserved, so a reading
+     landing a beat after mount never shifts anything below it. Only ever
+     applied once JavaScript has confirmed it can update this element again
+     shortly - see basement_pending - so a reader with none never sees it. */
+  .readout,
+  .live-badge {
+    transition: opacity 150ms ease;
+  }
+
+  .readout-pending {
+    opacity: 0;
+  }
+
+  /* The mechanical room readout's freshness badge - a status LED, same
+     motif as the rack's own (see RACK_LED, palette.ts), not a panel. */
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 0 0;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    flex-shrink: 0;
   }
 
   /* Centered like Rack's standalone visual (.rack-row), sized to read as

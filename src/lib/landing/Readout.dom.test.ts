@@ -14,6 +14,8 @@ import { tick } from "svelte";
 
 import type { PipelineReadout } from "$lib/types.js";
 
+import { MAX_READING_AGE_MS } from "./basement-readout.js";
+import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
 import Readout from "./Readout.svelte";
 
 const READER_IP = "203.0.113.7";
@@ -49,12 +51,35 @@ const DELIVERY: PipelineReadout = {
 const BASEMENT: PipelineReadout = {
   column: "graph",
   entries: [
-    { id: "temperature", label: "In the basement right now", value: "21.5", unit: "°C" },
-    { id: "humidity", label: "Humidity", value: "46", unit: "%" },
+    { id: "temperature", label: "In the basement", value: "-" },
+    { id: "humidity", label: "Humidity", value: "-" },
   ],
 };
 
 const BASEMENT_LIVE: PipelineReadout = { ...BASEMENT, live: "basement" };
+
+// A metrics file body, fresh as of `now` unless `ageMs` says otherwise.
+// `now` is set from the fake clock in each test that needs one, so a
+// reading's freshness is always exact rather than a race against real time.
+function metrics_json(temperature: number, humidity: number, now: number, ageMs = 0): string {
+  return JSON.stringify({
+    temperature,
+    humidity,
+    updated_at: new Date(now - ageMs).toISOString(),
+  });
+}
+
+function badge_text(container: HTMLElement): string | null {
+  return container.querySelector(".live-badge")?.textContent?.trim() ?? null;
+}
+
+function dot_fill(container: HTMLElement): string | null {
+  return container.querySelector("circle")?.getAttribute("fill") ?? null;
+}
+
+function is_pending(container: HTMLElement): boolean {
+  return container.querySelector(".readout")?.classList.contains("readout-pending") ?? false;
+}
 
 // Advances vitest's fake timers and drains the microtask queue after, so a
 // fetch mock's promise chain and Svelte's own flush have both settled by the
@@ -264,7 +289,7 @@ describe("Readout, measuring the reader's own request", () => {
     const { container } = render(Readout, { props: { readout: BASEMENT } });
 
     await waitFor(() => {
-      expect(values(container)).toEqual(["21.5°C", "46%"]);
+      expect(values(container)).toEqual(["-", "-"]);
     });
     expect(fetch_mock).not.toHaveBeenCalled();
   });
@@ -288,31 +313,63 @@ describe("Readout, measuring the reader's own request", () => {
 });
 
 describe("Readout, polling the basement sensor", () => {
+  let now: number;
+
   beforeEach(() => {
     vi.useFakeTimers();
+    now = Date.now();
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it("polls the metrics endpoint once on mount and swaps the pair in", async () => {
-    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+  it("polls the metrics endpoint once on mount and shows LIVE for a fresh reading", async () => {
+    const fetch_mock = stub_metrics([metrics_json(19.2, 52, now)]);
 
     const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
     await flush();
 
     expect(values(container)).toEqual(["19.2°C", "52%"]);
+    expect(badge_text(container)).toBe("LIVE");
+    expect(dot_fill(container)).toBe(PIPELINE_INK.live);
     expect(fetch_mock).toHaveBeenCalledWith(
       "/api/basement/metrics",
       expect.objectContaining({ cache: "no-store" }),
     );
   });
 
+  it("stays hidden until the first poll resolves, then reveals the correct state directly", async () => {
+    let resolve_fetch!: (response: Response) => void;
+    const fetch_mock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolve_fetch = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetch_mock);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await tick();
+
+    // The fetch is in flight - the honest "-"/OFFLINE baseline is still what
+    // is in the DOM, but it must not be visible yet: showing it only to
+    // immediately replace it is the swap this mechanism exists to avoid.
+    expect(is_pending(container)).toBe(true);
+    expect(values(container)).toEqual(["-", "-"]);
+
+    resolve_fetch(new Response(metrics_json(19.2, 52, now), { status: 200 }));
+    await flush();
+
+    expect(is_pending(container)).toBe(false);
+    expect(values(container)).toEqual(["19.2°C", "52%"]);
+    expect(badge_text(container)).toBe("LIVE");
+  });
+
   it("polls again after the interval and shows the newer reading", async () => {
     const fetch_mock = stub_metrics([
-      '{"temperature":19.2,"humidity":52}',
-      '{"temperature":19.4,"humidity":53}',
+      metrics_json(19.2, 52, now),
+      metrics_json(19.4, 53, now + 30_000),
     ]);
 
     const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
@@ -322,20 +379,23 @@ describe("Readout, polling the basement sensor", () => {
     await flush(30_000);
 
     expect(values(container)).toEqual(["19.4°C", "53%"]);
+    expect(badge_text(container)).toBe("LIVE");
     expect(fetch_mock).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps the sample values when the metrics endpoint cannot be fetched", async () => {
+  it("shows OFFLINE hyphens when the metrics endpoint cannot be fetched", async () => {
     const fetch_mock = stub_metrics([new Error("offline")]);
 
     const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
     await flush();
 
     expect(fetch_mock).toHaveBeenCalled();
-    expect(values(container)).toEqual(["21.5°C", "46%"]);
+    expect(values(container)).toEqual(["-", "-"]);
+    expect(badge_text(container)).toBe("OFFLINE");
+    expect(dot_fill(container)).toBe(HUD_PALETTE.chip_text);
   });
 
-  it("keeps the sample values when the endpoint answers with an error status", async () => {
+  it("shows OFFLINE hyphens when the endpoint answers with an error status", async () => {
     const fetch_mock = vi.fn(async () => new Response("", { status: 404 }));
     vi.stubGlobal("fetch", fetch_mock);
 
@@ -343,34 +403,57 @@ describe("Readout, polling the basement sensor", () => {
     await flush();
 
     expect(fetch_mock).toHaveBeenCalled();
-    expect(values(container)).toEqual(["21.5°C", "46%"]);
+    expect(values(container)).toEqual(["-", "-"]);
+    expect(badge_text(container)).toBe("OFFLINE");
   });
 
-  it("keeps the last successful reading when a later poll fails, rather than reverting to the sample", async () => {
-    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}', new Error("offline")]);
+  it("keeps showing LIVE through a single failed poll, as long as the cached reading is still fresh", async () => {
+    const fetch_mock = stub_metrics([metrics_json(19.2, 52, now), new Error("offline")]);
 
     const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
     await flush();
-    expect(values(container)).toEqual(["19.2°C", "52%"]);
+    expect(badge_text(container)).toBe("LIVE");
 
     await flush(30_000);
 
     expect(fetch_mock).toHaveBeenCalledTimes(2);
+    expect(badge_text(container)).toBe("LIVE");
     expect(values(container)).toEqual(["19.2°C", "52%"]);
   });
 
+  it("ages a reading out to OFFLINE once 30 minutes pass, even though every poll keeps succeeding", async () => {
+    // The same body every time: a poller that has stopped getting fresh data
+    // from Home Assistant but is still successfully re-serving its last
+    // write looks exactly like this from the browser's side. Freshness has
+    // to come from `updated_at` versus the wall clock, not from the fetch
+    // merely succeeding.
+    const body = metrics_json(19.2, 52, now);
+    const fetch_mock = vi.fn(async () => new Response(body, { status: 200 }));
+    vi.stubGlobal("fetch", fetch_mock);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    expect(badge_text(container)).toBe("LIVE");
+
+    await flush(MAX_READING_AGE_MS);
+
+    expect(fetch_mock).toHaveBeenCalled();
+    expect(badge_text(container)).toBe("OFFLINE");
+    expect(values(container)).toEqual(["-", "-"]);
+  });
+
   it("measures nothing for a readout the data does not mark live", async () => {
-    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+    const fetch_mock = stub_metrics([metrics_json(19.2, 52, now)]);
 
     const { container } = render(Readout, { props: { readout: BASEMENT } });
     await flush();
 
-    expect(values(container)).toEqual(["21.5°C", "46%"]);
+    expect(values(container)).toEqual(["-", "-"]);
     expect(fetch_mock).not.toHaveBeenCalled();
   });
 
   it("measures nothing when the live readout's fields are not the two it can fill", async () => {
-    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+    const fetch_mock = stub_metrics([metrics_json(19.2, 52, now)]);
 
     const drifted: PipelineReadout = {
       ...BASEMENT_LIVE,
@@ -380,12 +463,12 @@ describe("Readout, polling the basement sensor", () => {
     const { container } = render(Readout, { props: { readout: drifted } });
     await flush();
 
-    expect(values(container)).toEqual(["21.5°C", "46%", "0.4"]);
+    expect(values(container)).toEqual(["-", "-", "0.4"]);
     expect(fetch_mock).not.toHaveBeenCalled();
   });
 
   it("stops polling once the component unmounts", async () => {
-    const fetch_mock = stub_metrics(['{"temperature":19.2,"humidity":52}']);
+    const fetch_mock = stub_metrics([metrics_json(19.2, 52, now)]);
 
     const { unmount } = render(Readout, { props: { readout: BASEMENT_LIVE } });
     await flush();

@@ -281,9 +281,9 @@ Umami must be running before you can create a website and obtain its ID. On firs
 
 ## Mechanical Room Readout
 
-The "Pipelines" section's mechanical-room readout can show a live temperature and humidity reading instead of its static sample, sourced from a Home Assistant sensor on the same network as the deploy host.
+The "Pipelines" section's mechanical-room readout shows a live temperature and humidity reading, sourced from a Home Assistant sensor on the same network as the deploy host.
 
-A background loop in `docker-entrypoint.sh` polls two HA sensor entities every 5 minutes and writes the reading to a static file nginx serves at `/api/basement/metrics`; the landing page polls that endpoint every 30 seconds once loaded. Unset any of the four variables below and the readout falls back to its static sample - no error, no visible change beyond that.
+A background loop in `docker-entrypoint.sh` polls two HA sensor entities every 5 minutes and writes the reading, with its own timestamp, to a static file nginx serves at `/api/basement/metrics`; the landing page polls that endpoint every 30 seconds once loaded. A red LIVE badge shows only while the sensor's own last report is under 30 minutes old; otherwise (including before the first poll ever completes, or with any of the four variables below unset) the readout shows "-" and a grey OFFLINE badge rather than a number that might be out of date.
 
 ### First-Time Setup
 

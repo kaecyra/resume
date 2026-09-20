@@ -9,9 +9,10 @@
 // minutes. nginx serves the file at BASEMENT_METRICS_URL like any other
 // static asset - same-origin, no proxy, no auth.
 //
-// The formatter is all-or-nothing on purpose, the same reasoning as the
-// delivery readout: a measured number beside a sample one, with nothing to
-// tell them apart, is the one thing this readout must never show.
+// Unlike the delivery readout, there is no static sample to fall back to:
+// this formatter always produces a renderable result. `fresh` says whether
+// that result is a real measurement or the honest "no current reading"
+// hyphen pair - never a number that might be lying about how current it is.
 
 import { covers_exact_fields } from "./readout-fields.js";
 
@@ -23,19 +24,40 @@ export const BASEMENT_FIELD_IDS: readonly BasementFieldId[] = ["temperature", "h
 // on an interval with no CORS preflight.
 export const BASEMENT_METRICS_URL = "/api/basement/metrics";
 
+// A reading older than this is shown as offline rather than as a number,
+// regardless of how plausible the number itself is. Matches "recently
+// synced" - the sensor's own last report to Home Assistant, not merely
+// "our container's last successful poll."
+export const MAX_READING_AGE_MS = 30 * 60 * 1000;
+
 // Everything this codebase is willing to know about a metrics file.
 export interface BasementMetrics {
   temperature?: number;
   humidity?: number;
+  // ISO 8601, from Home Assistant's `last_reported` (or `last_updated` on
+  // older HA versions) - see docker-entrypoint.sh.
+  updated_at?: string;
 }
 
-// One rendered entry: the big value, and the smaller unit beside it.
+// One rendered entry: the big value, and the smaller unit beside it. The
+// unit is absent for a hyphen - there is nothing to unit-ify.
 export interface BasementReadoutValue {
   value: string;
   unit?: string;
 }
 
 export type BasementReadoutValues = Record<BasementFieldId, BasementReadoutValue>;
+
+export interface BasementReading {
+  fresh: boolean;
+  values: BasementReadoutValues;
+}
+
+const OFFLINE_VALUE: BasementReadoutValue = { value: "-" };
+const OFFLINE_VALUES: BasementReadoutValues = {
+  temperature: OFFLINE_VALUE,
+  humidity: OFFLINE_VALUE,
+};
 
 // A room's temperature sensor failing reads as 0, a wild swing, or an
 // unplugged-thermostat number far outside these bounds much more often than
@@ -44,9 +66,9 @@ export type BasementReadoutValues = Record<BasementFieldId, BasementReadoutValue
 const MIN_PLAUSIBLE_TEMPERATURE_C = -20;
 const MAX_PLAUSIBLE_TEMPERATURE_C = 60;
 
-// Reads `temperature` and `humidity` out of a metrics file body and drops
-// everything else. Defensive by construction: a body that is not JSON, not
-// an object, or holds something other than a number for either key is no
+// Reads `temperature`, `humidity` and `updated_at` out of a metrics file
+// body and drops everything else. Defensive by construction: a body that is
+// not JSON, not an object, or holds the wrong type for a key is no
 // measurement rather than a fatal one.
 export function parse_basement_metrics(body: string): BasementMetrics {
   let raw: unknown;
@@ -60,33 +82,54 @@ export function parse_basement_metrics(body: string): BasementMetrics {
     return {};
   }
 
-  const { temperature, humidity } = raw as Record<string, unknown>;
+  const { temperature, humidity, updated_at } = raw as Record<string, unknown>;
 
   return {
     temperature: typeof temperature === "number" ? temperature : undefined,
     humidity: typeof humidity === "number" ? humidity : undefined,
+    updated_at: typeof updated_at === "string" ? updated_at : undefined,
   };
 }
 
+// True when `updated_at` parses to a time within MAX_READING_AGE_MS of
+// `now`. A missing or unparseable timestamp is stale, not an error - the
+// same "no measurement" treatment as a missing number.
+export function is_fresh_reading(updated_at: string | undefined, now: number): boolean {
+  if (updated_at === undefined) {
+    return false;
+  }
+
+  const timestamp = Date.parse(updated_at);
+  if (Number.isNaN(timestamp)) {
+    return false;
+  }
+
+  const age = now - timestamp;
+
+  return age < MAX_READING_AGE_MS;
+}
+
 // True when `ids` is exactly the set of fields this module fills. The
-// component checks it before swapping anything live, same contract as
+// component checks it before polling at all, same contract as
 // covers_delivery_fields: if data/pipeline.yaml's basement entries ever
-// drift from these two ids, the whole readout stays static rather than
-// going half true.
+// drift from these two ids, the readout never claims to be live.
 export function covers_basement_fields(ids: readonly string[]): boolean {
   return covers_exact_fields(ids, BASEMENT_FIELD_IDS);
 }
 
-// The two values, or null if either one could not be measured.
-export function format_basement_readout(metrics: BasementMetrics): BasementReadoutValues | null {
+// Always returns a renderable pair. `fresh` is true only when temperature,
+// humidity and a recent `updated_at` are all present and in bounds -
+// anything else, including a stale but otherwise valid reading, degrades to
+// the hyphen pair rather than a number the reader has no way to know is old.
+export function format_basement_readout(metrics: BasementMetrics, now: number): BasementReading {
   const temperature = format_temperature(metrics.temperature);
   const humidity = format_humidity(metrics.humidity);
 
-  if (!temperature || !humidity) {
-    return null;
+  if (!temperature || !humidity || !is_fresh_reading(metrics.updated_at, now)) {
+    return { fresh: false, values: OFFLINE_VALUES };
   }
 
-  return { temperature, humidity };
+  return { fresh: true, values: { temperature, humidity } };
 }
 
 function format_temperature(value: number | undefined): BasementReadoutValue | null {

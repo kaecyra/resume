@@ -22,6 +22,12 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
     (
         mkdir -p /usr/share/nginx/html/api/basement
 
+        # HA_BASE_URL with a trailing slash (as HA's own UI shows it,
+        # "http://homeassistant.local:8123/") would otherwise double up
+        # against the leading slash below into "//api/states/...", which
+        # HA's router 404s on rather than normalizing.
+        ha_base_url=${HA_BASE_URL%/}
+
         # HA reports a disconnected or not-yet-initialized sensor's state as
         # the string "unavailable" or "unknown" rather than null, and `jq
         # tonumber` on either would abort the write with a parse error.
@@ -33,14 +39,21 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
         }
 
         while true; do
-            temperature=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
-                "$HA_BASE_URL/api/states/$HA_TEMP_ENTITY_ID" | jq -r '.state')
-            humidity=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
-                "$HA_BASE_URL/api/states/$HA_HUMIDITY_ENTITY_ID" | jq -r '.state')
+            temp_response=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
+                "$ha_base_url/api/states/$HA_TEMP_ENTITY_ID")
+            humidity_response=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
+                "$ha_base_url/api/states/$HA_HUMIDITY_ENTITY_ID")
 
-            if is_usable_reading "$temperature" && is_usable_reading "$humidity"; then
-                jq -n --arg t "$temperature" --arg h "$humidity" \
-                    '{temperature: ($t | tonumber), humidity: ($h | tonumber)}' \
+            temperature=$(printf '%s' "$temp_response" | jq -r '.state')
+            humidity=$(printf '%s' "$humidity_response" | jq -r '.state')
+            # `last_reported` (HA 2024.9+) is when the entity last reported in
+            # at all, changed or not - the truest "is this still syncing"
+            # signal. `last_updated` is the fallback for older HA versions.
+            updated_at=$(printf '%s' "$temp_response" | jq -r '.last_reported // .last_updated // empty')
+
+            if is_usable_reading "$temperature" && is_usable_reading "$humidity" && [ -n "$updated_at" ]; then
+                jq -n --arg t "$temperature" --arg h "$humidity" --arg u "$updated_at" \
+                    '{temperature: ($t | tonumber), humidity: ($h | tonumber), updated_at: $u}' \
                     > /usr/share/nginx/html/api/basement/metrics.json.tmp \
                     && mv /usr/share/nginx/html/api/basement/metrics.json.tmp \
                         /usr/share/nginx/html/api/basement/metrics.json
