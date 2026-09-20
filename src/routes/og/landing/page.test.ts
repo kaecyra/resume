@@ -80,7 +80,14 @@ describe("the landing OG card", () => {
     expect(SOURCE).toContain("font-size: 8.875rem");
   });
 
-  it("keeps the variant cards' headshot out of the frame", () => {
-    expect(card_html(CARD)).not.toContain("headshot-illustration");
+  // The globe is the only image the card draws. Asserting that, rather than
+  // the absence of the variant card's headshot, catches any stray image -
+  // including a headshot pasted in from next door.
+  it("draws no image other than the globe", () => {
+    const sources = [...card_html(CARD).matchAll(/<img[^>]*\ssrc="([^"]*)"/g)].map(
+      ([, src]) => src,
+    );
+
+    expect(sources).toEqual([GLOBE_STILL_URL]);
   });
 });

@@ -281,11 +281,11 @@ describe("landing data wiring", () => {
 
     const result = await run_load();
 
+    // Not `cto-a`, the variant this landing.yaml links: that variant still
+    // drives the CTA and the PDF filename, so a regression back to its card
+    // would be silent - the card renders either way and the page just goes
+    // on advertising the headshot layout.
     expect(result.og.image).toBe(`https://example.com/og/${LANDING_OG_SLUG}.png`);
-    // The linked variant still drives the CTA and the PDF filename, so a
-    // regression here would be silent: the card would render, and the page
-    // would go on advertising cto-a's headshot layout instead.
-    expect(result.og.image).not.toBe("https://example.com/og/cto-a.png");
   });
 
   it("throws an error listing every validation message for a malformed document", async () => {

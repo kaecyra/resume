@@ -119,7 +119,9 @@ The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [
 
 Every card is a prerendered route screenshotted at 1200x630 by `npm run generate-og` (`scripts/generate-og-images.ts`) during the Docker build. `/og/{variant}` is the resume card - headshot, name, title, in the variant's own theme palette. `/og/landing` is the site root's own card and follows the landing page instead: the hero's frame, its globe still, the name in `Archivo Black` and the flat amber role badge. `LANDING_OG_SLUG` in `src/lib/seo.ts` is the one name shared by the meta tag the root page emits and the PNG the script writes.
 
-The renderer aborts every request that does not come from its own origin, so the Google Fonts `@import` in `src/app.css` never resolves while a card is being captured. The three faces the cards need are therefore served from the site itself (`static/fonts/`, declared in `src/routes/og/+layout.svelte`), which is scoped to `/og/*` - the live site and the PDF pipeline still load fonts from Google Fonts. See `static/fonts/README.md` for provenance and licensing.
+The renderer aborts every request that does not come from its own origin, so the Google Fonts `@import` in `src/app.css` never resolves while a card is being captured. The three faces the cards need are therefore served from the site itself (`static/fonts/`, declared in `src/routes/og/+layout.svelte`), scoped to `/og/*` - the live site still loads fonts from Google Fonts. See `static/fonts/README.md` for provenance and licensing.
+
+`scripts/generate-pdf.ts` has the same abort filter and is affected the same way: the generated PDFs render in the build image's fallback sans rather than in the faces the themes name. That is [#235](https://github.com/kaecyra/resume/issues/235) - it decides font delivery for the whole site, so it is not part of the card work.
 
 #### GitHub Contribution Data
 

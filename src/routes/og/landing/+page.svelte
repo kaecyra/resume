@@ -200,9 +200,4 @@
     letter-spacing: -0.01em;
     text-transform: uppercase;
   }
-
-  :global(body) {
-    margin: 0;
-    padding: 0;
-  }
 </style>

@@ -15,16 +15,36 @@
   design. Same-origin files pass the filter.
 
   Declared here rather than in `src/app.css` so nothing but `/og/*` pays for
-  them: the live site and the PDF pipeline keep taking these faces from
-  Google Fonts, where they are already cached across the web. See
-  static/fonts/README.md for provenance and licensing.
+  them: the live site keeps taking these faces from Google Fonts, where they
+  are already cached across the web. The PDF pipeline is *not* in that
+  sentence - `scripts/generate-pdf.ts` carries the same abort filter, so its
+  fonts fall back exactly the way the cards' did. Fixing that is #235, since
+  it decides font delivery for the whole site rather than for these two
+  routes. See static/fonts/README.md for provenance and licensing.
 -->
 <style>
+  /* Both card routes want the same one, and a copy in each was a copy too
+     many once this layout existed. */
+  :global(body) {
+    margin: 0;
+    padding: 0;
+  }
+
+  /*
+   * `swap`, not `block`, on all three. The renderer awaits
+   * `document.fonts.ready` before it screenshots, so on the success path
+   * the face is in either way and the display policy never applies. It
+   * decides what happens when a file is missing or renamed: the FontFaceSet
+   * settles as an error, `fonts.ready` resolves immediately, and a card
+   * screenshotted inside `block`'s invisible-text period would ship with no
+   * name on it at all while `generate-og` exits 0. `swap` degrades that to
+   * a readable fallback instead.
+   */
   @font-face {
     font-family: "Archivo Black";
     font-style: normal;
     font-weight: 400;
-    font-display: block;
+    font-display: swap;
     src: url("/fonts/archivo-black-latin.woff2") format("woff2");
   }
 
@@ -32,7 +52,7 @@
     font-family: "Share Tech Mono";
     font-style: normal;
     font-weight: 400;
-    font-display: block;
+    font-display: swap;
     src: url("/fonts/share-tech-mono-latin.woff2") format("woff2");
   }
 
@@ -43,7 +63,7 @@
     font-family: "IBM Plex Sans";
     font-style: normal;
     font-weight: 100 900;
-    font-display: block;
+    font-display: swap;
     src: url("/fonts/ibm-plex-sans-latin.woff2") format("woff2");
   }
 </style>
