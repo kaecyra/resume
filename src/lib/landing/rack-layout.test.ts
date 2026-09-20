@@ -1,4 +1,5 @@
 import {
+  BLINK_PERIOD_SCALE,
   RACK_UNITS,
   RACK_U_COUNT,
   TRAY_RUNG_FIRST_X,
@@ -113,7 +114,21 @@ describe("the ceiling tray", () => {
 describe("the blink custom properties", () => {
   it("hands an animated element its own period and offset", () => {
     expect(blink_vars({ pattern: "a", period_s: 1.82, delay_s: 2.36 })).toBe(
-      "--d: 1.82s; --t: 2.36s",
+      `--d: ${1.82 * BLINK_PERIOD_SCALE}s; --t: 2.36s`,
+    );
+  });
+
+  it("slows every period by the same scale, and only the period", () => {
+    const slow = blink_vars({ pattern: "b", period_s: 2.0, delay_s: 1.0 });
+
+    expect(slow).toBe(`--d: ${2.0 * BLINK_PERIOD_SCALE}s; --t: 1s`);
+  });
+
+  // 1.93 * 1.25 is 2.4125000000000005 in binary floating point, and a
+  // style attribute is not the place to find that out.
+  it("rounds the scaled period rather than shipping float noise", () => {
+    expect(blink_vars({ pattern: "b", period_s: 1.93, delay_s: 1.07 })).toBe(
+      "--d: 2.413s; --t: 1.07s",
     );
   });
 
@@ -121,5 +136,63 @@ describe("the blink custom properties", () => {
   // attribute would otherwise ship on every unlit port in the rack.
   it("gives an unpatterned element nothing at all", () => {
     expect(blink_vars({})).toBeUndefined();
+  });
+});
+
+describe("what blinks", () => {
+  // The aggregation switch carries the two access switches rather than any
+  // endpoint of its own, and the NVR's bays are drive faces, not LEDs.
+  it("blinks on the two access switches and nowhere else", () => {
+    const blinking = RACK_UNITS.filter((unit) => {
+      if (unit.kind === "switch") {
+        return unit.ports.some((port) => port.pattern !== undefined);
+      }
+      if (unit.kind === "nvr") {
+        return unit.bays.some((bay) => bay.pattern !== undefined);
+      }
+      return false;
+    });
+
+    expect(blinking.map((unit) => unit.id)).toEqual([
+      "usw-enterprise-48-poe",
+      "usw-enterprise-24-poe",
+    ]);
+  });
+
+  it("holds every port on the aggregation switch still", () => {
+    const aggregation = RACK_UNITS.find((unit) => unit.id === "usw-aggregation");
+
+    expect(aggregation?.kind).toBe("switch");
+    expect(
+      aggregation?.kind === "switch" && aggregation.ports.every((port) => port.pattern === undefined),
+    ).toBe(true);
+  });
+
+  it("gives the activity LED to the accent node alone", () => {
+    const lit = RACK_UNITS.filter((unit) => unit.kind === "server" && unit.health !== undefined);
+
+    expect(lit.map((unit) => unit.id)).toEqual(["r430"]);
+    expect(lit.every((unit) => unit.kind === "server" && unit.accent)).toBe(true);
+    expect(lit.every((unit) => unit.kind === "server" && unit.health?.pattern === "activity")).toBe(
+      true,
+    );
+  });
+
+  // It is disk activity, not a slow health pulse, so it has to turn over on
+  // the same order as the ports beside it rather than once every several
+  // seconds. The bound is the slowest port, not the busiest: the LED is
+  // deliberately not the fastest thing in the rack, and asserting against
+  // the minimum would pin a number this test has no opinion about.
+  it("turns over no slower than the slowest port on a switch", () => {
+    const activity = RACK_UNITS.find((unit) => unit.kind === "server" && unit.health !== undefined);
+    const port_periods = RACK_UNITS.flatMap((unit) =>
+      unit.kind === "switch"
+        ? unit.ports.flatMap((port) => (port.pattern === undefined ? [] : [port.period_s ?? 0]))
+        : [],
+    );
+
+    const period = activity?.kind === "server" ? (activity.health?.period_s ?? 0) : 0;
+    expect(period).toBeGreaterThan(0);
+    expect(period).toBeLessThanOrEqual(Math.max(...port_periods));
   });
 });

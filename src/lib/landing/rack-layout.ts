@@ -43,27 +43,39 @@ export const CABINET_H = RACK_U_COUNT * RACK_U_PITCH + CABINET_PLINTH * 2;
 export const CABINET_FLOOR_Y = CABINET_Y + CABINET_H;
 export const RAIL_W = 16;
 
-// Two blink patterns, so a wall of ports reads as traffic rather than as
-// a metronome. Each port carries its own period and offset.
-type RackBlinkPattern = "a" | "b";
+// Three blink patterns, so a wall of ports reads as traffic rather than as
+// a metronome. Each port carries its own period and offset. `a` and `b`
+// are the mockup's two port patterns; `activity` is the accent server's
+// green LED, which flickers at its own uneven rhythm - a box doing work,
+// not a port passing frames.
+type RackBlinkPattern = "a" | "b" | "activity";
 
-interface RackBlink {
-  pattern?: RackBlinkPattern;
-  period_s?: number;
-  delay_s?: number;
-}
+// A union rather than three independent optionals: a pattern without a
+// period used to produce `--d: 0s`, which is a stopped animation, not the
+// `var(--d, 1.9s)` fallback a reader of the stylesheet would expect. Either
+// an element blinks and carries both numbers, or it does not blink at all.
+type RackBlink =
+  | { pattern?: undefined; period_s?: undefined; delay_s?: undefined }
+  | { pattern: RackBlinkPattern; period_s: number; delay_s: number };
+
+// The mockup's periods, ported straight, read as a strobe on a real screen
+// rather than as a rack ticking over in a basement. Every one of them is
+// stretched by this, in one place, so the numbers below stay the mockup's
+// own and the whole rack slows together: a period a quarter longer is a
+// fifth fewer flashes in the same span.
+export const BLINK_PERIOD_SCALE = 1.25;
 
 // A port: lit and holding link, or dark. `x` is absolute in the viewBox,
 // kept as a literal list rather than a start-plus-step so the two
 // 5.4-wide port rows land exactly where the mockup put them.
-interface RackPort extends RackBlink {
+type RackPort = RackBlink & {
   x: number;
   state: "off" | "link";
-}
+};
 
-interface RackDriveBay extends RackBlink {
+type RackDriveBay = RackBlink & {
   x: number;
-}
+};
 
 type RackFitting =
   // A blanking panel with a brush strip for cables to pass through.
@@ -87,8 +99,9 @@ type RackFitting =
   // The UPS at the floor.
   | { kind: "ups" }
   // A Dell wearing its hex security bezel. `accent` marks the one node
-  // this site actually runs on.
-  | { kind: "server"; accent: boolean };
+  // this site actually runs on, and it is the only one whose LED does
+  // anything - see `activity`.
+  | { kind: "server"; accent: boolean; health?: RackBlink };
 
 type RackUnit = {
   id: string;
@@ -110,15 +123,19 @@ export const RACK_UNITS: readonly RackUnit[] = [
     units: 1,
     kind: "switch",
     port_w: 9,
+    // The aggregation switch holds link and sits still. It carries the two
+    // access switches below it rather than any endpoint of its own, and its
+    // eight fat ports blinking alongside their ninety-six read as one more
+    // busy row instead of the uplink they are.
     ports: [
       { x: 76.0, state: "off" },
-      { x: 90.0, state: "link", pattern: "a", period_s: 1.82, delay_s: 2.36 },
-      { x: 104.0, state: "link", pattern: "a", period_s: 1.7, delay_s: 2.01 },
+      { x: 90.0, state: "link" },
+      { x: 104.0, state: "link" },
       { x: 118.0, state: "link" },
-      { x: 132.0, state: "link", pattern: "b", period_s: 1.56, delay_s: 1.42 },
-      { x: 146.0, state: "link", pattern: "a", period_s: 1.3, delay_s: 0.69 },
-      { x: 160.0, state: "link", pattern: "b", period_s: 1.41, delay_s: 2.35 },
-      { x: 174.0, state: "link", pattern: "a", period_s: 0.71, delay_s: 1.46 },
+      { x: 132.0, state: "link" },
+      { x: 146.0, state: "link" },
+      { x: 160.0, state: "link" },
+      { x: 174.0, state: "link" },
     ],
   },
   { id: "patch-panel-u6", u: 6, units: 1, kind: "patch_panel" },
@@ -163,12 +180,10 @@ export const RACK_UNITS: readonly RackUnit[] = [
     u: 9,
     units: 1,
     kind: "nvr",
-    bays: [
-      { x: 68 },
-      { x: 100, pattern: "b", period_s: 3.1, delay_s: 1.1 },
-      { x: 132, pattern: "b", period_s: 3.8, delay_s: 2.2 },
-      { x: 164 },
-    ],
+    // The bays sit still. Blinking is the switches' alone: four rows of
+    // ports already carry the traffic, and the NVR joining in read as the
+    // whole rack twitching at once.
+    bays: [{ x: 68 }, { x: 100 }, { x: 132 }, { x: 164 }],
   },
   { id: "brush-u10", u: 10, units: 1, kind: "brush" },
   {
@@ -209,7 +224,14 @@ export const RACK_UNITS: readonly RackUnit[] = [
   { id: "shelf", u: 17, units: 1, kind: "shelf" },
   { id: "pdu", u: 18, units: 1, kind: "pdu" },
   { id: "empty-u19", u: 19, units: 3, kind: "empty" },
-  { id: "r430", u: 22, units: 1, kind: "server", accent: true },
+  {
+    id: "r430",
+    u: 22,
+    units: 1,
+    kind: "server",
+    accent: true,
+    health: { pattern: "activity", period_s: 2.3, delay_s: 1.6 },
+  },
   { id: "r730xd-u23", u: 23, units: 2, kind: "server", accent: false },
   { id: "r730xd-u25", u: 25, units: 2, kind: "server", accent: false },
   { id: "empty-u27", u: 27, units: 2, kind: "empty" },
@@ -250,7 +272,17 @@ export function blink_vars(blink: RackBlink): string | undefined {
   if (blink.pattern === undefined) {
     return undefined;
   }
-  return `--d: ${blink.period_s}s; --t: ${blink.delay_s}s`;
+  // No `?? 0` on either number: the union above makes both of them present
+  // wherever a pattern is, so a default here could only paper over a shape
+  // the type no longer allows.
+  return `--d: ${round(blink.period_s * BLINK_PERIOD_SCALE)}s; --t: ${blink.delay_s}s`;
+}
+
+// The scale multiplies out to float noise otherwise - 1.93 * 1.25 is
+// 2.4125000000000005 in binary floating point, and that is not a number
+// anyone wants to read in a style attribute.
+function round(seconds: number): number {
+  return Math.round(seconds * 1000) / 1000;
 }
 
 // The ceiling tray. It is drawn from x = -3000 to x = 168 inside a

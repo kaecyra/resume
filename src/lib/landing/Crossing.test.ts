@@ -113,4 +113,71 @@ describe("Crossing", () => {
   it("uses the plain system monospace stack", () => {
     expect(SOURCE).toContain("font-family: ui-monospace, SFMono-Regular, Menlo, monospace;");
   });
+
+  describe("the reveal (#209 step f)", () => {
+    // The action never runs during SSR, so this is also what a reader with
+    // scripting off or reduced motion gets: the finished connector.
+    it("renders finished, with no reveal state, on the server", () => {
+      const html = html_for(TO_REGISTRY, 0);
+
+      expect(html).not.toContain("is-armed");
+      expect(html).not.toContain("is-revealed");
+    });
+
+    // A crossing is a sibling of the bands, not a child of one, and it has
+    // no wrapper element for a parent to hang an action off - by design,
+    // since a wrapper would bring margins of its own into a connector that
+    // has to join two spines exactly.
+    it("observes itself rather than taking a phase from a parent", () => {
+      expect(SOURCE).toContain("use:reveal");
+      expect(SOURCE).not.toMatch(/phase\??:\s*RevealPhase/);
+    });
+
+    // Each rule scales along its own run, so the line travels rather than
+    // fading in. Both halves matter: without the armed state there is
+    // nothing to travel from, and without the origins the two verticals
+    // would grow from their middles.
+    it("grows each rule from the end the connector leaves", () => {
+      const style = SOURCE.slice(SOURCE.indexOf("<style>"));
+
+      expect(style).toMatch(/\.is-armed \.x-start,\s*\.is-armed \.x-end \{\s*transform: scaleY\(0\)/);
+      expect(style).toMatch(/\.is-armed \.x-h \{\s*transform: scaleX\(0\)/);
+      expect(style).toMatch(/\.x-v \{[^}]*transform-origin: center top;/);
+      expect(style).toMatch(/\.crossing--out \.x-h \{\s*transform-origin: left center;/);
+      expect(style).toMatch(/\.crossing--back \.x-h \{\s*transform-origin: right center;/);
+    });
+
+    // The order is the order the connector reads in: down off the spine it
+    // leaves, across, down onto the spine it lands on, then the arrow. A
+    // reordering that still animates every part would otherwise pass.
+    it("draws its four parts in reading order", () => {
+      const style = SOURCE.slice(SOURCE.indexOf("<style>"));
+      // Sliced to the rule's own closing brace: reading to the end of the
+      // stylesheet instead lets the regex fall through to the next rule's
+      // delay, which reports one animation's timing under another's name.
+      //
+      // Throws rather than defaulting to 0 on a missing rule. A fallback
+      // would make the first assertion below - that the opening rule has no
+      // delay - pass just as well if the animation were deleted outright,
+      // which is the one edit this test exists to catch.
+      const delay_of = (selector: string): number => {
+        const start = style.indexOf(`.is-revealed ${selector} {`);
+        if (start === -1) {
+          throw new Error(`no .is-revealed ${selector} rule`);
+        }
+        const rule = style.slice(start, style.indexOf("}", start));
+        const match = rule.match(/animation: [\w-]+ \d+ms [\w-]+(?:\([^)]*\))?(?: (\d+)ms)?/);
+        if (match === null) {
+          throw new Error(`.is-revealed ${selector} has no animation`);
+        }
+        // The opening rule carries no delay at all, which is a delay of 0.
+        return match[1] === undefined ? 0 : Number(match[1]);
+      };
+
+      expect(delay_of(".x-start")).toBe(0);
+      expect(delay_of(".x-start")).toBeLessThan(delay_of(".x-h"));
+      expect(delay_of(".x-h")).toBeLessThan(delay_of(".x-end"));
+      expect(delay_of(".x-end")).toBeLessThan(delay_of(".x-tip"));
+    });
+  });
 });

@@ -1,4 +1,4 @@
-# Content for the "Building a pipeline" landing section (#209).
+# Content for the "Pipelines" landing section (#209).
 #
 # Loaded and validated by src/lib/pipeline.ts, typed by PipelineData in
 # src/lib/types.ts. It is a second landing data file rather than another
@@ -13,7 +13,11 @@
 # src/lib/landing/palette.ts at render time, so nothing in this file has to
 # change when a colour does.
 
-heading: "Building a pipeline"
+heading: "Pipelines"
+# Deadpan, and deliberately not explained. The paragraph under it does the
+# explaining; this line is the section saying what it is about in the voice
+# of someone who knows it is a lot of rack drawing for a resume.
+subtitle: "... so hot right now"
 
 lede: >-
   I write this site on a laptop. Five minutes or so after I merge a change, it is
@@ -33,6 +37,16 @@ bands:
     tail_arrow: true
 
     nodes:
+      # The other end of the section's bookend: band 3 finishes on "you",
+      # and the whole pipeline starts here, with me at the keyboard. Same
+      # style and tone as that node on purpose.
+      - id: me
+        label: "me"
+        detail: "at my laptop"
+        style: reader
+        tone: accent
+        lane: trunk
+
       - id: repo
         label: "kaecyra/resume"
         detail: "main"
@@ -108,16 +122,25 @@ bands:
         emphasis: true
 
     edges:
+      - id: at-the-keyboard
+        from: me
+        to: repo
+        kind: trunk
+        tone: default
+
       # main, from the branch point down to the merge. Dotted because it is
       # not the live tip while the branch is out; head_tone paints the
-      # stretch above the fork, which still is.
+      # stretch above the fork, which still is - so it is the same tone as
+      # the branch itself, not a step down from it. A dimmer stretch there
+      # reads as a broken connector between the repo and the branch, which
+      # is the one join in the drawing that has to look solid.
       - id: main-while-branched
         from: repo
         to: merged
         kind: trunk
         tone: dim
         dash: dotted
-        head_tone: muted
+        head_tone: default
 
       - id: branch-out
         from: repo
@@ -439,6 +462,6 @@ crossings:
     label: "nginx :80"
 
 closer: >-
-  You are the last node on that drawing. I merge a branch on my laptop, and about
-  five minutes later a machine in my basement is handing this page to you.
-closer_emphasis: "a machine in my basement"
+  All of this was for you. I merge a branch on my laptop, and about five minutes
+  later a machine in my basement is serving this silly page to you.
+closer_emphasis: "All of this was for you."

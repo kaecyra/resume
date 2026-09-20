@@ -13,6 +13,7 @@
   // `data-device` exists for the tests, which otherwise have no handle at
   // all on a drawing with no text in it.
   import { CABLE_TRAY, HUD_PALETTE, RACK_CHASSIS, RACK_LED } from "./palette.js";
+  import type { RevealPhase } from "./pipeline-motion.js";
   import {
     ACCENT_CLEARANCE,
     ACCENT_W,
@@ -43,6 +44,14 @@
     rack_u_y,
   } from "./rack-layout.js";
 
+  // The rack's only prop, and only because the band it sits in reveals on
+  // scroll: the blinking ports and drive bays hold at the off colour until
+  // the band arrives, so the rack comes up with the section rather than
+  // having been running since the page loaded. The status and health LEDs
+  // are not gated - they are lit metal, part of the drawing, and not
+  // something that starts.
+  let { phase = "static" }: { phase?: RevealPhase } = $props();
+
   const accent_unit = RACK_UNITS.find((unit) => unit.kind === "server" && unit.accent);
 
   // The blink keyframes have to name their three colours in CSS, and a
@@ -52,10 +61,17 @@
     `--rack-led-off: ${RACK_LED.off}`,
     `--rack-led-link: ${RACK_LED.link}`,
     `--rack-led-active: ${RACK_LED.active}`,
+    `--rack-led-healthy: ${RACK_LED.healthy}`,
   ].join("; ");
 </script>
 
-<svg class="rack-svg" viewBox="0 0 256 538" aria-hidden="true" style={led_vars}>
+<svg
+  class="rack-svg"
+  class:is-armed={phase === "armed"}
+  viewBox="0 0 256 538"
+  aria-hidden="true"
+  style={led_vars}
+>
   <!-- Wire-mesh basket tray, seen from the front. The three bundles lie
        flat along the run, bend over and drop into the top of the cabinet,
        so along the run the near one covers the two behind it. -->
@@ -214,14 +230,21 @@
         <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height="1.5" fill={RACK_CHASSIS.bezel_top_light} />
         <rect x={EQUIP_X} y={unit_y} width="11" height={unit_h} fill={RACK_CHASSIS.bezel_end_cap} />
         <rect x="197" y={unit_y} width="11" height={unit_h} fill={RACK_CHASSIS.bezel_end_cap} />
-        <rect x="50.5" y={cy - 1.5} width="3" height="3" fill={RACK_LED.healthy} />
+        <rect
+          x="50.5"
+          y={cy - 1.5}
+          width="3"
+          height="3"
+          fill={RACK_LED.healthy}
+          class:led-activity={unit.health?.pattern === "activity"}
+          style={unit.health === undefined ? undefined : blink_vars(unit.health)}
+        />
         <circle cx="64" {cy} r="2.2" fill="none" stroke={RACK_CHASSIS.bezel_lock} stroke-width="1" />
         <g fill="none" stroke={RACK_CHASSIS.bezel_rib} stroke-width="1.3">
           {#each BEZEL_RIB_XS as rib_x (rib_x)}
             <path d={bezel_rib_path(rib_x, cy, rib_top, rib_bottom)} />
           {/each}
         </g>
-        <rect x="115" y={cy - 1} width="26" height="2.5" fill={RACK_CHASSIS.bezel_badge} />
       {/if}
     </g>
   {/each}
@@ -317,9 +340,81 @@
     animation: led-b var(--d, 1.9s) steps(1, end) var(--t, 0s) infinite;
   }
 
+  /* The accent server's LED: disk activity, green, at no rhythm at all.
+     Every stop below is a different width on purpose - an even split reads
+     as a metronome, which is exactly what the two port patterns already
+     avoid by carrying their own periods. */
+  @keyframes led-activity {
+    0%,
+    9% {
+      fill: var(--rack-led-healthy);
+    }
+    10%,
+    16% {
+      fill: var(--rack-led-off);
+    }
+    17%,
+    19% {
+      fill: var(--rack-led-healthy);
+    }
+    20%,
+    37% {
+      fill: var(--rack-led-off);
+    }
+    38%,
+    52% {
+      fill: var(--rack-led-healthy);
+    }
+    53%,
+    57% {
+      fill: var(--rack-led-off);
+    }
+    58%,
+    61% {
+      fill: var(--rack-led-healthy);
+    }
+    62%,
+    64% {
+      fill: var(--rack-led-off);
+    }
+    65%,
+    83% {
+      fill: var(--rack-led-healthy);
+    }
+    84%,
+    100% {
+      fill: var(--rack-led-off);
+    }
+  }
+
+  .led-activity {
+    animation: led-activity var(--d, 2.3s) steps(1, end) var(--t, 0s) infinite;
+  }
+
+  /* Armed is the one state where the rack is drawn but not yet running:
+     the blink is held and every blinking LED sits at the off colour. A CSS
+     `fill` beats the element's own `fill` attribute, which is what makes
+     the dark state reachable without the markup knowing about it. There is
+     no `is-revealed` rule to match - revealed is what the two above already
+     do, and what a reader with scripting off or reduced motion gets from
+     the first frame. */
+  .is-armed .led-a,
+  .is-armed .led-b {
+    animation: none;
+    fill: var(--rack-led-off);
+  }
+
+  /* The activity LED holds too, but at its own colour: a dark green LED
+     means a box that is down, which is not what "the band has not arrived
+     yet" should say. */
+  .is-armed .led-activity {
+    animation: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .led-a,
-    .led-b {
+    .led-b,
+    .led-activity {
       animation: none;
     }
   }

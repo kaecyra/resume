@@ -10,6 +10,7 @@
   import VendorMarks from "./VendorMarks.svelte";
   import { HUD_PALETTE } from "./palette.js";
   import { build_pipeline_graphs } from "./pipeline-graph.js";
+  import { reveal, type RevealPhase } from "./pipeline-motion.js";
   import { split_tagline } from "./tagline-format.js";
 
   let { pipeline }: { pipeline: PipelineData } = $props();
@@ -29,15 +30,44 @@
   function follows_note(band: PipelineBand): boolean {
     return band.readout !== undefined && band.note.column === band.readout.column;
   }
+
+  // One reveal phase per band, and the band is what carries it: the
+  // drawing, the terminal and the rack in a band arrive together, off one
+  // observer, rather than three of them racing each other down the same
+  // scroll. It starts `static` - the finished state - so the server's
+  // output, a browser with no JavaScript, and a reader who has asked for
+  // reduced motion all get the section simply present. `reveal` moves it
+  // on only where motion is welcome.
+  //
+  // A prop rather than a class on the band that children match: Svelte
+  // scopes a component's styles to itself, so an ancestor class would need
+  // a `:global()` selector inside every one of them.
+  //
+  // Keyed by band id and absent until the action fills it, rather than an
+  // array sized from `pipeline.bands` up front: sizing it here would
+  // capture the band list as it was at construction, and the id is what
+  // the `{#each}` is already keyed by.
+  let band_phases = $state<Record<string, RevealPhase>>({});
+
+  function phase_of(band: PipelineBand): RevealPhase {
+    return band_phases[band.id] ?? "static";
+  }
 </script>
 
 <section
   id="pipeline"
   class="pipeline"
-  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-accent: {HUD_PALETTE.accent};"
 >
   <div class="wrap">
     <h2 class="section-title">{pipeline.heading}</h2>
+
+    <!-- Set in the heading's own face, a size down and a tone quieter, so it
+         reads as the title trailing off rather than as a second heading or
+         as the start of the lede. Omitted entirely when the data has none. -->
+    {#if pipeline.subtitle}
+      <p class="section-subtitle">{pipeline.subtitle}</p>
+    {/if}
 
     <!-- Three text nodes rather than markup in the data: the emphasis
          phrase arrives as plain text and is wrapped here, the same contract
@@ -48,7 +78,11 @@
     </p>
 
     {#each pipeline.bands as band, index (band.id)}
-      <section class="band" class:band--flip={band.graph_side === "right"}>
+      <section
+        class="band"
+        class:band--flip={band.graph_side === "right"}
+        use:reveal={(phase) => (band_phases[band.id] = phase)}
+      >
         {#if band.label}
           <p class="band-label">
             {band.label.from}{#if band.label.to}<span class="band-label-hop">&rarr;</span
@@ -58,7 +92,7 @@
 
         <div class="band-grid">
           <div class="col col-graph">
-            <Graph {band} layout={layouts[index]} />
+            <Graph {band} layout={layouts[index]} phase={phase_of(band)} />
 
             {#if band.note.column === "graph"}
               {@const note = split_tagline(band.note.text, band.note.emphasis)}
@@ -74,6 +108,9 @@
 
           <div class="col col-aside">
             {#if band.terminal}
+              <!-- No phase prop: the terminal observes itself, because its
+                   replay is long enough that the band's own arrival fires
+                   it too early to be watched. See Terminal.svelte. -->
               <Terminal terminal={band.terminal} />
             {/if}
 
@@ -83,7 +120,7 @@
 
             {#if band.rack}
               <div class="rack-row">
-                <Rack />
+                <Rack phase={phase_of(band)} />
               </div>
             {/if}
 
@@ -147,6 +184,21 @@
     text-wrap: balance;
   }
 
+  /* The body face at its normal weight, not the heading's: the line is an
+     aside under the title, and setting it in the display face made it read
+     as a second heading rather than as the title trailing off. */
+  /* The bottom margin lives here rather than on `.lede`, so the wider gap
+     exists only where a subtitle does. Adjacent margins collapse to the
+     larger of the two, so this is the gap, not an addition to the lede's
+     own 18px. */
+  .section-subtitle {
+    margin: 8px 0 34px;
+    font-weight: 400;
+    font-size: clamp(1rem, 2.4vw, 1.35rem);
+    line-height: 1.2;
+    color: var(--hud-secondary);
+  }
+
   .lede {
     margin: 18px 0 0;
     max-width: 44ch;
@@ -154,8 +206,7 @@
     color: var(--hud-secondary);
   }
 
-  .lede-emphasis,
-  .closer-emphasis {
+  .lede-emphasis {
     font-weight: inherit;
     color: var(--hud-text);
   }
@@ -212,14 +263,25 @@
     color: var(--hud-text);
   }
 
+  /* The section's last line, and the only place the accent is spent on
+     running text. The first sentence carries the display face and the
+     accent; what follows it drops to the body face at its normal weight
+     and the page's own text colour, so the stress lands once and the
+     explanation underneath it reads as prose rather than as more heading. */
   .closer {
     margin: 72px 0 0;
     max-width: 40ch;
-    font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
     font-size: clamp(1.25rem, 3.2vw, 1.75rem);
-    line-height: 1.25;
+    line-height: 1.35;
+    color: var(--hud-text);
     text-wrap: balance;
+  }
+
+  .closer-emphasis {
+    font-family: "Archivo Black", Impact, sans-serif;
+    font-weight: 400;
+    color: var(--hud-accent);
   }
 
   /* Below this the grid is one column and the graph leads, which is the

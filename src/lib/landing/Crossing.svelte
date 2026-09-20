@@ -2,6 +2,7 @@
   import type { PipelineCrossing } from "$lib/types.js";
 
   import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
+  import { reveal, type RevealPhase } from "./pipeline-motion.js";
 
   // One connector between two bands (#209). `index` is the crossing's
   // position in `PipelineData.crossings`, and it is the only thing that
@@ -14,11 +15,21 @@
   let { crossing, index }: { crossing: PipelineCrossing; index: number } = $props();
 
   const direction = $derived(index % 2 === 0 ? "out" : "back");
+
+  // The crossing observes itself, where a band's drawings are observed by
+  // Pipeline.svelte on the band's behalf. A crossing is a sibling of the
+  // bands, not a child of one, and it has no wrapper element for a parent
+  // to hang an action off - by design, since a wrapper would bring margins
+  // of its own into a connector that has to join two spines exactly.
+  let phase = $state<RevealPhase>("static");
 </script>
 
 <div
   class="crossing crossing--{direction}"
+  class:is-armed={phase === "armed"}
+  class:is-revealed={phase === "revealed"}
   data-crossing={crossing.id}
+  use:reveal={(next) => (phase = next)}
   style="--ink-rule: {PIPELINE_INK.crossing_rule}; --ink-arrow: {PIPELINE_INK.crossing_arrow}; --hud-bg: {HUD_PALETTE.background}; --hud-edge: {HUD_PALETTE.edge}; --hud-accent: {HUD_PALETTE.accent}; --hud-chip-text: {HUD_PALETTE.chip_text};"
 >
   <span class="x-v x-start"></span>
@@ -62,6 +73,9 @@
   .x-v {
     width: 0;
     border-left: 1px dashed var(--ink-rule);
+    /* Both vertical rules grow downward from where they leave, which is
+       what makes the connector travel rather than appear. */
+    transform-origin: center top;
   }
 
   .x-h {
@@ -128,6 +142,88 @@
     line-height: 22px;
     color: var(--hud-chip-text);
     white-space: nowrap;
+  }
+
+  /* The connector draws itself in the order it is read: down off the spine
+     it leaves, across, down onto the spine it lands on, then the arrow.
+     Each rule scales along its own run rather than fading, so the line
+     travels. The label crosses the middle while the horizontal run is
+     still moving, which is where it sits anyway.
+
+     As everywhere else in this section, the phase only leaves "static"
+     where `pipeline-motion.ts` has confirmed motion is welcome, so nothing
+     below applies to a server render, a page with scripting off, or a
+     reader who asked for reduced motion. */
+  .is-armed .x-start,
+  .is-armed .x-end {
+    transform: scaleY(0);
+  }
+
+  .is-armed .x-h {
+    transform: scaleX(0);
+  }
+
+  .is-armed .x-tip,
+  .is-armed .x-label {
+    opacity: 0;
+  }
+
+  /* The horizontal run grows from whichever end the connector leaves, so
+     an "out" crossing travels left to right and a "back" one right to
+     left. */
+  .crossing--out .x-h {
+    transform-origin: left center;
+  }
+
+  .crossing--back .x-h {
+    transform-origin: right center;
+  }
+
+  .is-revealed .x-start {
+    animation: rule-drop 260ms ease-out both;
+  }
+
+  .is-revealed .x-h {
+    animation: rule-run 320ms ease-in-out 260ms both;
+  }
+
+  .is-revealed .x-end {
+    animation: rule-drop 260ms ease-in 580ms both;
+  }
+
+  .is-revealed .x-tip {
+    animation: crossing-fade 160ms linear 840ms both;
+  }
+
+  .is-revealed .x-label {
+    animation: crossing-fade 220ms linear 300ms both;
+  }
+
+  @keyframes rule-drop {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes rule-run {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes crossing-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   /* Below 860px `.band-grid` collapses to a single column, so there is no

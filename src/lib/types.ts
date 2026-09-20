@@ -195,10 +195,10 @@ export interface LandingData {
 
 // --- data/pipeline.yaml (#209) ---
 //
-// The "Building a pipeline" section is the first landing section whose
-// content does not live in data/landing.yaml. It is three annotated graphs
-// plus the columns facing them, and folding that much structure into the
-// landing document would have buried the six sections already there.
+// The "Pipelines" section is the first landing section whose content does
+// not live in data/landing.yaml. It is three annotated graphs plus the
+// columns facing them, and folding that much structure into the landing
+// document would have buried the six sections already there.
 // src/lib/pipeline.ts loads and validates it, and +page.server.ts threads
 // it through as its own prop the way contributions_grid already is.
 //
@@ -373,6 +373,9 @@ export interface PipelineCrossing {
 
 export interface PipelineData {
   heading: string;
+  // The line directly under the heading, before the lede. Optional: the
+  // section reads without it, and it carries a joke rather than a fact.
+  subtitle?: string;
   lede: string;
   // Verbatim substring of `lede`, same contract as PipelineNote.emphasis.
   lede_emphasis?: string;
