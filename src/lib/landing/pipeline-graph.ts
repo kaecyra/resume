@@ -67,8 +67,12 @@ export const PIPELINE_GRAPH_GEOMETRY = {
   fork_rise: 64,
   fork_control_out: 35,
   fork_control_in: 36,
-  // Band 1's merge falls 100 units with symmetric controls, which is what
-  // puts its t=0.5 point exactly halfway between the two lanes.
+  // Band 1's merge falls 100 units. The two control offsets are equal so
+  // that the curve's t=0.5 *y* lands exactly halfway between the leaving
+  // and landing nodes - the middle Bernstein terms cancel only when they
+  // match. The halfway x comes free either way, since the controls sit on
+  // the two lanes. The merge rider is hung at t=0.5, so this is the reason
+  // the pair must stay equal.
   merge_drop: 100,
   merge_control_out: 38,
   merge_control_in: 38,
@@ -77,6 +81,14 @@ export const PIPELINE_GRAPH_GEOMETRY = {
   edge_width: 2,
   ring_stroke_width: 2.5,
   tick_width: 2,
+  // The checkmark, ported from the mockup stroke for stroke: start half a
+  // unit left of where it ends, dip 4 and rise 8. The drawn box is 11 wide
+  // and sits half a unit right of the node's centre, which is the mockup's
+  // own asymmetry, not a rounding fault.
+  tick_lead: 5,
+  tick_dip: 4,
+  tick_run: 7,
+  tick_rise: 8,
   dotted_dash: "1 5",
   dashed_dash: "5 5",
 
@@ -234,6 +246,9 @@ export interface PipelineGraphLayout {
   label_x: number;
   // Where the branch leaves the trunk and where it rejoins it, or null in a
   // band that has no branch. A trunk edge spanning either is split there.
+  // Both name the band's first departure, which in every band the mockup
+  // draws is its only one; a band that leaves twice splits its trunk at all
+  // four points regardless.
   fork_y: number | null;
   merge_y: number | null;
   nodes: PipelineGraphNode[];
@@ -303,17 +318,45 @@ function merge_curve(leave_y: number, land_y: number): PipelinePoint[] {
 
 // --- Placement ------------------------------------------------------------
 
+// One trip off the trunk: where the lane change leaves the spine, where it
+// lands back, and the nodes at either end so an edge can find its own
+// departure rather than the band's last one. A band that leaves twice has
+// two of these; reading a band-global drew the first curve from the second
+// fork's y and ran it back up the page.
+interface Excursion {
+  fork_y: number;
+  merge_y: number | null;
+  entry_id: string;
+  exit_id: string | null;
+}
+
 interface Rhythm {
   // Parallel to `band.nodes`, so the layout can stay in data order, plus
   // the same placements by id for the edges to look up.
   at: PipelinePoint[];
   by_id: Map<string, PipelinePoint>;
-  fork_y: number | null;
-  merge_y: number | null;
+  excursions: Excursion[];
 }
 
 function lane_x(node: PipelineNode): number {
   return node.lane === "branch" ? GEO.branch_x : GEO.spine_x;
+}
+
+// Where a branch run ends: the first node after it that stands on the
+// trunk again, or null where the band forks and never returns. Merge-lane
+// nodes ride the curve rather than the lane, so they are not the end of
+// anything.
+function branch_run_end(band: PipelineBand, entry_index: number): number | null {
+  for (let index = entry_index + 1; index < band.nodes.length; index += 1) {
+    const node = band.nodes[index];
+    if (node.lane === "merge") {
+      continue;
+    }
+    if (node.lane !== "branch") {
+      return index;
+    }
+  }
+  return null;
 }
 
 // A trunk edge with a `head_tone` says the stretch above the fork is still
@@ -324,9 +367,30 @@ function lane_x(node: PipelineNode): number {
 // pull) has no such stretch to show, and its fork leaves at the node
 // itself. Both are the mockup's own behaviour, and this is the difference
 // the two bands' data already records.
-function fork_lead_of(band: PipelineBand): number {
-  const has_live_head = band.edges.some((edge) => edge.kind === "trunk" && edge.head_tone !== undefined);
-  return has_live_head ? GEO.fork_lead : 0;
+//
+// Only an edge that actually spans this departure says anything about it:
+// it has to start above the branch run and reach at least as far as the
+// node the run lands on. One sitting entirely below the merge used to move
+// the fork, and everything under it, by the whole lead.
+function fork_lead_of(
+  band: PipelineBand,
+  entry_index: number,
+  index_of: ReadonlyMap<string, number>,
+): number {
+  const exit_index = branch_run_end(band, entry_index);
+  const spans_the_fork = band.edges.some((edge) => {
+    if (edge.kind !== "trunk" || edge.head_tone === undefined) {
+      return false;
+    }
+    const from = index_of.get(edge.from);
+    const to = index_of.get(edge.to);
+    if (from === undefined || to === undefined || from >= entry_index) {
+      return false;
+    }
+    return exit_index === null ? to > entry_index : to >= exit_index;
+  });
+
+  return spans_the_fork ? GEO.fork_lead : 0;
 }
 
 // The single merge curve's endpoints, or null where the band has no merge
@@ -355,10 +419,10 @@ function merge_endpoints(
 function place_nodes(band: PipelineBand): Rhythm {
   const at: PipelinePoint[] = [];
   const by_id = new Map<string, PipelinePoint>();
-  const fork_lead = fork_lead_of(band);
+  const index_of = new Map(band.nodes.map((node, index) => [node.id, index]));
+  const excursions: Excursion[] = [];
 
-  let fork_y: number | null = null;
-  let merge_y: number | null = null;
+  let open: Excursion | null = null;
   let previous: PipelineNode | null = null;
   let cursor = GEO.first_node_y;
 
@@ -372,11 +436,17 @@ function place_nodes(band: PipelineBand): Rhythm {
       cursor = GEO.first_node_y;
     } else if (previous.lane !== "branch" && node.lane === "branch") {
       // Leaving the trunk.
-      fork_y = cursor + fork_lead;
+      const fork_y = cursor + fork_lead_of(band, index, index_of);
       cursor = fork_y + GEO.fork_rise;
+      open = { fork_y, merge_y: null, entry_id: node.id, exit_id: null };
+      excursions.push(open);
     } else if (previous.lane === "branch" && node.lane !== "branch") {
       cursor += GEO.merge_drop;
-      merge_y = cursor;
+      if (open !== null) {
+        open.merge_y = cursor;
+        open.exit_id = node.id;
+        open = null;
+      }
     } else if (node.lane === "branch") {
       cursor += GEO.branch_pitch;
     } else {
@@ -417,7 +487,7 @@ function place_nodes(band: PipelineBand): Rhythm {
     by_id.set(node.id, placement);
   }
 
-  return { at, by_id, fork_y, merge_y };
+  return { at, by_id, excursions };
 }
 
 // --- Node paint -----------------------------------------------------------
@@ -459,7 +529,10 @@ function build_node(node: PipelineNode, at: PipelinePoint): PipelineGraphNode {
     tick:
       node.tick === true
         ? {
-            d: `M${coord(at.x - 5)},${coord(at.y)} l4,4 l7,-8`,
+            d:
+              `M${coord(at.x - GEO.tick_lead)},${coord(at.y)}` +
+              ` l${coord(GEO.tick_dip)},${coord(GEO.tick_dip)}` +
+              ` l${coord(GEO.tick_run)},${coord(-GEO.tick_rise)}`,
             stroke: ELEVATION.void,
             width: GEO.tick_width,
             linecap: "round",
@@ -520,16 +593,18 @@ function segment(
 // dormant one between them. The data models band 1's whole trunk as this
 // one edge, so the split lives here rather than in the YAML.
 function split_points(from_y: number, to_y: number, rhythm: Rhythm): number[] {
-  return [rhythm.fork_y, rhythm.merge_y].filter(
-    (at): at is number => at !== null && at > from_y && at < to_y,
-  );
+  return rhythm.excursions
+    .flatMap((excursion) => [excursion.fork_y, excursion.merge_y])
+    .filter((at): at is number => at !== null && at > from_y && at < to_y)
+    .sort((a, b) => a - b);
 }
 
 // The one stretch the branch is out for: between the fork and the merge.
 // Everything outside that is the live tip again.
 function is_dormant(start: number, end: number, rhythm: Rhythm): boolean {
-  return (
-    rhythm.fork_y !== null && start >= rhythm.fork_y && (rhythm.merge_y === null || end <= rhythm.merge_y)
+  return rhythm.excursions.some(
+    (excursion) =>
+      start >= excursion.fork_y && (excursion.merge_y === null || end <= excursion.merge_y),
   );
 }
 
@@ -587,7 +662,11 @@ function build_segments(band: PipelineBand, rhythm: Rhythm): PipelineGraphSegmen
     const ink = EDGE_TONE_INK[edge.tone];
 
     if (edge.kind === "fork") {
-      const [p0, c1, c2, p3] = fork_curve(rhythm.fork_y ?? from.y, to.y);
+      // The departure this edge opens, not the band's last one. A fork edge
+      // that opens no lane change - a band already in the branch lane - has
+      // no fork point to hang off, and its source node does the job.
+      const departure = rhythm.excursions.find((excursion) => excursion.entry_id === edge.to);
+      const [p0, c1, c2, p3] = fork_curve(departure?.fork_y ?? from.y, to.y);
       segments.push(segment(edge, edge.id, cubic_path(p0, c1, c2, p3), ink, true));
       continue;
     }
@@ -645,6 +724,7 @@ function plan_tail(band: PipelineBand, nodes: readonly PipelineGraphNode[]): Tai
 
 export function build_pipeline_graph(band: PipelineBand): PipelineGraphLayout {
   const rhythm = place_nodes(band);
+  const [first_excursion] = rhythm.excursions;
   const nodes = band.nodes.map((node, index) => build_node(node, rhythm.at[index]));
   const { tail, height } = plan_tail(band, nodes);
 
@@ -657,8 +737,8 @@ export function build_pipeline_graph(band: PipelineBand): PipelineGraphLayout {
     spine_x: GEO.spine_x,
     branch_x: GEO.branch_x,
     label_x: GEO.label_x,
-    fork_y: rhythm.fork_y,
-    merge_y: rhythm.merge_y,
+    fork_y: first_excursion?.fork_y ?? null,
+    merge_y: first_excursion?.merge_y ?? null,
     nodes,
     segments: build_segments(band, rhythm),
     tail,

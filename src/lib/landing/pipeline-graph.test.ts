@@ -586,12 +586,119 @@ describe("fork and merge curves", () => {
     expect(segments_of(layout, "out")[0].d).toBe("M44,40 C44,75 130,64 130,100");
   });
 
+  it("hangs each fork curve off its own departure, not off the band's last one", () => {
+    // A band that leaves the trunk twice. The fork point is a property of
+    // the stretch above each departure, so reading a band-global put the
+    // first curve at the second fork's y and ran it back up the page.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [
+          node("t1"),
+          node("br1", { lane: "branch" }),
+          node("t2"),
+          node("br2", { lane: "branch" }),
+          node("t3"),
+        ],
+        edges: [
+          edge("f1", "t1", "br1", { kind: "fork" }),
+          edge("m1", "br1", "t2", { kind: "merge" }),
+          edge("f2", "t2", "br2", { kind: "fork" }),
+          edge("m2", "br2", "t3", { kind: "merge" }),
+        ],
+      }),
+    );
+
+    const [first] = cubic_of(segments_of(layout, "f1")[0].d);
+    const [second] = cubic_of(segments_of(layout, "f2")[0].d);
+
+    expect(first.y).toBeLessThan(second.y);
+    expect(first.y).toBeLessThan(node_by_id(layout, "br1").y);
+    expect(second.y).toBeLessThan(node_by_id(layout, "br2").y);
+    // The published pair names the first departure, which is the one a
+    // single-fork band has.
+    expect(layout.fork_y).toBe(first.y);
+  });
+
+  it("keeps the fork where it is when a live head sits nowhere near it", () => {
+    // `head_tone` earns the 64-unit lead only on a trunk edge that actually
+    // spans the departure. One sitting entirely below the merge says
+    // nothing about the stretch above the fork, and used to move it anyway.
+    const nodes = [node("root"), node("br", { lane: "branch" }), node("land"), node("last")];
+    const edges = [
+      edge("out", "root", "br", { kind: "fork" }),
+      edge("back", "br", "land", { kind: "merge" }),
+    ];
+
+    const plain = build_pipeline_graph(band({ nodes, edges }));
+    const below = build_pipeline_graph(
+      band({ nodes, edges: [...edges, edge("tail", "land", "last", { head_tone: "muted" })] }),
+    );
+
+    expect(below.fork_y).toBe(plain.fork_y);
+    expect(node_by_id(below, "br").y).toBe(node_by_id(plain, "br").y);
+  });
+
   it("skips an edge naming a node the band does not have", () => {
     const layout = build_pipeline_graph(
       band({ nodes: [node("a")], edges: [edge("dangling", "a", "ghost")] }),
     );
 
     expect(layout.segments).toEqual([]);
+  });
+
+  it("spends the lead on a band that forks and never comes back", () => {
+    // No landing node, so "reaches the node the run lands on" cannot be the
+    // test. A live head that starts above the departure and ends below it
+    // still spans the fork.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [node("root"), node("br", { lane: "branch" }), node("tip", { lane: "branch" })],
+        edges: [
+          edge("out", "root", "br", { kind: "fork" }),
+          edge("along", "br", "tip", { kind: "branch" }),
+          edge("head", "root", "tip", { head_tone: "muted" }),
+        ],
+      }),
+    );
+
+    expect(layout.fork_y).toBe(GEO.first_node_y + GEO.fork_lead);
+    expect(layout.merge_y).toBeNull();
+  });
+
+  it("lands a band that starts in the branch lane back on the trunk without a fork", () => {
+    // Nothing opened an excursion, so the transition onto the trunk closes
+    // nothing. It still costs the merge drop, because the node is a lane
+    // change either way.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [node("br", { lane: "branch" }), node("landing")],
+        edges: [edge("back", "br", "landing", { kind: "merge" })],
+      }),
+    );
+
+    expect(layout.fork_y).toBeNull();
+    expect(layout.merge_y).toBeNull();
+    expect(node_by_id(layout, "landing").y).toBe(GEO.first_node_y + GEO.merge_drop);
+  });
+
+  it("drops a merge rider onto the spine when the merge edge names a node the band lacks", () => {
+    // `merge_endpoints` returns null here, so there is no curve to ride and
+    // the rider falls back to the spine a trunk pitch on. Without a real
+    // merge edge to read, hanging it at t=0.5 of nothing would put it at
+    // the origin.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [node("root"), node("b", { lane: "branch" }), node("rider", { lane: "merge" })],
+        edges: [
+          edge("out", "root", "b", { kind: "fork" }),
+          edge("back", "b", "ghost", { kind: "merge" }),
+        ],
+      }),
+    );
+    const rider = node_by_id(layout, "rider");
+
+    expect(rider.x).toBe(GEO.spine_x);
+    expect(rider.y).toBe(node_by_id(layout, "b").y + GEO.trunk_pitch);
   });
 });
 
@@ -692,8 +799,12 @@ describe("trunk splitting", () => {
     );
     const parts = segments_of(layout, "under");
 
-    expect(layout.fork_y).toBe(104);
-    expect(layout.merge_y).toBe(268);
+    // This edge starts at the merge rider, below the fork, so it earns no
+    // lead: the fork sits on `root` itself and the merge lands a drop below
+    // the branch node. Declaring a head somewhere under the branch says
+    // nothing about the stretch above it.
+    expect(layout.fork_y).toBe(40);
+    expect(layout.merge_y).toBe(204);
     expect(parts).toHaveLength(1);
     expect(parts[0]).toMatchObject({ ink: PIPELINE_INK.dormant, dash: "1 5", linecap: "round" });
   });
