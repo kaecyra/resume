@@ -267,6 +267,29 @@ describe("RACK_CHASSIS", () => {
     expect(luminance(RACK_CHASSIS.spark_face)).toBeLessThan(luminance(HUD_PALETTE.accent));
   });
 
+  // The two boxes on the u33 shelf are dark boxes standing in front of an
+  // empty U, and their faces are 1.28:1 against it. That is the server
+  // bezel's arrangement, not a blanking panel's: `bezel_face` sits 1.30:1
+  // against the cabinet and the Dells read anyway, because the lit top edge
+  // is what draws the box. So the edge is what is pinned here, at a floor
+  // above the 1.56:1 `bezel_top_light` manages against `cabinet`. The face
+  // is held the other way, and by a distance rather than by order alone:
+  // clearing the blanking panel's own 2:1 floor against `slot_empty` takes
+  // `#434349` against that panel's `#44444c`, which is a Lenovo box lit like
+  // a plate and is the collision the ladder exists to prevent.
+  it("draws the Lenovo with its lit edge rather than its face", () => {
+    expect(luminance(RACK_CHASSIS.lenovo_top_light)).toBeGreaterThan(
+      luminance(RACK_CHASSIS.lenovo_face),
+    );
+    expect(
+      contrast_ratio(RACK_CHASSIS.lenovo_top_light, RACK_CHASSIS.slot_empty),
+    ).toBeGreaterThanOrEqual(1.7);
+    expect(luminance(RACK_CHASSIS.lenovo_face)).toBeLessThan(luminance(RACK_CHASSIS.brush_face));
+    expect(
+      contrast_ratio(RACK_CHASSIS.brush_face, RACK_CHASSIS.lenovo_face),
+    ).toBeGreaterThanOrEqual(1.5);
+  });
+
   // The server bezel is lit from above: a bright strip along its top edge,
   // the face below it, end caps in shadow at either side. Reordering any two
   // of those flips where the light is coming from.

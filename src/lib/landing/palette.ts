@@ -215,6 +215,14 @@ export const RACK_CHASSIS = {
   spark_mesh: "#6f5a2f",
   // The Lenovo the Spark stands on, and the line of light along its top
   // edge - the only thing separating two dark boxes stacked on a shelf.
+  // The face is 1.28:1 against the empty U behind it, which is the server
+  // bezel's arrangement rather than a blanking panel's: `bezel_face` is
+  // 1.30:1 against `cabinet` and the Dells read anyway, because a lit top
+  // edge and shadowed end caps draw the box. The blanking panel's 2:1 floor
+  // is not the rule here and cannot be - the first tone clearing it is
+  // `#434349`, a hair off `brush_face`, so a Lenovo would be lit like a
+  // plate. What is pinned in palette.test.ts is therefore the edge against
+  // the empty U, and the distance the face keeps behind `brush_face`.
   lenovo_face: "#242429",
   lenovo_top_light: "#3a3a42",
   // The UPS at the floor, and the window its two LEDs sit behind.
