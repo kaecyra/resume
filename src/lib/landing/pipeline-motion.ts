@@ -72,6 +72,16 @@ export function terminal_replay_delays(turns: PipelineTerminalTurn[]): TerminalT
 // welcome, which leaves the element in `static` - the finished state - and
 // is the whole of resolution 4's reduced-motion branch: no observer is
 // constructed, so nothing waits on a scroll position that may never come.
+//
+// Nothing is armed at mount, either. Arming there would blank an element
+// that is already on screen when hydration runs: the server's finished
+// markup paints, the action empties it, and only then does the observer's
+// first notification arrive to play it back - the initial observation is
+// delivered on its own queued task, after the rendering update that
+// `observe()` was called in, so that blank frame is real. The first
+// observation decides instead. Already on screen means the element did not
+// arrive, so it is left finished and never animates; below the fold, it
+// arms before any reader could see it do so.
 export function reveal(
   node: Element,
   on_phase: (phase: RevealPhase) => void,
@@ -81,25 +91,36 @@ export function reveal(
     return { destroy() {} };
   }
 
-  // Guarded by its own flag rather than by `observer` being null: an
-  // observer that has been disconnected can still deliver entries already
-  // queued against it, and a second delivery would replay the band.
+  // `fired` is guarded by its own flag rather than by `observer` being
+  // null: an observer that has been disconnected can still deliver entries
+  // already queued against it, and a second delivery would replay the band.
   let fired = false;
+  let armed = false;
 
   let observer: IntersectionObserver | null = new IntersectionObserver((entries) => {
-    if (fired || !entries.some((entry) => entry.isIntersecting)) {
+    if (fired) {
       return;
     }
-    // Fires once and never rewinds: the band has arrived, and a reader
+
+    if (!entries.some((entry) => entry.isIntersecting)) {
+      if (!armed) {
+        armed = true;
+        on_phase("armed");
+      }
+      return;
+    }
+
+    // Fires once and never rewinds: the element has arrived, and a reader
     // scrolling back past it is not watching it arrive again.
     fired = true;
     observer?.disconnect();
     observer = null;
-    on_phase("revealed");
+    if (armed) {
+      on_phase("revealed");
+    }
   }, REVEAL_OBSERVER);
 
   observer.observe(node);
-  on_phase("armed");
 
   return {
     destroy() {

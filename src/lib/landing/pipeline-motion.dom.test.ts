@@ -47,7 +47,7 @@ function stub_motion(reduce: boolean) {
   );
 }
 
-function armed_element(): {
+function observed_element(): {
   node: HTMLElement;
   phases: RevealPhase[];
   handle: { destroy(): void };
@@ -69,35 +69,65 @@ afterEach(() => {
 });
 
 describe("reveal", () => {
-  it("arms the element and observes it with the agreed options", () => {
-    const { node, phases } = armed_element();
+  it("observes the element with the agreed options, and arms nothing yet", () => {
+    const { node, phases } = observed_element();
 
-    expect(phases).toEqual(["armed"]);
+    // Nothing at mount: arming here would blank an element that is already
+    // on screen, between the server's paint and the observer's first
+    // notification.
+    expect(phases).toEqual([]);
     const observer = FakeIntersectionObserver.instances[0];
     expect(observer.observed).toEqual([node]);
     expect(observer.options).toEqual(REVEAL_OBSERVER);
   });
 
-  it("reveals on the first intersecting entry", () => {
-    const { phases } = armed_element();
-
-    FakeIntersectionObserver.instances[0].fire(true);
-
-    expect(phases).toEqual(["armed", "revealed"]);
-  });
-
-  it("stays armed while the element has not crossed the threshold", () => {
-    const { phases } = armed_element();
+  it("arms an element that is below the fold on its first observation", () => {
+    const { phases } = observed_element();
 
     FakeIntersectionObserver.instances[0].fire(false);
 
     expect(phases).toEqual(["armed"]);
   });
 
-  it("never rewinds, and stops watching once it has fired", () => {
-    const { phases } = armed_element();
+  it("reveals once an armed element crosses the threshold", () => {
+    const { phases } = observed_element();
     const observer = FakeIntersectionObserver.instances[0];
 
+    observer.fire(false);
+    observer.fire(true);
+
+    expect(phases).toEqual(["armed", "revealed"]);
+  });
+
+  // The element did not arrive - it was already there. Animating it would
+  // mean blanking finished markup first, which is the one thing the phases
+  // exist to avoid.
+  it("leaves an element already on screen finished, and never animates it", () => {
+    const { phases } = observed_element();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    observer.fire(true);
+
+    expect(phases).toEqual([]);
+    expect(observer.disconnect_calls).toBe(1);
+  });
+
+  it("arms only once, however many times it is told the element is out of view", () => {
+    const { phases } = observed_element();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    observer.fire(false);
+    observer.fire(false);
+    observer.fire(false);
+
+    expect(phases).toEqual(["armed"]);
+  });
+
+  it("never rewinds, and stops watching once it has fired", () => {
+    const { phases } = observed_element();
+    const observer = FakeIntersectionObserver.instances[0];
+
+    observer.fire(false);
     observer.fire(true);
     observer.fire(false);
     observer.fire(true);
@@ -109,7 +139,7 @@ describe("reveal", () => {
   it("leaves the element static and builds no observer under reduced motion", () => {
     stub_motion(true);
 
-    const { phases } = armed_element();
+    const { phases } = observed_element();
 
     expect(phases).toEqual([]);
     expect(FakeIntersectionObserver.instances).toHaveLength(0);
@@ -118,13 +148,13 @@ describe("reveal", () => {
   it("leaves the element static where the browser has no IntersectionObserver", () => {
     vi.stubGlobal("IntersectionObserver", undefined);
 
-    const { phases } = armed_element();
+    const { phases } = observed_element();
 
     expect(phases).toEqual([]);
   });
 
   it("disconnects when the element goes away before it ever fired", () => {
-    const { handle } = armed_element();
+    const { handle } = observed_element();
 
     handle.destroy();
 
@@ -132,7 +162,7 @@ describe("reveal", () => {
   });
 
   it("does not disconnect twice when destroyed after revealing", () => {
-    const { handle } = armed_element();
+    const { handle } = observed_element();
     const observer = FakeIntersectionObserver.instances[0];
 
     observer.fire(true);
