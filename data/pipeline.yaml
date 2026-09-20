@@ -458,6 +458,6 @@ crossings:
     label: "nginx :80"
 
 closer: >-
-  You are the last node on that drawing. I merge a branch on my laptop, and about
-  five minutes later a machine in my basement is handing this page to you.
-closer_emphasis: "a machine in my basement"
+  All of this was for you. I merge a branch on my laptop, and about five minutes
+  later a machine in my basement is serving this silly page to you.
+closer_emphasis: "All of this was for you."

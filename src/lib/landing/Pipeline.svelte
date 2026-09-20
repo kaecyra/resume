@@ -57,7 +57,7 @@
 <section
   id="pipeline"
   class="pipeline"
-  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};"
+  style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-accent: {HUD_PALETTE.accent};"
 >
   <div class="wrap">
     <h2 class="section-title">{pipeline.heading}</h2>
@@ -181,8 +181,7 @@
     color: var(--hud-secondary);
   }
 
-  .lede-emphasis,
-  .closer-emphasis {
+  .lede-emphasis {
     font-weight: inherit;
     color: var(--hud-text);
   }
@@ -239,14 +238,25 @@
     color: var(--hud-text);
   }
 
+  /* The section's last line, and the only place the accent is spent on
+     running text. The first sentence carries the display face and the
+     accent; what follows it drops to the body face at its normal weight
+     and the page's own text colour, so the stress lands once and the
+     explanation underneath it reads as prose rather than as more heading. */
   .closer {
     margin: 72px 0 0;
     max-width: 40ch;
-    font-family: "Archivo Black", Impact, sans-serif;
     font-weight: 400;
     font-size: clamp(1.25rem, 3.2vw, 1.75rem);
-    line-height: 1.25;
+    line-height: 1.35;
+    color: var(--hud-text);
     text-wrap: balance;
+  }
+
+  .closer-emphasis {
+    font-family: "Archivo Black", Impact, sans-serif;
+    font-weight: 400;
+    color: var(--hud-accent);
   }
 
   /* Below this the grid is one column and the graph leads, which is the
