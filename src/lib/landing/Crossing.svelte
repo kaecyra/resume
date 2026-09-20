@@ -73,6 +73,9 @@
   .x-v {
     width: 0;
     border-left: 1px dashed var(--ink-rule);
+    /* Both vertical rules grow downward from where they leave, which is
+       what makes the connector travel rather than appear. */
+    transform-origin: center top;
   }
 
   .x-h {
@@ -163,10 +166,6 @@
   .is-armed .x-tip,
   .is-armed .x-label {
     opacity: 0;
-  }
-
-  .x-v {
-    transform-origin: center top;
   }
 
   /* The horizontal run grows from whichever end the connector leaves, so
