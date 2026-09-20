@@ -267,6 +267,36 @@ describe("RACK_CHASSIS", () => {
     expect(luminance(RACK_CHASSIS.spark_face)).toBeLessThan(luminance(HUD_PALETTE.accent));
   });
 
+  // The two Lenovo boxes on the u33 shelf are dark boxes standing in front
+  // of an empty U. Why their faces stay there instead of rising to the
+  // blanking panel's floor is recorded beside the tones in palette.ts; what
+  // this pins is what that reasoning implies.
+  //
+  // The 1.7 floor is calibrated against the bezel, which is the same
+  // arrangement one shelf up: `bezel_top_light` clears `cabinet` by 1.56:1
+  // and the Dells read, so a Lenovo's edge has to do at least that much. The
+  // face is then held by a distance from `brush_face` rather than by order
+  // alone, because order alone admits `#434349` - one value under the plate,
+  // which is the collision itself.
+  //
+  // The first assertion is the lighting direction the test is named for, and
+  // it is documentation rather than a guard: a face bright enough to overtake
+  // a legal top light is already well inside the 1.5 the last assertion
+  // demands, so it cannot fail on its own. It stays for the reason the bezel
+  // test below spells its own order out.
+  it("draws the Lenovo with its lit edge rather than its face", () => {
+    expect(luminance(RACK_CHASSIS.lenovo_top_light)).toBeGreaterThan(
+      luminance(RACK_CHASSIS.lenovo_face),
+    );
+    expect(
+      contrast_ratio(RACK_CHASSIS.lenovo_top_light, RACK_CHASSIS.slot_empty),
+    ).toBeGreaterThanOrEqual(1.7);
+    expect(luminance(RACK_CHASSIS.lenovo_face)).toBeLessThan(luminance(RACK_CHASSIS.brush_face));
+    expect(
+      contrast_ratio(RACK_CHASSIS.brush_face, RACK_CHASSIS.lenovo_face),
+    ).toBeGreaterThanOrEqual(1.5);
+  });
+
   // The server bezel is lit from above: a bright strip along its top edge,
   // the face below it, end caps in shadow at either side. Reordering any two
   // of those flips where the light is coming from.
