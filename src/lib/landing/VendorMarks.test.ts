@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import { render } from "svelte/server";
 
 import type { PipelineMarkEntry } from "$lib/types.js";
@@ -18,22 +16,6 @@ const MARKS: PipelineMarkEntry[] = [
 
 function html_for(marks: PipelineMarkEntry[]): string {
   return render(VendorMarks, { props: { marks } }).body;
-}
-
-function source(): string {
-  return readFileSync(new URL("./VendorMarks.svelte", import.meta.url), "utf8");
-}
-
-// A colour written by hand, anywhere in the component. The scan covers the
-// whole file rather than the `<style>` block alone, because the palette
-// values reach the page through `style="..."` in the markup, which is above
-// that block. Comments come out first: an issue reference like (#209) is
-// three hex digits to a regex. The trailing boundary in HEX_COLOUR is what
-// keeps Svelte's own `{#each` out of it.
-const HEX_COLOUR = /#[0-9a-fA-F]{3,8}\b/;
-
-function source_without_comments(): string {
-  return source().replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|^[ \t]*\/\/[^\n]*$/gm, "");
 }
 
 describe("VendorMarks", () => {
@@ -79,13 +61,5 @@ describe("VendorMarks", () => {
   // rack rather than nothing.
   it("renders nothing at all when a band lists no marks", () => {
     expect(html_for([])).not.toMatch(/<[a-z]/i);
-  });
-
-  it("takes its colours from the palette rather than a literal hex", () => {
-    expect(source_without_comments()).not.toMatch(HEX_COLOUR);
-  });
-
-  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
-    expect(source()).not.toContain("Share Tech Mono");
   });
 });

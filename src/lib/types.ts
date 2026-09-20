@@ -251,9 +251,12 @@ export type PipelineTurnSpeaker = "you" | "agent" | "tool";
 export interface PipelineNode {
   id: string;
   label: string;
-  // The smaller line under the label. One string even where the mockup
-  // breaks it over two lines - where it wraps is the renderer's business.
-  detail?: string;
+  // The smaller line under the label, or the lines where the copy breaks
+  // it over more than one. Nothing downstream can measure a proportional
+  // face, so a single string too long for the drawing's box is clipped
+  // rather than wrapped - the break belongs with the copy, as it does in
+  // the mockup this was ported from.
+  detail?: string | string[];
   style: PipelineNodeStyle;
   tone: PipelineTone;
   lane: PipelineLane;

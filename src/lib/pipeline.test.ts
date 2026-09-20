@@ -611,6 +611,47 @@ describe("validate_pipeline_data", () => {
     });
   });
 
+  describe("a node's detail lines", () => {
+    it("takes a detail written as a list of lines", () => {
+      const messages = messages_for(
+        with_band(0, {
+          nodes: [
+            { ...MOCK_PIPELINE_DATA.bands[0].nodes[0], detail: ["first line", "second line"] },
+            ...MOCK_PIPELINE_DATA.bands[0].nodes.slice(1),
+          ],
+        }),
+      );
+
+      expect(messages).toEqual([]);
+    });
+
+    it("detects a detail that is neither a line nor lines", () => {
+      const messages = messages_for(
+        with_band(0, {
+          nodes: [
+            { ...MOCK_PIPELINE_DATA.bands[0].nodes[0], detail: 7 as never },
+            ...MOCK_PIPELINE_DATA.bands[0].nodes.slice(1),
+          ],
+        }),
+      );
+
+      expect(messages).toContain('band "commit" node "repo" detail must be a line or a list of lines');
+    });
+
+    it("detects a detail list carrying something that is not a line", () => {
+      const messages = messages_for(
+        with_band(0, {
+          nodes: [
+            { ...MOCK_PIPELINE_DATA.bands[0].nodes[0], detail: ["fine", 7] as never },
+            ...MOCK_PIPELINE_DATA.bands[0].nodes.slice(1),
+          ],
+        }),
+      );
+
+      expect(messages).toContain('band "commit" node "repo" detail must be a line or a list of lines');
+    });
+  });
+
   describe("readouts, marks and the terminal", () => {
     it("detects a readout entry with no label or value", () => {
       const messages = messages_for(

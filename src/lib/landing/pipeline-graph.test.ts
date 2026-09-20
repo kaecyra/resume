@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ELEVATION, HUD_PALETTE, PIPELINE_INK } from "./palette.js";
 import {
   build_pipeline_graph,
+  detail_lines,
   build_pipeline_graphs,
   cubic_point_at,
   PIPELINE_ARROW_TIP,
@@ -371,13 +372,13 @@ describe("the ported geometry", () => {
     // text and icon coordinates, unmodified.
     expect(repo.label_x).toBe(166);
     expect(repo.label_y).toBe(37);
-    expect(repo.detail_y).toBe(53);
+    expect(repo.detail_ys[0]).toBe(53);
     expect(repo.mark).toMatchObject({ id: "github", x: 95.5, y: 30.5 });
     expect(repo.mark?.scale).toBeCloseTo(0.791667, 6); // mockup scale(0.7917)
     // commit-one sits at 228 in both, and carries no detail line, so its
     // label centres on the baseline instead of lifting off it.
     expect(commit.label_y).toBe(232);
-    expect(commit.detail_y).toBeNull();
+    expect(commit.detail_ys).toEqual([]);
   });
 
   it("pins the reader node's rings and its wider detail gap", () => {
@@ -390,7 +391,7 @@ describe("the ported geometry", () => {
     expect(reader.halo_width).toBe(1.5);
     expect(reader.halo_opacity).toBe(0.45);
     expect(reader.label_y).toBe(reader.y - 3);
-    expect(reader.detail_y).toBe(reader.y + 16);
+    expect(reader.detail_ys[0]).toBe(reader.y + 16);
   });
 
   it("pins the tick against the mockup's own path", () => {
@@ -636,6 +637,80 @@ describe("fork and merge curves", () => {
 
     expect(below.fork_y).toBe(plain.fork_y);
     expect(node_by_id(below, "br").y).toBe(node_by_id(plain, "br").y);
+  });
+
+  it("stacks a detail written as two lines, one under the other", () => {
+    // The mockup breaks band 3's Cloudflare detail over two <text> lines.
+    // One string cannot say where that break goes, and a single line of
+    // that length runs past the drawing's own box and is clipped.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [node("a", { detail: ["first line", "second line"] }), node("b")],
+        edges: [edge("a-b", "a", "b")],
+      }),
+    );
+    const [first, second] = layout.nodes[0].detail_ys;
+
+    expect(layout.nodes[0].detail_ys).toHaveLength(2);
+    expect(second - first).toBe(GEO.detail_line_dy);
+    expect(first).toBe(node_by_id(layout, "a").y + GEO.detail_dy);
+  });
+
+  it("treats a one-line detail and a one-entry list as the same thing", () => {
+    const plain = build_pipeline_graph(band({ nodes: [node("a", { detail: "one" })], edges: [] }));
+    const listed = build_pipeline_graph(band({ nodes: [node("a", { detail: ["one"] })], edges: [] }));
+
+    expect(listed.nodes[0].detail_ys).toEqual(plain.nodes[0].detail_ys);
+    expect(listed.nodes[0].label_y).toBe(plain.nodes[0].label_y);
+  });
+
+  it("gives a node with no detail no detail line at all", () => {
+    const layout = build_pipeline_graph(band({ nodes: [node("a")], edges: [] }));
+
+    expect(layout.nodes[0].detail_ys).toEqual([]);
+    // A node with nothing under it sits centred on its own baseline.
+    expect(layout.nodes[0].label_y).toBe(node_by_id(layout, "a").y + GEO.label_dy_solo);
+  });
+
+  it("reads a node's detail lines back in the order they were written", () => {
+    expect(detail_lines({ detail: ["one", "two"] })).toEqual(["one", "two"]);
+    expect(detail_lines({ detail: "one" })).toEqual(["one"]);
+    expect(detail_lines({})).toEqual([]);
+    // An empty line is no line: it would lift the label off its baseline to
+    // make room for nothing, and the validator lets an empty string past.
+    expect(detail_lines({ detail: "" })).toEqual([]);
+    expect(detail_lines({ detail: ["one", ""] })).toEqual(["one"]);
+  });
+
+  it("inks labels by emphasis, and every detail line page-secondary", () => {
+    // The mockup's rule, and the only colour decision the drawing used to
+    // make for itself: every font-weight="500" label carries the node's
+    // ink, every plain one is the page's text colour whatever tone its node
+    // has. A muted node's label is not muted.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [
+          node("lit", { tone: "green", emphasis: true }),
+          node("plain", { tone: "muted" }),
+          node("you", { style: "reader", tone: "accent" }),
+        ],
+        edges: [edge("down", "lit", "plain")],
+      }),
+    );
+    const [lit, plain, reader] = layout.nodes;
+
+    expect(lit.label_ink).toBe(lit.ink);
+    expect(plain.label_ink).toBe(HUD_PALETTE.text);
+    expect(plain.label_ink).not.toBe(plain.ink);
+    // The reader's node is set in the display face and reads as the point
+    // of the whole drawing, so it takes its ink without needing emphasis.
+    expect(reader.label_ink).toBe(reader.ink);
+    // The detail line is page-secondary for all three, whatever their node
+    // tone. One value, but an unpinned one is a value nobody would notice
+    // changing.
+    for (const placed of layout.nodes) {
+      expect(placed.detail_ink).toBe(HUD_PALETTE.secondary);
+    }
   });
 
   it("skips an edge naming a node the band does not have", () => {
@@ -939,9 +1014,9 @@ describe("node paint", () => {
     // Both offsets are the mockup's: 4 below the baseline on its own, 3
     // above it with a detail line 13 under that.
     expect(solo.label_y).toBe(solo.y + 4);
-    expect(solo.detail_y).toBeNull();
+    expect(solo.detail_ys).toEqual([]);
     expect(paired.label_y).toBe(paired.y - 3);
-    expect(paired.detail_y).toBe(paired.y + 13);
+    expect(paired.detail_ys[0]).toBe(paired.y + 13);
   });
 
   it("gives the reader node's larger face more room before its detail line", () => {
@@ -956,8 +1031,8 @@ describe("node paint", () => {
 
     // The reader's label is set in the display face at 18px, so 13 would
     // crowd it: the mockup gives it 16.
-    expect(plain.detail_y).toBe(plain.y + 13);
-    expect(you.detail_y).toBe(you.y + 16);
+    expect(plain.detail_ys[0]).toBe(plain.y + 13);
+    expect(you.detail_ys[0]).toBe(you.y + 16);
   });
 });
 
