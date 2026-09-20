@@ -4,7 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # Base-branch filter. `feature/*` lets a stacked PR into an
+    # integration branch run the same gate as a PR into main.
+    branches:
+      - main
+      - "feature/*"
 
 jobs:
   test:
