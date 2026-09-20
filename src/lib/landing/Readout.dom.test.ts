@@ -189,6 +189,22 @@ describe("Readout, measuring the reader's own request", () => {
     expect(container.textContent).toContain("Sample values");
   });
 
+  it("keeps the sample values when the trace answers with an error status", async () => {
+    // The body is a perfectly good trace; only the status is wrong. Without
+    // the `!response.ok` guard this parses and the readout measures off an
+    // error page's headers.
+    stub_timing([navigation_entry()]);
+    const fetch_mock = stub_trace(TRACE_BODY, 502);
+
+    const { container } = render(Readout, { props: { readout: DELIVERY } });
+
+    await settle_measurement();
+
+    expect(fetch_mock).toHaveBeenCalled();
+    expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
+    expect(container.textContent).toContain("Sample values");
+  });
+
   it("keeps the sample values when the browser reports no timing entry", async () => {
     stub_timing([]);
     const fetch_mock = stub_trace(TRACE_BODY);

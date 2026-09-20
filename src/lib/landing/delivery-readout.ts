@@ -91,12 +91,17 @@ const MAX_PLAUSIBLE_TTFB_MS = 120_000;
 const BYTES_PER_KB = 1024;
 const BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
 
+// Same reasoning as the TTFB cap: a document response of a gigabyte is a
+// broken figure, and an eleven-digit number under this display face is
+// worse than the sample it replaces.
+const MAX_PLAUSIBLE_TRANSFER_BYTES = BYTES_PER_MB * 1024;
+
 // Reads `colo` and `loc` out of a /cdn-cgi/trace body and discards
 // everything else, including the reader's IP address. Defensive by
 // construction: the body is treated as an untrusted pile of lines, an
 // unparseable one is skipped rather than fatal, a value that is not shaped
-// like the code it claims to be is dropped, and the first occurrence of a
-// key wins so a trailing duplicate cannot overwrite it.
+// like the code it claims to be is dropped, and the first valid occurrence
+// of a key wins so a later duplicate cannot overwrite it.
 export function parse_trace_fields(body: string): DeliveryTraceFields {
   const fields: DeliveryTraceFields = {};
   const lines = body.split(/\r?\n/, TRACE_LINE_LIMIT);
@@ -198,7 +203,7 @@ function format_bytes(bytes: number | undefined): DeliveryReadoutValue | null {
   // `transferSize` is 0 for a response served from cache and for one the
   // timing API will not size, which is no measurement rather than a small
   // one.
-  if (!is_usable_number(bytes) || bytes <= 0) {
+  if (!is_usable_number(bytes) || bytes <= 0 || bytes >= MAX_PLAUSIBLE_TRANSFER_BYTES) {
     return null;
   }
 

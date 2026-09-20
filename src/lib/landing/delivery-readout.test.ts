@@ -99,8 +99,13 @@ describe("parse_trace_fields", () => {
     });
   });
 
-  it("takes the first occurrence, so a later duplicate cannot overwrite it", () => {
+  it("takes the first valid occurrence, so a later duplicate cannot overwrite it", () => {
     expect(parse_trace_fields("colo=YYZ\ncolo=AAA")).toEqual({ colo: "YYZ" });
+  });
+
+  it("skips a malformed first occurrence and takes the next valid one", () => {
+    expect(parse_trace_fields("colo=TORONTO\ncolo=AAA")).toEqual({ colo: "AAA" });
+    expect(parse_trace_fields("loc=XX\nloc=NL")).toEqual({ country: "NL" });
   });
 
   it("stops reading after a sane number of lines rather than walking a flood", () => {
@@ -229,6 +234,16 @@ describe("format_delivery_readout", () => {
       expect(format_with({ transfer_size: -1 })).toBeNull();
       // A clock that says ten minutes to first byte is a broken clock.
       expect(format_with({ response_start: 600_000 })).toBeNull();
+      // A document response the size of a disk image is a broken figure,
+      // and an eleven-digit number under that display face is worse than
+      // the sample it replaces.
+      expect(format_with({ transfer_size: 5 * 1024 ** 3 })).toBeNull();
+      expect(format_with({ transfer_size: Number.MAX_SAFE_INTEGER })).toBeNull();
+      // Just under the ceiling still prints.
+      expect(format_with({ transfer_size: 1024 ** 3 - 1 })?.transferred).toEqual({
+        value: "1024.0",
+        unit: "MB",
+      });
       // Under half a millisecond rounds to a measured "0 ms", which reads
       // as a broken readout rather than a fast one.
       expect(format_with({ response_start: 0.4 })).toBeNull();
