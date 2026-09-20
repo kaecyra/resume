@@ -50,11 +50,13 @@ export const RAIL_W = 16;
 // not a port passing frames.
 type RackBlinkPattern = "a" | "b" | "activity";
 
-interface RackBlink {
-  pattern?: RackBlinkPattern;
-  period_s?: number;
-  delay_s?: number;
-}
+// A union rather than three independent optionals: a pattern without a
+// period used to produce `--d: 0s`, which is a stopped animation, not the
+// `var(--d, 1.9s)` fallback a reader of the stylesheet would expect. Either
+// an element blinks and carries both numbers, or it does not blink at all.
+type RackBlink =
+  | { pattern?: undefined; period_s?: undefined; delay_s?: undefined }
+  | { pattern: RackBlinkPattern; period_s: number; delay_s: number };
 
 // The mockup's periods, ported straight, read as a strobe on a real screen
 // rather than as a rack ticking over in a basement. Every one of them is
@@ -66,14 +68,14 @@ export const BLINK_PERIOD_SCALE = 1.25;
 // A port: lit and holding link, or dark. `x` is absolute in the viewBox,
 // kept as a literal list rather than a start-plus-step so the two
 // 5.4-wide port rows land exactly where the mockup put them.
-interface RackPort extends RackBlink {
+type RackPort = RackBlink & {
   x: number;
   state: "off" | "link";
-}
+};
 
-interface RackDriveBay extends RackBlink {
+type RackDriveBay = RackBlink & {
   x: number;
-}
+};
 
 type RackFitting =
   // A blanking panel with a brush strip for cables to pass through.
@@ -270,8 +272,10 @@ export function blink_vars(blink: RackBlink): string | undefined {
   if (blink.pattern === undefined) {
     return undefined;
   }
-  const period = (blink.period_s ?? 0) * BLINK_PERIOD_SCALE;
-  return `--d: ${round(period)}s; --t: ${blink.delay_s}s`;
+  // No `?? 0` on either number: the union above makes both of them present
+  // wherever a pattern is, so a default here could only paper over a shape
+  // the type no longer allows.
+  return `--d: ${round(blink.period_s * BLINK_PERIOD_SCALE)}s; --t: ${blink.delay_s}s`;
 }
 
 // The scale multiplies out to float noise otherwise - 1.93 * 1.25 is
