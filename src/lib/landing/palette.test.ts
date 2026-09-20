@@ -167,10 +167,12 @@ describe("the pipeline hardware tables", () => {
 });
 
 describe("RACK_CHASSIS", () => {
-  // The 42U map gives U29-34 a lighter fill than a genuinely empty U
-  // precisely so the block reads as "something is in here that I am not
+  // The `unlabelled` fitting fills its U lighter than a genuinely empty one
+  // precisely so a block of it reads as "something is in here that I am not
   // naming" rather than as a hole. Equal fills would erase the distinction
-  // and nothing else in this file would notice.
+  // and nothing else in this file would notice. Nothing is drawn with it
+  // since U29-34 was described, and it is kept for the next block that has
+  // not been.
   it("keeps an occupied but unnamed U lighter than an empty one", () => {
     expect(luminance(RACK_CHASSIS.slot_unnamed)).toBeGreaterThan(luminance(RACK_CHASSIS.slot_empty));
   });
@@ -216,6 +218,24 @@ describe("RACK_CHASSIS", () => {
   // only while they are darker than it.
   it("cuts the keystone openings darker than the plate they are cut into", () => {
     expect(luminance(RACK_CHASSIS.keystone)).toBeLessThan(luminance(RACK_CHASSIS.patch_face));
+  });
+
+  // Two reds in the drawing, each meaning one thing: a socket on the power
+  // strip, and the plastic the two Pis are wearing. Collapsing them into one
+  // token would make a case and an outlet the same object.
+  it("keeps the Pi cases' red apart from the PDU's outlet red", () => {
+    expect(RACK_CHASSIS.pi_case).not.toBe(RACK_CHASSIS.outlet);
+    expect(contrast_ratio(RACK_CHASSIS.pi_case, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+  });
+
+  // The Spark's mesh front is cut into its own face, the same relationship
+  // the keystones have to their plate. It is also deliberately duller than
+  // the page's amber, which already means "the node this site runs on" and
+  // is not what a machine on a shelf is.
+  it("keeps the Spark's mesh darker than its face, and the face off the accent", () => {
+    expect(luminance(RACK_CHASSIS.spark_mesh)).toBeLessThan(luminance(RACK_CHASSIS.spark_face));
+    expect(contrast_ratio(RACK_CHASSIS.spark_face, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+    expect(luminance(RACK_CHASSIS.spark_face)).toBeLessThan(luminance(HUD_PALETTE.accent));
   });
 
   // The server bezel is lit from above: a bright strip along its top edge,

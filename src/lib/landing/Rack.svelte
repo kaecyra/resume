@@ -28,10 +28,13 @@
     EQUIP_W,
     EQUIP_X,
     KEYSTONE_XS,
-    OUTLET_XS,
     RAIL_HOLE_US,
     RAIL_W,
     RACK_UNITS,
+    RISER_SHAPES,
+    SHELF_SURFACE_DY,
+    SPARK_MESH_INSET,
+    SPARK_MESH_XS,
     TRAY_BUNDLES,
     TRAY_RUNG_XS,
     TRAY_RUN_X,
@@ -42,6 +45,7 @@
     rack_seam_offsets,
     rack_u_height,
     rack_u_y,
+    riser_box,
   } from "./rack-layout.js";
 
   // The rack's only prop, and only because the band it sits in reveals on
@@ -190,13 +194,29 @@
         {/each}
       {:else if unit.kind === "shelf"}
         <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.slot_empty} />
-        <rect x={EQUIP_X} y={unit_y + 7} width={EQUIP_W} height="2" fill={RACK_CHASSIS.trim} />
-        <rect x="76" y={unit_y + 1} width="18" height="6" rx="2" fill={RACK_CHASSIS.puck} />
-        <rect x="104" y={unit_y + 1} width="20" height="6" rx="1.5" fill={RACK_CHASSIS.trim} />
+        <rect
+          x={EQUIP_X}
+          y={unit_y + SHELF_SURFACE_DY}
+          width={EQUIP_W}
+          height="2"
+          fill={RACK_CHASSIS.trim}
+        />
+        <!-- The u17 shelf's own pair, compressed into its U rather than
+             drawn standing: they predate the riser rule and are left as the
+             mockup had them. -->
+        {#if unit.id === "shelf-u17"}
+          <rect x="76" y={unit_y + 1} width="18" height="6" rx="2" fill={RACK_CHASSIS.puck} />
+          <rect x="104" y={unit_y + 1} width="20" height="6" rx="1.5" fill={RACK_CHASSIS.trim} />
+        {/if}
       {:else if unit.kind === "pdu"}
         <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.pdu_face} />
+        <g fill={RACK_CHASSIS.pdu_switch}>
+          {#each unit.switch_xs as switch_x (switch_x)}
+            <rect x={switch_x} y={unit_y + 2} width="8" height="5" rx="1" />
+          {/each}
+        </g>
         <g fill={RACK_CHASSIS.outlet}>
-          {#each OUTLET_XS as outlet_x (outlet_x)}
+          {#each unit.outlet_xs as outlet_x (outlet_x)}
             <rect x={outlet_x} y={unit_y + 3} width="9" height="4" />
           {/each}
         </g>
@@ -246,6 +266,68 @@
           {/each}
         </g>
       {/if}
+
+      <!-- What stands on this unit rather than being racked in a U of its
+           own, drawn after the fitting and therefore over the empty U it
+           rises into. Every unit is drawn in U order, so a riser always
+           paints after the air above it. -->
+      {#each unit.risers ?? [] as riser (riser.x)}
+        {@const box = riser_box(unit, riser)}
+        {#if riser.kind === "pi"}
+          <rect
+            x={box.x}
+            y={box.y}
+            width={box.width}
+            height={box.height}
+            rx="1"
+            fill={RACK_CHASSIS.pi_case}
+          />
+        {:else}
+          {@const spark = RISER_SHAPES.lenovo_spark}
+          {@const spark_x = box.x + (box.width - spark.spark_width) / 2}
+          {@const lenovo_y = box.y + spark.spark_height}
+          <!-- The Lenovo below, the Spark on top of it and narrower, with
+               the mesh cut into the Spark's face. -->
+          <rect
+            x={box.x}
+            y={lenovo_y}
+            width={box.width}
+            height={box.height - spark.spark_height}
+            fill={RACK_CHASSIS.lenovo_face}
+          />
+          <rect
+            x={box.x}
+            y={lenovo_y}
+            width={box.width}
+            height="1.2"
+            fill={RACK_CHASSIS.lenovo_top_light}
+          />
+          <rect
+            x={spark_x}
+            y={box.y}
+            width={spark.spark_width}
+            height={spark.spark_height}
+            rx="1.5"
+            fill={RACK_CHASSIS.spark_face}
+          />
+          {@const mesh_x = spark_x + SPARK_MESH_INSET}
+          {@const mesh_y = box.y + SPARK_MESH_INSET}
+          {@const mesh_h = spark.spark_height - SPARK_MESH_INSET * 2}
+          <rect
+            x={mesh_x}
+            y={mesh_y}
+            width={spark.spark_width - SPARK_MESH_INSET * 2}
+            height={mesh_h}
+            rx="1"
+            fill={RACK_CHASSIS.spark_mesh}
+          />
+          <g fill={RACK_CHASSIS.spark_face}>
+            {#each SPARK_MESH_XS as slat_x (slat_x)}
+              <rect x={mesh_x + slat_x} y={mesh_y} width="1.4" height={mesh_h} />
+            {/each}
+          </g>
+        {/if}
+      {/each}
     </g>
   {/each}
 

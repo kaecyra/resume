@@ -92,9 +92,14 @@ type RackFitting =
   | { kind: "nvr"; bays: RackDriveBay[] }
   // The shelf, with the Hue bridge and the Apple TV sitting on it.
   | { kind: "shelf" }
-  // The power strip.
-  | { kind: "pdu" }
-  // Racked, deliberately not drawn as anything in particular.
+  // A power strip: a row of outlets, and on the Pyle at the bottom of the
+  // rack, a row of switches beside them. The two strips carry their own
+  // runs rather than sharing one: nine outlets and three switches do not
+  // fit where eight outlets sat.
+  | { kind: "pdu"; outlet_xs: readonly number[]; switch_xs: readonly number[] }
+  // Racked, deliberately not drawn as anything in particular. Nothing in
+  // the map is one of these since U29-34 was described and drawn; it is
+  // kept on purpose, for the next block of hardware that has not been.
   | { kind: "unlabelled" }
   // The UPS at the floor.
   | { kind: "ups" }
@@ -103,15 +108,85 @@ type RackFitting =
   // anything - see `activity`.
   | { kind: "server"; accent: boolean; health?: RackBlink };
 
+// Gear that stands on a unit rather than being racked in a U of its own.
+// It is drawn rising into the U above, because that is what the real thing
+// does: a Pi sitting on a switch does not stop taking up space because the
+// rack has no rail for it. The u17 shelf compresses its Hue bridge and
+// Apple TV into their own U instead, which is the older reading of the same
+// situation and is left alone.
+//
+// `x` is absolute in the viewBox. The height and width come from
+// `RISER_SHAPES`, so a riser cannot be given a size that nothing else in
+// the drawing agrees with.
+type RackRiser = {
+  kind: keyof typeof RISER_SHAPES;
+  x: number;
+};
+
+export const RISER_SHAPES = {
+  // A Raspberry Pi 5 in its red case, seen end on.
+  pi: { width: 26, height: 6 },
+  // A Lenovo Neo Ultra Gen2 with an NVIDIA DGX Spark on top of it, drawn as
+  // one box: the Spark is the top `spark_height` of it, narrower than the
+  // machine it sits on.
+  lenovo_spark: { width: 50, height: 30, spark_width: 34, spark_height: 16 },
+} as const;
+
+// The Spark's front is a mesh, not a flat panel. The grille is drawn as
+// slats across the inset face, offset from its left edge, so the whole run
+// moves with the box rather than being placed against the viewBox.
+export const SPARK_MESH_INSET = 3;
+export const SPARK_MESH_XS = Array.from({ length: 7 }, (_, i) => 2 + i * 4);
+
+// The shelf's own surface: its lip, not the top edge of its U. Both the
+// shelf and anything standing on it measure from this, so the two cannot
+// drift apart.
+export const SHELF_SURFACE_DY = 7;
+
 type RackUnit = {
   id: string;
   u: number;
   units: number;
+  risers?: readonly RackRiser[];
 } & RackFitting;
+
+// Where a riser's underside sits: the top edge of the unit it stands on,
+// except on a shelf, where it stands on the lip.
+export function riser_base_y(unit: RackUnit): number {
+  return rack_u_y(unit.u) + (unit.kind === "shelf" ? SHELF_SURFACE_DY : 0);
+}
+
+export function riser_box(
+  unit: RackUnit,
+  riser: RackRiser,
+): { x: number; y: number; width: number; height: number } {
+  const shape = RISER_SHAPES[riser.kind];
+
+  return {
+    x: riser.x,
+    y: riser_base_y(unit) - shape.height,
+    width: shape.width,
+    height: shape.height,
+  };
+}
+
+// The two power strips' faces. The u18 strip is eight outlets at the
+// mockup's own pitch; the Pyle at the floor of the rack carries nine, and
+// its three front switches take the left of the face, which is why the
+// outlets start further in rather than sharing the run above.
+export const OUTLET_XS = Array.from({ length: 8 }, (_, i) => 58 + i * 15);
+export const PYLE_OUTLET_XS = Array.from({ length: 9 }, (_, i) => 94 + i * 12);
+export const PYLE_SWITCH_XS = [54, 66, 78];
+
+// The Pro Max's sixteen ports, one run at one pitch: unlike the two access
+// switches above it, nothing on it is dark and nothing on it blinks.
+const PRO_MAX_PORT_XS = Array.from({ length: 16 }, (_, i) => 66 + i * 8);
 
 // The real hardware, top to bottom. `u` is the topmost U the device
 // occupies and `units` how many it takes, so the two together tile the
-// whole 42U column with no gaps and no overlaps.
+// whole 42U column with no gaps and no overlaps. Anything standing on a
+// unit instead of being racked in a U carries a `risers` list and is drawn
+// above the face it stands on - see `RackRiser`.
 export const RACK_UNITS: readonly RackUnit[] = [
   { id: "brush-u1", u: 1, units: 1, kind: "brush" },
   { id: "uxg-pro", u: 2, units: 1, kind: "appliance", port_block_w: 34 },
@@ -221,8 +296,8 @@ export const RACK_UNITS: readonly RackUnit[] = [
   },
   { id: "patch-panel-u12", u: 12, units: 1, kind: "patch_panel" },
   { id: "empty-u13", u: 13, units: 4, kind: "empty" },
-  { id: "shelf", u: 17, units: 1, kind: "shelf" },
-  { id: "pdu", u: 18, units: 1, kind: "pdu" },
+  { id: "shelf-u17", u: 17, units: 1, kind: "shelf" },
+  { id: "pdu-u18", u: 18, units: 1, kind: "pdu", outlet_xs: OUTLET_XS, switch_xs: [] },
   { id: "empty-u19", u: 19, units: 3, kind: "empty" },
   {
     id: "r430",
@@ -235,7 +310,42 @@ export const RACK_UNITS: readonly RackUnit[] = [
   { id: "r730xd-u23", u: 23, units: 2, kind: "server", accent: false },
   { id: "r730xd-u25", u: 25, units: 2, kind: "server", accent: false },
   { id: "empty-u27", u: 27, units: 2, kind: "empty" },
-  { id: "unlabelled-u29", u: 29, units: 6, kind: "unlabelled" },
+  {
+    id: "usw-pro-max-16",
+    u: 29,
+    units: 1,
+    kind: "switch",
+    port_w: 5,
+    ports: PRO_MAX_PORT_XS.map((x) => ({ x, state: "link" as const })),
+    // The two Pis stand on its lid, side by side, and are drawn in U28 -
+    // which the map leaves as air above them.
+    risers: [
+      { kind: "pi", x: 97 },
+      { kind: "pi", x: 133 },
+    ],
+  },
+  { id: "empty-u30", u: 30, units: 3, kind: "empty" },
+  {
+    id: "shelf-u33",
+    u: 33,
+    units: 1,
+    kind: "shelf",
+    // Each stack is a Lenovo with a Spark on top, and the pair of them rise
+    // off the shelf through the three U of air above it. That air is what
+    // U30-32 is for: the shelf is 1U and what stands on it is not.
+    risers: [
+      { kind: "lenovo_spark", x: 71 },
+      { kind: "lenovo_spark", x: 135 },
+    ],
+  },
+  {
+    id: "pyle-pdu",
+    u: 34,
+    units: 1,
+    kind: "pdu",
+    outlet_xs: PYLE_OUTLET_XS,
+    switch_xs: PYLE_SWITCH_XS,
+  },
   { id: "empty-u35", u: 35, units: 6, kind: "empty" },
   { id: "smart-ups", u: 41, units: 2, kind: "ups" },
 ];
@@ -249,7 +359,6 @@ export const ACCENT_W = 178;
 
 export const RAIL_HOLE_US = Array.from({ length: RACK_U_COUNT }, (_, i) => i + 1);
 export const KEYSTONE_XS = Array.from({ length: 24 }, (_, i) => 54 + i * 6);
-export const OUTLET_XS = Array.from({ length: 8 }, (_, i) => 58 + i * 15);
 export const BEZEL_RIB_XS = Array.from({ length: 6 }, (_, i) => 70 + i * 21);
 export const BEZEL_RIB_INSET = 1.5;
 
