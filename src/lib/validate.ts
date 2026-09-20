@@ -49,7 +49,25 @@ export function build_master_ids(data: ResumeData): Record<string, Set<string>> 
 // silently falling back to an unchecked cast the way `skills` originally
 // did.
 
-type SchemaCoversType<RealType, InferredType> = keyof RealType extends keyof InferredType
+/**
+ * Makes a field added to an interface without a matching schema entry a
+ * compile error rather than a silent gap. Exported because three loaders
+ * assert with it - a guard type that is wrong in one copy stays wrong in
+ * the others, which is how `ListCoversUnion` below shipped broken.
+ */
+export type SchemaCoversType<RealType, InferredType> = keyof RealType extends keyof InferredType
+  ? true
+  : never;
+
+/**
+ * Makes a union member missing from its allowed-values list a compile
+ * error. Both sides are wrapped in a tuple on purpose: a naked type
+ * parameter distributes, so the conditional is evaluated once per union
+ * member and the results are unioned - a missing member contributes
+ * `never`, `true | never` collapses to `true`, and the assertion compiles
+ * with the drift it exists to catch.
+ */
+export type ListCoversUnion<Union, List extends readonly Union[]> = [Union] extends [List[number]]
   ? true
   : never;
 

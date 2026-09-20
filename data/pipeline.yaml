@@ -1,0 +1,442 @@
+# Content for the "Building a pipeline" landing section (#209).
+#
+# Loaded and validated by src/lib/pipeline.ts, typed by PipelineData in
+# src/lib/types.ts. It is a second landing data file rather than another
+# block in landing.yaml because this one section carries three graphs, a
+# terminal, a rack and two readouts - more structure than the other six
+# sections put together.
+#
+# There are no coordinates here on purpose. Each band's graph is a set of
+# nodes and the edges between them; src/lib/landing/pipeline-graph.ts turns
+# that into positions and path strings. Tones are role names
+# (default/muted/dim/accent/green), resolved against
+# src/lib/landing/palette.ts at render time, so nothing in this file has to
+# change when a colour does.
+
+heading: "Building a pipeline"
+
+lede: >-
+  I write this site on a laptop. Five minutes or so after I merge a change, it is
+  running on a server downstairs in my basement and being handed to whoever asks
+  for it. What follows is the route it takes and the tools that do the work along
+  the way.
+lede_emphasis: "a server downstairs in my basement"
+
+bands:
+  # Band 1 - the commit graph. main is the trunk, the feature branch leaves
+  # it and comes back through CI, and the trunk runs dotted while it is out.
+  - id: commit
+    label:
+      from: "My laptop"
+      to: "GitHub"
+    graph_side: left
+    tail_arrow: true
+
+    nodes:
+      - id: repo
+        label: "kaecyra/resume"
+        detail: "main"
+        style: ring
+        tone: default
+        lane: trunk
+        mark: github
+        emphasis: true
+
+      - id: feature
+        label: "feature/209-pipeline"
+        detail: "branched off main"
+        style: disc
+        tone: muted
+        lane: branch
+
+      - id: commit-one
+        label: "commit"
+        style: disc
+        tone: muted
+        lane: branch
+
+      - id: commit-two
+        label: "commit"
+        style: disc
+        tone: muted
+        lane: branch
+
+      - id: local-spinup
+        label: "local spinup"
+        detail: "the whole site, up on my laptop"
+        style: ring
+        tone: default
+        lane: branch
+
+      - id: pull-request
+        label: "pull request"
+        style: ring
+        tone: accent
+        lane: branch
+
+      # Rides the merge curve rather than either lane: the gate is the
+      # merge, not a stop on the way to it.
+      - id: ci-green
+        label: "CI green"
+        detail: "typecheck, tests, production build"
+        style: disc
+        tone: green
+        lane: merge
+        emphasis: true
+
+      - id: merged
+        label: "squashed onto main"
+        style: ring
+        tone: default
+        lane: trunk
+
+      - id: actions
+        label: "Actions builds the image"
+        detail: "tagged from the VERSION file, and latest"
+        style: disc
+        tone: muted
+        lane: trunk
+        mark: github-actions
+
+      - id: ghcr
+        label: "pushed to GHCR"
+        detail: "ghcr.io/kaecyra/resume"
+        style: disc
+        tone: accent
+        lane: trunk
+        mark: github
+        emphasis: true
+
+    edges:
+      # main, from the branch point down to the merge. Dotted because it is
+      # not the live tip while the branch is out; head_tone paints the
+      # stretch above the fork, which still is.
+      - id: main-while-branched
+        from: repo
+        to: merged
+        kind: trunk
+        tone: dim
+        dash: dotted
+        head_tone: muted
+
+      - id: branch-out
+        from: repo
+        to: feature
+        kind: fork
+        tone: default
+
+      - id: first-commit
+        from: feature
+        to: commit-one
+        kind: branch
+        tone: default
+
+      - id: second-commit
+        from: commit-one
+        to: commit-two
+        kind: branch
+        tone: default
+
+      - id: bring-it-up
+        from: commit-two
+        to: local-spinup
+        kind: branch
+        tone: default
+
+      - id: open-it
+        from: local-spinup
+        to: pull-request
+        kind: branch
+        tone: default
+
+      # Green for its whole length: the gate is what the curve is about.
+      - id: merge-back
+        from: pull-request
+        to: merged
+        kind: merge
+        tone: green
+
+      - id: build-it
+        from: merged
+        to: actions
+        kind: trunk
+        tone: default
+
+      - id: push-it
+        from: actions
+        to: ghcr
+        kind: trunk
+        tone: default
+
+    note:
+      column: aside
+      text: >-
+        Work starts on a branch. Two commits in, I bring the whole site up on my
+        laptop and click around it. Then it becomes a pull request, and GitHub
+        Actions runs the typecheck, the tests and a production build against it.
+        A red run blocks the merge button.
+      emphasis: "Work starts on a branch."
+
+    terminal:
+      path: "~/www/kaecyra/resume"
+      turns:
+        - speaker: you
+          bars: [84, 41]
+        - speaker: agent
+          bars: [96, 89, 62]
+        - speaker: tool
+          bars: [55, 33]
+        - speaker: you
+          bars: [70]
+        - speaker: agent
+          bars: [92, 77, 94, 48]
+        - speaker: you
+          cursor: true
+
+    code: |
+      $ npm run dev
+
+        VITE ready
+        ➜  Local:   http://localhost:5173/
+
+  # Band 2 - the deploy graph. The inverse of band 1: Watchtower is the
+  # trunk and the new image is what branches into it.
+  - id: deploy
+    label:
+      from: "My basement"
+    graph_side: right
+    tail_arrow: true
+
+    nodes:
+      - id: watchtower
+        label: "Watchtower"
+        detail: "watching for digest updates"
+        style: ring
+        tone: default
+        lane: trunk
+        mark: docker
+        emphasis: true
+
+      - id: registry-check
+        label: "checks the registry"
+        detail: "every five minutes"
+        style: disc
+        tone: muted
+        lane: trunk
+
+      - id: new-digest
+        label: "a new digest on :latest"
+        detail: "the tag moved, so there is something to pull"
+        style: disc
+        tone: accent
+        lane: branch
+        emphasis: true
+
+      - id: pull
+        label: "pulls the image"
+        detail: "into Docker on the VM"
+        style: disc
+        tone: muted
+        lane: trunk
+
+      - id: recreate
+        label: "recreates the container"
+        detail: "and cleans up the one it replaced"
+        style: disc
+        tone: muted
+        lane: trunk
+
+      - id: healthcheck
+        label: "healthcheck green"
+        detail: "live, about five minutes after I merged"
+        style: disc
+        tone: green
+        lane: trunk
+        tick: true
+        emphasis: true
+
+    edges:
+      - id: watching
+        from: watchtower
+        to: registry-check
+        kind: trunk
+        tone: default
+
+      - id: digest-out
+        from: registry-check
+        to: new-digest
+        kind: fork
+        tone: accent
+
+      - id: digest-back
+        from: new-digest
+        to: pull
+        kind: merge
+        tone: accent
+
+      # Watchtower keeps running whether or not there is a digest to pull,
+      # so unlike band 1 the trunk stays unbroken under the branch.
+      - id: keeps-watching
+        from: registry-check
+        to: pull
+        kind: trunk
+        tone: default
+
+      - id: recreating
+        from: pull
+        to: recreate
+        kind: trunk
+        tone: default
+
+      - id: checking
+        from: recreate
+        to: healthcheck
+        kind: trunk
+        tone: default
+
+    note:
+      column: graph
+      text: >-
+        Watchtower sits in the VM and watches the registry from there, so deploys
+        are pull based and I do not need to open any ports. I have never deployed
+        this site by hand.
+      emphasis: "Watchtower sits in the VM"
+
+    rack: true
+
+    marks:
+      - id: proxmox
+        label: "Proxmox"
+      - id: ubuntu
+        label: "Ubuntu"
+      - id: docker
+        label: "Docker"
+        lit: true
+      - id: nginx
+        label: "nginx"
+      - id: cloudflare
+        label: "Cloudflare"
+
+    readout:
+      column: graph
+      entries:
+        - id: temperature
+          label: "In the basement right now"
+          value: "21.5"
+          unit: "°C"
+          tone: accent
+        - id: humidity
+          label: "Humidity"
+          value: "46"
+          unit: "%"
+
+  # Band 3 - the serving graph. No label and no tail arrow: the reader is
+  # the end of the drawing, so nothing continues past it.
+  - id: serve
+    graph_side: left
+
+    nodes:
+      - id: nginx
+        label: "nginx, in the container"
+        detail: "serving the site"
+        style: ring
+        tone: default
+        lane: trunk
+        mark: nginx
+        # The only mark that does not take its node's tone. A white nginx
+        # hexagon reads as the brightest thing in the band and pulls the
+        # eye off the reader node, which is where this graph ends.
+        mark_tone: muted
+        emphasis: true
+
+      - id: cloudflared
+        label: "cloudflared"
+        detail: "opens the tunnel from my side"
+        style: ring
+        tone: default
+        lane: trunk
+        emphasis: true
+
+      - id: cloudflare
+        label: "Cloudflare"
+        detail: "your TLS session ends at whichever edge is nearest you"
+        style: ring
+        tone: accent
+        lane: trunk
+        mark: cloudflare
+        emphasis: true
+
+      - id: reader
+        label: "you"
+        detail: "reading this now"
+        style: reader
+        tone: accent
+        lane: trunk
+
+    edges:
+      - id: serving
+        from: nginx
+        to: cloudflared
+        kind: trunk
+        tone: default
+
+      # Dashed because it is a tunnel held open from inside, not a wire
+      # anyone can dial.
+      - id: tunnel
+        from: cloudflared
+        to: cloudflare
+        kind: trunk
+        tone: default
+        dash: dashed
+
+      - id: delivery
+        from: cloudflare
+        to: reader
+        kind: trunk
+        tone: accent
+
+    note:
+      column: graph
+      text: >-
+        cloudflared opens the connection from inside the basement and holds it
+        there, so Cloudflare has somewhere to put your request without anything on
+        my router listening for it. That is also why I am relaxed about running
+        this on a home network.
+      emphasis: "cloudflared opens the connection from inside the basement"
+
+    readout:
+      column: aside
+      live: true
+      caption: "Sample values until the page measures your own request."
+      entries:
+        - id: edge
+          label: "Edge that answered"
+          value: "YYZ"
+          tone: accent
+        - id: first-byte
+          label: "First byte"
+          value: "41"
+          unit: "ms"
+        - id: transferred
+          label: "Transferred"
+          value: "47"
+          unit: "KB"
+        - id: protocol
+          label: "Protocol"
+          value: "h2"
+          unit: "TLS 1.3"
+
+# The connectors drawn between one band and the next. Each leaves the band
+# it names and lands on the one after it, so the last band cannot have one.
+crossings:
+  - id: to-registry
+    after: commit
+    label: "ghcr.io/kaecyra/resume:latest"
+  - id: to-edge
+    after: deploy
+    label: "nginx :80"
+
+closer: >-
+  You are the last node on that drawing. I merge a branch on my laptop, and about
+  five minutes later a machine in my basement is handing this page to you.
+closer_emphasis: "a machine in my basement"
