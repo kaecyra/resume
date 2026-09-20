@@ -70,6 +70,7 @@ tasks/
 # odette
 .odette/
 .claude/overseer/
+.claude/worktrees/
 
 # Local feedback drops (screenshots, photos, review notes)
 /feedback/
