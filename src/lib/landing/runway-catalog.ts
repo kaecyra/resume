@@ -174,7 +174,7 @@ function to_finite_number(value: string): number | null {
 
 // Groups runways.csv rows by ICAO code, keeping only the ICAOs asked for
 // and converting each surviving row into one physical Runway. A row
-// missing a coordinate or length is dropped rather than producing a
+// missing a coordinate, length or width is dropped rather than producing a
 // runway drawn at (NaN, NaN); an ICAO with no surviving rows is left out
 // of the result entirely (not an empty array), matching the "no data yet"
 // vs. "genuinely no runways" distinction PopAirport#runways relies on.
