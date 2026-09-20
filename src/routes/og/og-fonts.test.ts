@@ -14,7 +14,13 @@ import { existsSync, readFileSync } from "node:fs";
 const LAYOUT_URL = new URL("./+layout.svelte", import.meta.url);
 const LAYOUT = readFileSync(LAYOUT_URL, "utf8");
 
-const CARDS = ["./landing/+page.svelte", "./[variant=variant]/+page.svelte"];
+// Globbed rather than listed: a third card route added under src/routes/og/
+// inherits this layout's @font-face block and body reset, which is the
+// layout's stated reason for existing, and a hand-maintained list would let
+// it do that unchecked. The floor below catches a glob that matches nothing.
+const CARDS = Object.keys(
+  import.meta.glob("./*/+page.svelte", { query: "?raw", eager: false }),
+);
 
 // Every `src: url("/fonts/…")` in the layout, as the path the browser would
 // request. `static/` is the document root at build time, so that URL maps to
@@ -28,8 +34,14 @@ function declared_families(source: string): string[] {
 }
 
 describe("the OG card routes' fonts", () => {
-  it("declares at least the three faces the cards are set in", () => {
+  // A tripwire on the count, deliberately exact: a fourth face is a real
+  // change to what these routes ship and should be seen, not absorbed.
+  it("declares the three faces the cards are set in, and no more", () => {
     expect(declared_font_urls().length).toBe(3);
+  });
+
+  it("covers every card route under src/routes/og", () => {
+    expect(CARDS.length).toBeGreaterThanOrEqual(2);
   });
 
   it("points every @font-face at a file that exists in static/fonts", () => {

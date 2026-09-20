@@ -56,6 +56,12 @@
     overflow: hidden;
     display: flex;
     align-items: center;
+    /* Deliberately not the hero's 2.5rem: a card is cropped by whatever
+       feed renders it, and 40px of gutter puts the name's first stroke
+       inside that risk. 76px is the hero's padding plus the 36px the name
+       needs to survive a rounded-corner crop. The hero has no such
+       constraint, so this is the one measurement here that is the card's
+       own rather than scaled from the page. */
     padding: 0 0 0 76px;
     box-sizing: border-box;
     background: var(--hud-bg);
