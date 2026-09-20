@@ -765,6 +765,24 @@ const PipelineDataSchema = z
       (bad) => `closer_emphasis (${bad}) must appear verbatim in the closer`,
     );
 
+    // Crossing.svelte takes { crossing, index } and reads its direction off
+    // the index alone - the agreed signature, so that the band registry does
+    // not end up in a third place. That is only right while two facts hold,
+    // and neither is expressible in a per-band or per-crossing schema: the
+    // crossings are listed in band order, and the graphs alternate sides
+    // starting on the left. Reordering the crossings otherwise validates
+    // clean and draws every connector backwards, into empty column at both
+    // ends.
+    pipeline.bands.forEach((band, index) => {
+      const expected_side = index % 2 === 0 ? "left" : "right";
+      if (band.graph_side && band.graph_side !== expected_side) {
+        issue(
+          ctx,
+          `band "${String(band.id)}" graph_side must be "${expected_side}", not "${band.graph_side}"`,
+        );
+      }
+    });
+
     const band_ids = pipeline.bands.map((band) => band.id).filter(Boolean);
     // The last band, not the last band with an id: filtering first would
     // make a document whose final band is unnamed report the crossing
@@ -801,6 +819,24 @@ const PipelineDataSchema = z
       }
       spoken_for.add(crossing.after);
     }
+
+    // Position, not membership: a crossing naming the band above it is
+    // still wrong if it is not the nth crossing. Reported only where the
+    // band in that position has an id and the crossing is not already
+    // flagged as hanging off the end, so one fault produces one message.
+    pipeline.crossings.forEach((crossing, index) => {
+      const expected_after = pipeline.bands[index]?.id;
+      if (!crossing.after || !expected_after || crossing.after === last_band_id) {
+        return;
+      }
+
+      if (crossing.after !== expected_after) {
+        issue(
+          ctx,
+          `crossing "${String(crossing.id)}" must come after band "${expected_after}", not "${crossing.after}"`,
+        );
+      }
+    });
   });
 
 const _pipeline_data_schema_covers_type: SchemaCoversType<
