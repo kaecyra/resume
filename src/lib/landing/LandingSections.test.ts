@@ -1,7 +1,9 @@
 import { render } from "svelte/server";
 
+import { KNOWN_SECTIONS } from "$lib/landing.js";
+
 import type { ContributionGridModel } from "$lib/github.js";
-import type { LandingData } from "$lib/types.js";
+import type { LandingData, PipelineData } from "$lib/types.js";
 
 import LandingSections from "./LandingSections.svelte";
 import { CONTRIBUTION_RAMP, HUD_PALETTE } from "./palette.js";
@@ -53,7 +55,29 @@ const LANDING: LandingData = {
     { label: "GitHub", url: "https://github.com/testuser" },
   ],
   github: { user: "testuser" },
-  sections: ["hero", "divider", "commits", "work", "appearances", "contact"],
+  sections: ["hero", "divider", "commits", "pipeline", "work", "appearances", "contact"],
+};
+
+// Minimal but well-formed: the placeholder Pipeline.svelte reads only the
+// heading today, and #209 step (c) replaces it with the real section, so
+// pinning more of this shape here would just be work to undo.
+const PIPELINE: PipelineData = {
+  heading: "Building a pipeline",
+  lede: "It leaves my laptop and arrives somewhere else.",
+  bands: [
+    {
+      id: "commit",
+      graph_side: "left",
+      nodes: [
+        { id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" },
+        { id: "merged", label: "merged", style: "disc", tone: "muted", lane: "trunk" },
+      ],
+      edges: [{ id: "main", from: "repo", to: "merged", kind: "trunk", tone: "default" }],
+      note: { column: "aside", text: "Work starts on a branch." },
+    },
+  ],
+  crossings: [],
+  closer: "A machine in my basement hands you this page.",
 };
 
 // Deliberately different from hero.name/hero.role, to prove the download
@@ -69,6 +93,7 @@ function html_for(landing: LandingData, contributions_grid: ContributionGridMode
       profile_name: PROFILE_NAME,
       resume_title: RESUME_TITLE,
       contributions_grid,
+      pipeline: PIPELINE,
     },
   }).body;
 }
@@ -433,5 +458,40 @@ describe("LandingSections", () => {
 
     expect(hero_html).toMatch(/class="hero-badge-tag[^"]*">Independent</);
     expect(hero_html).not.toContain("hero-badge-label");
+  });
+});
+
+// The section registry is written down twice and linked by nothing: the
+// KNOWN_SECTIONS set in $lib/landing.ts, which is what validation accepts,
+// and the {#if} chain in LandingSections.svelte, which is what actually
+// renders. The two failure modes are not symmetric. Forgetting the set
+// throws at prerender, loudly. Forgetting the chain renders *nothing* -
+// the section is accepted, the {#each} reaches it, no arm matches, and the
+// page comes out one section short with no error anywhere. #209 walked
+// straight into this shape, and LandingData.sections is `string[]` rather
+// than a union, so the compiler has nothing to say about it either.
+//
+// Walking the set is what links the two lists. Every id in it has to
+// produce its own wrapper element, which is the one thing every section
+// component agrees on (see the `id="..."` on each).
+describe("the section registry", () => {
+  it("dispatches every id in KNOWN_SECTIONS to a component that renders it", () => {
+    for (const section of KNOWN_SECTIONS) {
+      const html = html_for({ ...LANDING, sections: [section] });
+
+      expect(html, `section "${section}" is in KNOWN_SECTIONS but renders nothing`).toContain(
+        `id="${section}"`,
+      );
+    }
+  });
+
+  it("renders nothing for an id outside KNOWN_SECTIONS, so the test above can fail", () => {
+    // The assertion above is only worth anything if an unmatched id really
+    // does render nothing rather than falling through to some default.
+    // Svelte's SSR anchor comments are all that comes back; strip them and
+    // there is no element left at all.
+    const html = html_for({ ...LANDING, sections: ["testimonials"] });
+
+    expect(html.replace(/<!--.*?-->/g, "").trim()).toBe("");
   });
 });

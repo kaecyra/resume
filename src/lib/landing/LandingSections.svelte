@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { ContributionGridModel } from "$lib/github.js";
-  import type { LandingData } from "$lib/types.js";
+  import type { LandingData, PipelineData } from "$lib/types.js";
 
   import Appearances from "./Appearances.svelte";
   import Commits from "./Commits.svelte";
   import Contact from "./Contact.svelte";
   import Divider from "./Divider.svelte";
   import Hero from "./Hero.svelte";
+  import Pipeline from "./Pipeline.svelte";
   import Work from "./Work.svelte";
 
   // `validate_landing_data` guarantees `sections` only contains known ids
@@ -19,16 +20,21 @@
   // arrives as `null` when data/generated/github.json is absent (no
   // GH_CONTRIB_PAT/GITHUB_TOKEN at build time), and Commits renders an
   // explicit offline state for that case.
+  // `pipeline` is #209's data source (data/pipeline.yaml, loaded and
+  // validated by src/lib/pipeline.ts); like `contributions_grid` it does
+  // not live on `landing`, so it is threaded through as its own prop.
   let {
     landing,
     profile_name,
     resume_title,
     contributions_grid,
+    pipeline,
   }: {
     landing: LandingData;
     profile_name: string;
     resume_title: string;
     contributions_grid: ContributionGridModel | null;
+    pipeline: PipelineData;
   } = $props();
 
   const resume_link = $derived(landing.resume_links[0]);
@@ -41,6 +47,8 @@
     <Divider hero={landing.hero} contact={landing.contact} />
   {:else if section === "commits"}
     <Commits github={landing.github} {contributions_grid} />
+  {:else if section === "pipeline"}
+    <Pipeline {pipeline} />
   {:else if section === "work"}
     <Work projects={landing.projects} />
   {:else if section === "appearances"}

@@ -11,7 +11,7 @@
 import { fireEvent, render } from "@testing-library/svelte";
 
 import { HUD_PALETTE } from "$lib/landing/palette.js";
-import type { LandingData } from "$lib/types.js";
+import type { LandingData, PipelineData } from "$lib/types.js";
 
 import Page from "./+page.svelte";
 
@@ -30,12 +30,31 @@ const LANDING: LandingData = {
   sections: ["hero", "divider", "commits", "work", "contact"],
 };
 
+// Required by PageData since #209, though LANDING.sections leaves
+// "pipeline" out - nothing here is about that section.
+const PIPELINE: PipelineData = {
+  heading: "Building a pipeline",
+  lede: "It leaves my laptop and arrives somewhere else.",
+  bands: [
+    {
+      id: "commit",
+      graph_side: "left",
+      nodes: [{ id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" }],
+      edges: [],
+      note: { column: "aside", text: "Work starts on a branch." },
+    },
+  ],
+  crossings: [],
+  closer: "A machine in my basement hands you this page.",
+};
+
 const PAGE_DATA = {
   umami_website_id: "",
   landing: LANDING,
   profile_name: "Test Person",
   resume_title: "Chief Technology Officer",
   contributions_grid: null,
+  pipeline: PIPELINE,
   og: {
     title: "Test Person",
     description: "I build things.",

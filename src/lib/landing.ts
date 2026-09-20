@@ -17,12 +17,26 @@ import type { ValidationError } from "./validate.js";
 const DATA_DIR = resolve("data");
 
 // The section ids any component built so far can render: Hero ("hero"),
-// Divider ("divider"), Commits ("commits"), Work ("work"), Appearances
-// ("appearances"), Contact ("contact"). A `sections` entry outside this set
-// silently renders nothing once wired up. The resume CTA (#174's "resume"
-// section) is no longer a standalone section - the redesign (#177) embeds
-// it directly in the hero.
-const KNOWN_SECTIONS = new Set(["hero", "divider", "commits", "work", "appearances", "contact"]);
+// Divider ("divider"), Commits ("commits"), Pipeline ("pipeline"), Work
+// ("work"), Appearances ("appearances"), Contact ("contact"). A `sections`
+// entry outside this set silently renders nothing once wired up. The
+// resume CTA (#174's "resume" section) is no longer a standalone section -
+// the redesign (#177) embeds it directly in the hero.
+//
+// Exported for LandingSections.test.ts, which walks it and renders each id
+// in turn. This set and the {#if} chain in LandingSections.svelte are two
+// hand-maintained copies of one list, and the failure mode of a mismatch
+// is silence: an id here with no arm there renders nothing at all, with no
+// error. Walking it in a test is what links the two.
+export const KNOWN_SECTIONS = new Set([
+  "hero",
+  "divider",
+  "commits",
+  "pipeline",
+  "work",
+  "appearances",
+  "contact",
+]);
 
 export function load_landing_data(): LandingData {
   const raw = readFileSync(resolve(DATA_DIR, "landing.yaml"), "utf-8");
