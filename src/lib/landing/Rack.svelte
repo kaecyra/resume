@@ -142,7 +142,7 @@
       {:else if unit.kind === "empty"}
         <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.slot_empty} />
       {:else if unit.kind === "patch_panel"}
-        <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.faceplate_dim} />
+        <rect x={EQUIP_X} y={unit_y} width={EQUIP_W} height={unit_h} fill={RACK_CHASSIS.patch_face} />
         <g fill={RACK_CHASSIS.keystone}>
           {#each KEYSTONE_XS as keystone_x (keystone_x)}
             <rect x={keystone_x} y={unit_y + 3} width="3" height="4" />

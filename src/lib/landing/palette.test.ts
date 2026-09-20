@@ -185,12 +185,38 @@ describe("RACK_CHASSIS", () => {
   // rather than as a stack of empty slots. They are not text, so this is a
   // legibility floor for a shape against its surround, not a WCAG check -
   // hence a ratio well above the 4.5:1 text floor rather than at it.
-  it.each(["faceplate", "faceplate_dim", "drive_bay", "puck"] as const)(
+  it.each(["faceplate", "drive_bay", "puck"] as const)(
     "keeps %s well clear of the cabinet it is bolted into",
     (token) => {
       expect(contrast_ratio(RACK_CHASSIS[token], RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(7);
     },
   );
+
+  // A patch panel is a plate with holes in it, and it sits directly between
+  // two switches. It used to be drawn six values off `faceplate`, which is
+  // not a step anyone can see, so the top of the rack read as five switches
+  // rather than two switches and three panels. It is deliberately not one of
+  // the light parts above: it has to stay behind them.
+  it("keeps a patch panel visibly behind the switch faces around it", () => {
+    expect(luminance(RACK_CHASSIS.patch_face)).toBeLessThan(luminance(RACK_CHASSIS.faceplate));
+    expect(contrast_ratio(RACK_CHASSIS.patch_face, RACK_CHASSIS.faceplate)).toBeGreaterThanOrEqual(
+      2,
+    );
+  });
+
+  // Behind the switches, but still a plate bolted into the rack rather than
+  // a hole in it - which is what it becomes if it falls back toward the
+  // cabinet. A shape floor, not a text one.
+  it("keeps a patch panel reading as installed hardware", () => {
+    expect(contrast_ratio(RACK_CHASSIS.patch_face, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+    expect(luminance(RACK_CHASSIS.patch_face)).toBeGreaterThan(luminance(RACK_CHASSIS.brush_face));
+  });
+
+  // The keystone openings are cut into that plate, so they read as holes
+  // only while they are darker than it.
+  it("cuts the keystone openings darker than the plate they are cut into", () => {
+    expect(luminance(RACK_CHASSIS.keystone)).toBeLessThan(luminance(RACK_CHASSIS.patch_face));
+  });
 
   // The server bezel is lit from above: a bright strip along its top edge,
   // the face below it, end caps in shadow at either side. Reordering any two

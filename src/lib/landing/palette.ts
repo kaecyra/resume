@@ -196,7 +196,12 @@ export const RACK_CHASSIS = {
   // The UPS at the floor, and the window its two LEDs sit behind.
   ups_body: "#1d1d22",
   ups_display: "#0d0d10",
-  // The patch panels' keystone openings.
+  // The patch panels: the plate, and the keystone openings cut into it. The
+  // plate is deliberately not one of the light parts below. It was drawn six
+  // values off `faceplate`, and at that distance u6, u8 and u12 read as three
+  // more switches - a patch panel is a plate with holes in it, and a switch
+  // is the thing with the lights on.
+  patch_face: "#8a8a90",
   keystone: "#3a3a42",
   // The servers' front bezels, lit from above: a bright strip along the top
   // edge, the face below it, end caps in shadow at either side. `bezel_face`
@@ -211,7 +216,6 @@ export const RACK_CHASSIS = {
   // hardware rather than as a stack of empty slots, so they sit far clear of
   // `cabinet` rather than a step away from it.
   faceplate: "#d8d8dc",
-  faceplate_dim: "#d2d2d5",
   drive_bay: "#b4b4ba",
   puck: "#c9c9cc",
 } as const;
