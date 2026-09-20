@@ -76,5 +76,4 @@ describe("CodeBlock", () => {
     expect(html).toContain("just words");
     expect(html).not.toContain("<span");
   });
-
 });

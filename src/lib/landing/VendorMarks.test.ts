@@ -62,5 +62,4 @@ describe("VendorMarks", () => {
   it("renders nothing at all when a band lists no marks", () => {
     expect(html_for([])).not.toMatch(/<[a-z]/i);
   });
-
 });

@@ -100,5 +100,4 @@ describe("Terminal", () => {
     expect(html).toContain(PIPELINE_INK.agent_bar);
     expect(html).toContain(PIPELINE_INK.tool_bar);
   });
-
 });

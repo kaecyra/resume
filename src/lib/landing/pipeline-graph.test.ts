@@ -705,6 +705,12 @@ describe("fork and merge curves", () => {
     // The reader's node is set in the display face and reads as the point
     // of the whole drawing, so it takes its ink without needing emphasis.
     expect(reader.label_ink).toBe(reader.ink);
+    // The detail line is page-secondary for all three, whatever their node
+    // tone. One value, but an unpinned one is a value nobody would notice
+    // changing.
+    for (const placed of layout.nodes) {
+      expect(placed.detail_ink).toBe(HUD_PALETTE.secondary);
+    }
   });
 
   it("skips an edge naming a node the band does not have", () => {

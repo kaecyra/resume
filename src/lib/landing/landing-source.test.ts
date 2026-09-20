@@ -54,10 +54,12 @@ function source_of(name: string): string {
 // hex-shaped the id happens to be.
 function without_noise(source: string): string {
   return source
-    .replace(/url\(#[^)]*\)/g, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^[ \t]*\/\/[^\n]*$/gm, "");
+    .replace(/^[ \t]*\/\/[^\n]*$/gm, "")
+    // Last, so an unterminated `url(#` inside a comment cannot run past the
+    // comment and swallow a real literal on its way to the next `)`.
+    .replace(/url\(#[^)]*\)/g, "");
 }
 
 describe("the pipeline section's components", () => {
@@ -74,13 +76,30 @@ describe("the pipeline section's components", () => {
   // shrink this file was written to stop. Anchored to what the section
   // actually renders rather than to a directory glob, which would drag in
   // the fifteen older components the header excludes.
-  it("covers every component the section renders", () => {
-    const imported = [
-      ...source_of("Pipeline.svelte").matchAll(/from "\.\/(\w+\.svelte)"/g),
-    ].map(([, name]) => name);
+  //
+  // Reachability from the root, not one file's import list: the root itself
+  // is imported by nothing, and a component pulled in by a child rather
+  // than by Pipeline.svelte would escape a one-level read.
+  it("covers the section root and everything it reaches", () => {
+    const reached = new Set<string>(["Pipeline.svelte"]);
+    const queue = ["Pipeline.svelte"];
 
-    expect(imported.length).toBeGreaterThan(4);
-    expect(COMPONENTS).toEqual(expect.arrayContaining(imported));
+    while (queue.length > 0) {
+      const name = queue.shift() as string;
+      const imports = [
+        ...source_of(name).matchAll(/from\s+["'][^"']*?\/(\w+\.svelte)["']/g),
+      ].map(([, imported]) => imported);
+
+      for (const imported of imports) {
+        if (!reached.has(imported)) {
+          reached.add(imported);
+          queue.push(imported);
+        }
+      }
+    }
+
+    expect(reached.size).toBeGreaterThan(4);
+    expect([...COMPONENTS].sort()).toEqual([...reached].sort());
   });
 
   it("keeps Share Tech Mono out, which #187 retired everywhere but the hero", () => {

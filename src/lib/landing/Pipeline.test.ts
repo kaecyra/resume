@@ -252,5 +252,4 @@ describe("Pipeline", () => {
 
     expect(style_block).toMatch(/\.band-grid\s*\{[^}]*align-items: start;/);
   });
-
 });

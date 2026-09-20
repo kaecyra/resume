@@ -104,16 +104,24 @@ describe("Graph", () => {
     expect(html).toContain('stroke-linejoin="round"');
   });
 
-  it("puts each label and detail where the layout put it", () => {
-    const layout = build_pipeline_graph(band());
-    const html = html_for(band());
+  it("puts each label and every detail line where the layout put it", () => {
+    // A two-line detail, because that is the case the whole detail_ys
+    // change exists for: data/pipeline.yaml breaks band 3's Cloudflare
+    // detail over two lines, and a drawing that spends only the first
+    // silently loses half of it.
+    const source = band();
+    source.nodes[0].detail = ["main", "and the tags on it"];
+    const layout = build_pipeline_graph(source);
+    const html = html_for(source);
     const repo = layout.nodes[0];
 
     expect(html).toContain(`x="${repo.label_x}" y="${repo.label_y}"`);
     expect(html).toContain("the repo");
-    expect(repo.detail_ys).toHaveLength(1);
+    expect(repo.detail_ys).toHaveLength(2);
     expect(html).toContain(`x="${repo.label_x}" y="${repo.detail_ys[0]}"`);
+    expect(html).toContain(`x="${repo.label_x}" y="${repo.detail_ys[1]}"`);
     expect(html).toContain("main");
+    expect(html).toContain("and the tags on it");
   });
 
   it("leaves out the detail line for a node that has none", () => {
@@ -191,7 +199,7 @@ describe("Graph", () => {
     expect(html).toContain(`viewBox="${layout.view_box}"`);
   });
 
-  it("spends the layout's detail ink too, rather than reaching for a colour", () => {
+  it("binds the detail fill to detail_ink rather than to the label's ink", () => {
     const source = band();
     const layout = build_pipeline_graph(source);
     const html = html_for(source);
@@ -203,12 +211,15 @@ describe("Graph", () => {
     expect(details[0]).toContain(`fill="${layout.nodes[0].detail_ink}"`);
   });
 
-  it("cannot choose a colour, because it never reaches the palette", () => {
-    // The structural version of the rule the two tests above check by
-    // value: with no import there is nothing to pick from, so a colour
-    // decision cannot be reintroduced here without this failing first.
+  it("does not import the palette", () => {
+    // The structural half of the rule the two tests above check by value.
+    // Matched on the specifier rather than one spelling of it: `./palette`
+    // without the extension resolves just as happily, and checking for the
+    // literal string "palette.js" walked straight past it. Still not proof
+    // against a colour re-exported through some other module, which is why
+    // this test claims only what it does.
     const source = readFileSync(new URL("./Graph.svelte", import.meta.url), "utf8");
 
-    expect(source).not.toContain("palette.js");
+    expect(source).not.toMatch(/from "\.[^"]*palette/);
   });
 });
