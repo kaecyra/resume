@@ -66,8 +66,11 @@ type RackBlink =
 export const BLINK_PERIOD_SCALE = 1.25;
 
 // A port: lit and holding link, or dark. `x` is absolute in the viewBox,
-// kept as a literal list rather than a start-plus-step so the two
-// 5.4-wide port rows land exactly where the mockup put them.
+// and the width it is drawn at is its switch's `port_w` - every port on one
+// switch is the same size, and the switches are not. The rows the mockup
+// drew are literal lists, each at its own pitch, so they land exactly where
+// it put them; the Pro Max's sixteen came later and are generated, because
+// the mockup never drew that switch.
 type RackPort = RackBlink & {
   x: number;
   state: "off" | "link";
@@ -152,8 +155,11 @@ export const RISER_SHAPES = {
 
 // The Spark's front is a mesh, not a flat panel. The grille is drawn as
 // slats across the inset face, offset from its left edge, so the whole run
-// moves with the box rather than being placed against the viewBox.
+// moves with the box rather than being placed against the viewBox. The slat
+// width lives here rather than in the template so the test that checks the
+// run fits the face can see where the last slat ends.
 export const SPARK_MESH_INSET = 3;
+export const SPARK_MESH_SLAT_W = 1.4;
 export const SPARK_MESH_XS = Array.from({ length: 7 }, (_, i) => 2 + i * 4);
 
 // The shelf's own surface: its lip, not the top edge of its U. Both the
@@ -192,9 +198,9 @@ export function riser_box(
 // mockup's own pitch; the Pyle at the floor of the rack carries nine, and
 // its three front switches take the left of the face, which is why the
 // outlets start further in rather than sharing the run above.
-export const OUTLET_XS = Array.from({ length: 8 }, (_, i) => 58 + i * 15);
-export const PYLE_OUTLET_XS = Array.from({ length: 9 }, (_, i) => 94 + i * 12);
-export const PYLE_SWITCH_XS = [54, 66, 78];
+const OUTLET_XS = Array.from({ length: 8 }, (_, i) => 58 + i * 15);
+const PYLE_OUTLET_XS = Array.from({ length: 9 }, (_, i) => 94 + i * 12);
+const PYLE_SWITCH_XS = [54, 66, 78];
 
 // Both runs' widths live here rather than in the template, so the test that
 // checks a run fits the equipment area can see the right edge of a rect and
