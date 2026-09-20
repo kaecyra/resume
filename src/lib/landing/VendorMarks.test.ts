@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { render } from "svelte/server";
 
 import type { PipelineMarkEntry } from "$lib/types.js";
@@ -13,6 +15,9 @@ const MARKS: PipelineMarkEntry[] = [
   { id: "nginx", label: "nginx" },
   { id: "cloudflare", label: "Cloudflare" },
 ];
+
+// A 360px viewport less the 20px .wrap carries on each side.
+const NARROW_CONTENT_WIDTH = 320;
 
 function html_for(marks: PipelineMarkEntry[]): string {
   return render(VendorMarks, { props: { marks } }).body;
@@ -61,5 +66,26 @@ describe("VendorMarks", () => {
   // rack rather than nothing.
   it("renders nothing at all when a band lists no marks", () => {
     expect(html_for([])).not.toMatch(/<[a-z]/i);
+  });
+
+  // The row wraps or it does not, and happy-dom performs no layout, so the
+  // arithmetic that decides it is checked against the component's own
+  // source instead. At the narrowest phone this section is built for - a
+  // 360px viewport, which .wrap pads to 320px of content - five boxes and
+  // the four gaps between them have to fit, or Cloudflare drops to a row of
+  // its own the way it did before the narrow block existed.
+  it("keeps all five marks on one row at 360px", () => {
+    const source = readFileSync(new URL("./VendorMarks.svelte", import.meta.url), "utf8");
+    const narrow = source.match(/@media \(max-width: 480px\) \{(.*)\n  \}/s);
+    expect(narrow, "the narrow-width block").not.toBeNull();
+
+    const gap = narrow![1].match(/gap: \d+px (\d+)px/);
+    const width = narrow![1].match(/width: (\d+)px/);
+    expect(gap, "a column gap under 480px").not.toBeNull();
+    expect(width, "a mark width under 480px").not.toBeNull();
+
+    const row = MARKS.length * Number(width![1]) + (MARKS.length - 1) * Number(gap![1]);
+
+    expect(row).toBeLessThanOrEqual(NARROW_CONTENT_WIDTH);
   });
 });

@@ -67,4 +67,21 @@
     color: var(--mark-ink);
     text-align: center;
   }
+
+  /* One row of five is the shape the row means: what the hardware above it
+     runs, read across. At the desktop numbers the five boxes and their gaps
+     come to 390px and a 400px phone has 360 of content, so Cloudflare
+     dropped to a row on its own. The boxes are narrower than the longest
+     label either way - CLOUDFLARE measures 69px - so what closes the gap
+     between two marks is the gap plus each one's own slack, and 12px here
+     still leaves 14px of clear space between that label and nginx's. */
+  @media (max-width: 480px) {
+    .marks {
+      gap: 18px 12px;
+    }
+
+    .mark {
+      width: 50px;
+    }
+  }
 </style>

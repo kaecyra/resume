@@ -320,10 +320,10 @@ bands:
     note:
       column: graph
       text: >-
-        Watchtower sits in the VM and watches the registry from there, so deploys
-        are pull based and I do not need to open any ports. I have never deployed
-        this site by hand.
-      emphasis: "Watchtower sits in the VM"
+        Watchtower runs in an Ubuntu VM on the Proxmox host downstairs and watches
+        the registry from there, so the basement pulls its own updates. I have
+        never deployed this site by hand.
+      emphasis: "Watchtower runs in an Ubuntu VM"
 
     rack: true
 
