@@ -267,16 +267,23 @@ describe("RACK_CHASSIS", () => {
     expect(luminance(RACK_CHASSIS.spark_face)).toBeLessThan(luminance(HUD_PALETTE.accent));
   });
 
-  // The two boxes on the u33 shelf are dark boxes standing in front of an
-  // empty U, and their faces are 1.28:1 against it. That is the server
-  // bezel's arrangement, not a blanking panel's: `bezel_face` sits 1.30:1
-  // against the cabinet and the Dells read anyway, because the lit top edge
-  // is what draws the box. So the edge is what is pinned here, at a floor
-  // above the 1.56:1 `bezel_top_light` manages against `cabinet`. The face
-  // is held the other way, and by a distance rather than by order alone:
-  // clearing the blanking panel's own 2:1 floor against `slot_empty` takes
-  // `#434349` against that panel's `#44444c`, which is a Lenovo box lit like
-  // a plate and is the collision the ladder exists to prevent.
+  // The two Lenovo boxes on the u33 shelf are dark boxes standing in front
+  // of an empty U. Why their faces stay there instead of rising to the
+  // blanking panel's floor is recorded beside the tones in palette.ts; what
+  // this pins is what that reasoning implies.
+  //
+  // The 1.7 floor is calibrated against the bezel, which is the same
+  // arrangement one shelf up: `bezel_top_light` clears `cabinet` by 1.56:1
+  // and the Dells read, so a Lenovo's edge has to do at least that much. The
+  // face is then held by a distance from `brush_face` rather than by order
+  // alone, because order alone admits `#434349` - one value under the plate,
+  // which is the collision itself.
+  //
+  // The first assertion is the lighting direction the test is named for, and
+  // it is documentation rather than a guard: a face bright enough to overtake
+  // a legal top light is already well inside the 1.5 the last assertion
+  // demands, so it cannot fail on its own. It stays for the reason the bezel
+  // test below spells its own order out.
   it("draws the Lenovo with its lit edge rather than its face", () => {
     expect(luminance(RACK_CHASSIS.lenovo_top_light)).toBeGreaterThan(
       luminance(RACK_CHASSIS.lenovo_face),
