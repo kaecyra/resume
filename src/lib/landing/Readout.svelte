@@ -25,7 +25,18 @@
   // enhancement: with JavaScript off, with the trace blocked, or with a
   // timing entry the browser will not fill in, the static values stand and
   // the caption says they are samples.
-  let { readout }: { readout: PipelineReadout } = $props();
+  //
+  // `follows_note` is placement, not content: it says this readout sits
+  // under a note in the same column, which is the one thing its extra
+  // spacing is for. The band data already knows it - `note.column ===
+  // readout.column` - and step (c), which places the component, is what
+  // passes it. It is deliberately not derived from `column` here: that
+  // holds for band 2's pair by coincidence, and would hand 30px of air to
+  // any future graph-column readout with nothing above it.
+  let {
+    readout,
+    follows_note = false,
+  }: { readout: PipelineReadout; follows_note?: boolean } = $props();
 
   // The only thing the measurement ever puts into component state: four
   // formatted values, or nothing. The trace response itself is read inside
@@ -120,7 +131,7 @@
 
 <dl
   class="readout"
-  class:readout-pair={readout.column === "graph"}
+  class:readout-after-note={follows_note}
   style="--readout-label: {HUD_PALETTE.chip_text}; --readout-unit: {HUD_PALETTE.secondary};"
 >
   {#each entries as entry (entry.id)}
@@ -191,8 +202,9 @@
     color: var(--readout-unit);
   }
 
-  /* Band 2's pair follows a note in the graph column and needs the air. */
-  .readout-pair {
+  /* A readout set under a note needs the air between the two. Band 2's
+     basement pair is the case that has it today. */
+  .readout-after-note {
     margin-block: 30px 0;
   }
 

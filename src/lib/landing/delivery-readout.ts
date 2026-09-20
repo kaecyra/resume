@@ -180,6 +180,13 @@ function format_first_byte(
   }
 
   const whole_ms = Math.round(elapsed);
+  // Under half a millisecond rounds to zero, and a measured "0 ms" beneath
+  // a label that means "this is your request" reads as a broken readout
+  // rather than a fast one. No measurement is the honest answer.
+  if (whole_ms < 1) {
+    return null;
+  }
+
   if (whole_ms < 1000) {
     return { value: String(whole_ms), unit: "ms" };
   }

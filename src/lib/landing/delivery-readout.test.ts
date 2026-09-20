@@ -229,6 +229,15 @@ describe("format_delivery_readout", () => {
       expect(format_with({ transfer_size: -1 })).toBeNull();
       // A clock that says ten minutes to first byte is a broken clock.
       expect(format_with({ response_start: 600_000 })).toBeNull();
+      // Under half a millisecond rounds to a measured "0 ms", which reads
+      // as a broken readout rather than a fast one.
+      expect(format_with({ response_start: 0.4 })).toBeNull();
+      expect(format_with({ start_time: 10, response_start: 10.49 })).toBeNull();
+      // Half a millisecond up rounds to a number worth printing.
+      expect(format_with({ response_start: 0.5 })?.["first-byte"]).toEqual({
+        value: "1",
+        unit: "ms",
+      });
     });
 
     it("rejects a protocol token that is not one", () => {

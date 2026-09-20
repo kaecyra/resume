@@ -11,6 +11,7 @@
 //   3. every failure falls back to the values data/pipeline.yaml carries,
 //      rather than to a blank or a half-measured readout.
 import { render, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 
 import type { PipelineReadout } from "$lib/types.js";
 
@@ -80,6 +81,23 @@ function values(container: HTMLElement): string[] {
   return [...container.querySelectorAll("dd")].map((value) => value.textContent ?? "");
 }
 
+// The three fallback tests have nothing to wait for: a measurement that
+// must not happen leaves the DOM exactly as the server rendered it, so
+// waiting on the DOM passes before the attempt has even started, and
+// waiting on `fetch` having been called passes on its first poll - `fetch`
+// is called synchronously inside measure_delivery while response.text(),
+// the parse, the state write and Svelte's flush are all still pending.
+//
+// This drains the whole chain instead. A timer callback runs only once the
+// microtask queue is exhausted, and with these stubs every step of the
+// chain resolves on a microtask, so anything that was going to render has
+// rendered by the time this returns. A change that measures when it must
+// not therefore has its chance to land before the assertion reads the DOM.
+async function settle_measurement(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await tick();
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -88,7 +106,7 @@ afterEach(() => {
 describe("Readout, measuring the reader's own request", () => {
   it("replaces all four values at once and drops the sample caption", async () => {
     stub_timing([navigation_entry()]);
-    stub_trace(TRACE_BODY);
+    const fetch_mock = stub_trace(TRACE_BODY);
 
     const { container } = render(Readout, { props: { readout: DELIVERY } });
 
@@ -96,6 +114,20 @@ describe("Readout, measuring the reader's own request", () => {
       expect(values(container)).toEqual(["AMS", "94ms", "21KB", "h3"]);
     });
     expect(container.textContent).not.toContain("Sample values");
+
+    // What was asked for, not just that something was. The privacy
+    // argument rests on the trace being a relative, same-origin path: the
+    // edge that answers it is the one that already has the reader's
+    // address, so nothing new is disclosed and there is no preflight.
+    // Pointed at a third-party geo-IP endpoint instead - the conventional
+    // way to build this, and therefore the likely edit - the address
+    // would ship to a stranger with every other test still green. The
+    // literal, not the imported constant: importing it would only assert
+    // that the constant equals itself.
+    expect(fetch_mock).toHaveBeenCalledWith(
+      "/cdn-cgi/trace",
+      expect.objectContaining({ cache: "no-store" }),
+    );
   });
 
   it("cannot put the reader's address, or anything else from the trace, on the page", async () => {
@@ -137,9 +169,9 @@ describe("Readout, measuring the reader's own request", () => {
 
     const { container } = render(Readout, { props: { readout: DELIVERY } });
 
-    await waitFor(() => {
-      expect(fetch_mock).toHaveBeenCalled();
-    });
+    await settle_measurement();
+
+    expect(fetch_mock).toHaveBeenCalled();
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
     expect(container.textContent).toContain("Sample values");
   });
@@ -150,10 +182,11 @@ describe("Readout, measuring the reader's own request", () => {
 
     const { container } = render(Readout, { props: { readout: DELIVERY } });
 
-    await waitFor(() => {
-      expect(fetch_mock).toHaveBeenCalled();
-    });
+    await settle_measurement();
+
+    expect(fetch_mock).toHaveBeenCalled();
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);
+    expect(container.textContent).toContain("Sample values");
   });
 
   it("keeps the sample values when the browser reports no timing entry", async () => {
@@ -162,9 +195,9 @@ describe("Readout, measuring the reader's own request", () => {
 
     const { container } = render(Readout, { props: { readout: DELIVERY } });
 
-    await waitFor(() => {
-      expect(fetch_mock).toHaveBeenCalled();
-    });
+    await settle_measurement();
+
+    expect(fetch_mock).toHaveBeenCalled();
     // A measured edge beside three sample numbers would be the lie. All
     // four stay static instead.
     expect(values(container)).toEqual(["YYZ", "41ms", "47KB", "h2TLS 1.3"]);

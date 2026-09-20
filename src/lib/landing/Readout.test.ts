@@ -37,12 +37,12 @@ const DELIVERY: PipelineReadout = {
 
 const SOURCE = readFileSync(new URL("./Readout.svelte", import.meta.url), "utf8");
 
-function html_for(readout: PipelineReadout): string {
+function html_for(readout: PipelineReadout, follows_note = false): string {
   // Svelte 5's SSR output is peppered with `<!--[-->` block anchors and
   // with the compiler's scoping class. Both are machinery, not content,
   // and both sit in the middle of every element these assertions care
   // about.
-  return render(Readout, { props: { readout } })
+  return render(Readout, { props: { readout, follows_note } })
     .body.replace(/<!--.*?-->/gs, "")
     .replace(/\s*class="svelte-[^"]*"/g, "")
     .replace(/\s+svelte-[a-z0-9]+/g, "");
@@ -117,9 +117,16 @@ describe("Readout", () => {
     ]);
   });
 
-  it("marks the graph-column readout as the pair that follows a note", () => {
-    expect(html_for(BASEMENT)).toMatch(/<dl class="[^"]*readout-pair/);
-    expect(html_for(DELIVERY)).not.toContain("readout-pair");
+  // The spacing is for a readout sitting under a note, and that is the
+  // only thing that may switch it on. Keying it off the graph column
+  // instead would give every future graph-column readout 30px of air it
+  // never asked for, on the strength of a coincidence that holds for
+  // band 2 alone.
+  it("spaces a readout that follows a note, and only that one", () => {
+    expect(html_for(BASEMENT, true)).toMatch(/<dl class="[^"]*readout-after-note/);
+    expect(html_for(BASEMENT)).not.toContain("readout-after-note");
+    expect(html_for(DELIVERY, true)).toMatch(/<dl class="[^"]*readout-after-note/);
+    expect(html_for(DELIVERY)).not.toContain("readout-after-note");
   });
 
   it("renders no caption when the data carries none", () => {
