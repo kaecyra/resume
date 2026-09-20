@@ -31,7 +31,10 @@ const LANDING: LandingData = {
 };
 
 // Required by PageData since #209, though LANDING.sections leaves
-// "pipeline" out - nothing here is about that section.
+// "pipeline" out - nothing here is about that section. Kept to a shape
+// validate_pipeline_data would accept even so: a lone unconnected node is
+// rejected twice over, and a fixture nothing validates is the easiest place
+// for an impossible document to take root.
 const PIPELINE: PipelineData = {
   heading: "Building a pipeline",
   lede: "It leaves my laptop and arrives somewhere else.",
@@ -39,8 +42,11 @@ const PIPELINE: PipelineData = {
     {
       id: "commit",
       graph_side: "left",
-      nodes: [{ id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" }],
-      edges: [],
+      nodes: [
+        { id: "repo", label: "the repo", style: "ring", tone: "default", lane: "trunk" },
+        { id: "merged", label: "merged", style: "ring", tone: "default", lane: "trunk" },
+      ],
+      edges: [{ id: "main", from: "repo", to: "merged", kind: "trunk", tone: "default" }],
       note: { column: "aside", text: "Work starts on a branch." },
     },
   ],

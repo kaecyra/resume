@@ -27,7 +27,7 @@ import type {
   PipelineTone,
   PipelineTurnSpeaker,
 } from "./types.js";
-import type { ValidationError } from "./validate.js";
+import type { ListCoversUnion, SchemaCoversType, ValidationError } from "./validate.js";
 
 const DATA_DIR = resolve("data");
 
@@ -48,10 +48,9 @@ export function load_pipeline_data(): PipelineData {
 // Without the pair, adding a tone to the union and forgetting the list
 // would leave that tone rejected at build time by a validator nobody
 // thought to update.
-
-type ListCoversUnion<Union, List extends readonly Union[]> = Union extends List[number]
-  ? true
-  : never;
+//
+// `ListCoversUnion` lives in ./validate.js, next to `SchemaCoversType`, so
+// the three loaders that assert with them cannot drift apart.
 
 const NODE_STYLES = ["ring", "disc", "reader"] as const satisfies readonly PipelineNodeStyle[];
 const _node_styles_cover: ListCoversUnion<PipelineNodeStyle, typeof NODE_STYLES> = true;
@@ -116,10 +115,6 @@ const _turn_speakers_cover: ListCoversUnion<PipelineTurnSpeaker, typeof TURN_SPE
 // be an array" is not much help in a document with three bands. The outer
 // two collections - `bands` and `crossings` - keep real zod typing, since
 // there is only one of each and the message needs no context.
-
-type SchemaCoversType<RealType, InferredType> = keyof RealType extends keyof InferredType
-  ? true
-  : never;
 
 const PipelineNodeSchema = z.object({
   id: z.any().optional(),
@@ -332,6 +327,7 @@ function check_note(ctx: z.RefinementCtx, band_label: string, note: unknown): vo
     column,
     COLUMNS,
     (bad) => `band ${band_label} note column "${bad}" is not a known column`,
+    true,
   );
   check_emphasis(
     ctx,
@@ -584,6 +580,7 @@ function check_readout(ctx: z.RefinementCtx, band_label: string, readout: unknow
     column,
     COLUMNS,
     (bad) => `band ${band_label} readout column "${bad}" is not a known column`,
+    true,
   );
 
   if (!Array.isArray(entries)) {
@@ -726,8 +723,12 @@ const PipelineDataSchema = z
   })
   // The document-level pass: the copy fields, which need a sibling to
   // check against, and the crossings, which only mean anything relative to
-  // the band list. Zod skips this whenever the shape above fails, so
-  // everything here can assume `bands` and `crossings` are arrays.
+  // the band list. A non-array `bands` or `crossings` is a type failure and
+  // aborts before this runs, so both can be assumed to be arrays here.
+  // Field-level faults do not skip it: an inner superRefine that calls
+  // addIssue marks the result dirty rather than aborted, and the outer
+  // refinement still runs, which is why a bad graph_side and a missing
+  // heading are reported together.
   .superRefine((pipeline, ctx) => {
     if (!pipeline.heading) {
       issue(ctx, "heading is required");

@@ -221,6 +221,23 @@ describe("validate_pipeline_data", () => {
 
       expect(messages).toContain('band "commit" note column "sidebar" is not a known column');
     });
+
+    // Distinct from the wrong-column case above: column is non-optional on
+    // PipelineNote, and load_pipeline_data casts, so an absent one reaches
+    // the component as undefined and the note lands in neither column.
+    it("detects a note with no column at all", () => {
+      const messages = messages_for(
+        with_band(0, { note: { text: "A note." } as never }),
+      );
+
+      expect(messages).toContain('band "commit" note column "undefined" is not a known column');
+    });
+
+    it("detects a band with no note", () => {
+      const messages = messages_for(with_band(0, { note: undefined as never }));
+
+      expect(messages).toContain('band "commit" is missing a note');
+    });
   });
 
   describe("bands", () => {
@@ -260,6 +277,20 @@ describe("validate_pipeline_data", () => {
 
       expect(() => validate_pipeline_data(pipeline)).not.toThrow();
       expect(messages_for(pipeline)).toContain('band "commit" edges must be an array');
+    });
+
+    // A well-typed empty list passes the zod array check, so only this
+    // branch stands between it and a section that renders no bands.
+    it("detects a document with no bands at all", () => {
+      const messages = messages_for(make_pipeline({ bands: [] }));
+
+      expect(messages).toContain("bands must contain at least one band");
+    });
+
+    it("detects a band label with no first part", () => {
+      const messages = messages_for(with_band(0, { label: { from: "", to: "GitHub" } }));
+
+      expect(messages).toContain('band "commit" label is missing its first part');
     });
   });
 
@@ -428,6 +459,17 @@ describe("validate_pipeline_data", () => {
       expect(messages).toContain('band "serve" edge "deliver" starts at unknown node "repo"');
     });
 
+    // Distinct from the unknown-node case: an endpoint key omitted
+    // entirely never reaches the `node_ids` lookup at all.
+    it("detects an edge with no from or to at all", () => {
+      const messages = messages_for(
+        with_band(1, { edges: [{ id: "deliver", kind: "trunk", tone: "accent" } as never] }),
+      );
+
+      expect(messages).toContain('band "serve" edge "deliver" starts at no node');
+      expect(messages).toContain('band "serve" edge "deliver" ends at no node');
+    });
+
     it("detects an edge that starts and ends on the same node", () => {
       const messages = messages_for(
         with_band(1, {
@@ -528,6 +570,19 @@ describe("validate_pipeline_data", () => {
       expect(messages).toContain('band "serve" readout entry "edge" is missing a label or value');
     });
 
+    // The absent case, not the wrong one: column is non-optional on
+    // PipelineReadout, and load_pipeline_data casts, so an omitted column
+    // reaches the component as undefined.
+    it("detects a readout with no column at all", () => {
+      const messages = messages_for(
+        with_band(1, {
+          readout: { entries: [{ id: "edge", label: "Edge", value: "YYZ" }] } as never,
+        }),
+      );
+
+      expect(messages).toContain('band "serve" readout column "undefined" is not a known column');
+    });
+
     it("detects a readout with no entries and an unknown column", () => {
       const messages = messages_for(
         with_band(1, { readout: { column: "sidebar" as never, entries: [] } }),
@@ -559,6 +614,79 @@ describe("validate_pipeline_data", () => {
       );
 
       expect(messages).toContain('band "serve" mark "gitlab" is not a known mark');
+    });
+
+    it("detects a repeated vendor mark", () => {
+      const messages = messages_for(
+        with_band(1, {
+          marks: [
+            { id: "docker", label: "Docker" },
+            { id: "docker", label: "Docker again" },
+          ],
+        }),
+      );
+
+      expect(messages).toContain('band "serve" repeats mark "docker"');
+    });
+
+    it("detects a vendor mark with no label", () => {
+      const messages = messages_for(with_band(1, { marks: [{ id: "docker", label: "" }] }));
+
+      expect(messages).toContain('band "serve" mark "docker" is missing a label');
+    });
+
+    it("detects a readout entry with no id", () => {
+      const messages = messages_for(
+        with_band(1, {
+          readout: { column: "aside", entries: [{ id: "", label: "Edge", value: "YYZ" }] },
+        }),
+      );
+
+      expect(messages).toContain('band "serve" readout entry is missing an id');
+    });
+
+    it("detects a readout entry in an unknown tone", () => {
+      const messages = messages_for(
+        with_band(1, {
+          readout: {
+            column: "aside",
+            entries: [{ id: "edge", label: "Edge", value: "YYZ", tone: "puce" as never }],
+          },
+        }),
+      );
+
+      expect(messages).toContain(
+        'band "serve" readout entry "edge" tone "puce" is not a known tone',
+      );
+    });
+
+    // The three nested collections are hand-checked with Array.isArray
+    // rather than z.array, so these branches are what stops a YAML map
+    // throwing out of superRefine. The equivalent cases for bands,
+    // crossings, nodes and edges are covered above.
+    it("does not throw when a terminal's turns are a map instead of an array", () => {
+      const pipeline = with_band(0, {
+        terminal: { path: "~/somewhere", turns: { first: {} } as unknown as never },
+      });
+
+      expect(() => validate_pipeline_data(pipeline)).not.toThrow();
+      expect(messages_for(pipeline)).toContain('band "commit" terminal turns must be an array');
+    });
+
+    it("does not throw when a band's marks are a map instead of an array", () => {
+      const pipeline = with_band(1, { marks: { docker: {} } as unknown as never });
+
+      expect(() => validate_pipeline_data(pipeline)).not.toThrow();
+      expect(messages_for(pipeline)).toContain('band "serve" marks must be an array');
+    });
+
+    it("does not throw when a readout's entries are a map instead of an array", () => {
+      const pipeline = with_band(1, {
+        readout: { column: "aside", entries: { edge: {} } as unknown as never },
+      });
+
+      expect(() => validate_pipeline_data(pipeline)).not.toThrow();
+      expect(messages_for(pipeline)).toContain('band "serve" readout entries must be an array');
     });
 
     it("detects a terminal with no path and a turn from an unknown speaker", () => {

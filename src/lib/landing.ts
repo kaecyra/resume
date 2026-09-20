@@ -12,7 +12,7 @@ import type {
   LandingLink,
   LandingProject,
 } from "./types.js";
-import type { ValidationError } from "./validate.js";
+import type { SchemaCoversType, ValidationError } from "./validate.js";
 
 const DATA_DIR = resolve("data");
 
@@ -76,10 +76,6 @@ export function load_landing_data(): LandingData {
 // (a YAML map where a list belongs) is a single clean validation error
 // instead of a thrown exception, with no manual `Array.isArray` juggling
 // needed to get there.
-
-type SchemaCoversType<RealType, InferredType> = keyof RealType extends keyof InferredType
-  ? true
-  : never;
 
 const LandingHeroSchema = z.object({
   name: z.any().optional(),
