@@ -1,7 +1,12 @@
 import {
   BLINK_PERIOD_SCALE,
+  EQUIP_W,
+  EQUIP_X,
+  OUTLET_W,
+  PDU_SWITCH_W,
   RACK_UNITS,
   RACK_U_COUNT,
+  RISER_SHAPES,
   TRAY_RUNG_FIRST_X,
   TRAY_RUNG_LAST_X,
   TRAY_RUNG_STEP,
@@ -10,6 +15,8 @@ import {
   rack_seam_offsets,
   rack_u_height,
   rack_u_y,
+  riser_base_y,
+  riser_box,
 } from "./rack-layout.js";
 
 describe("the 42U map", () => {
@@ -54,14 +61,17 @@ describe("the 42U map", () => {
       "usw-enterprise-24-poe",
       "patch-panel-u12",
       "empty-u13",
-      "shelf",
-      "pdu",
+      "shelf-u17",
+      "pdu-u18",
       "empty-u19",
       "r430",
       "r730xd-u23",
       "r730xd-u25",
       "empty-u27",
-      "unlabelled-u29",
+      "usw-pro-max-16",
+      "empty-u30",
+      "shelf-u33",
+      "pyle-pdu",
       "empty-u35",
       "smart-ups",
     ]);
@@ -93,6 +103,153 @@ describe("the Proxmox node", () => {
       ["r730xd-u23", 23, 2],
       ["r730xd-u25", 25, 2],
     ]);
+  });
+});
+
+describe("the bottom six U", () => {
+  // U29-34 was a 6U slab drawn as "something is in here" until the hardware
+  // was described. Each entry below is a real box in the basement, and the
+  // four of them fill the six U exactly.
+  it("racks the switch, the air above the shelf, the shelf and the PDU", () => {
+    const bottom = RACK_UNITS.filter((unit) => unit.u >= 29 && unit.u <= 34);
+
+    expect(bottom.map((unit) => [unit.id, unit.u, unit.units, unit.kind])).toEqual([
+      ["usw-pro-max-16", 29, 1, "switch"],
+      ["empty-u30", 30, 3, "empty"],
+      ["shelf-u33", 33, 1, "shelf"],
+      ["pyle-pdu", 34, 1, "pdu"],
+    ]);
+  });
+
+  it("gives the Pro Max its sixteen ports, every one inside the equipment area", () => {
+    const switch_unit = RACK_UNITS.find((unit) => unit.id === "usw-pro-max-16");
+
+    expect(switch_unit?.kind).toBe("switch");
+    if (switch_unit?.kind !== "switch") return;
+
+    expect(switch_unit.ports).toHaveLength(16);
+    for (const port of switch_unit.ports) {
+      expect(port.x).toBeGreaterThanOrEqual(EQUIP_X);
+      expect(port.x + switch_unit.port_w).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+    }
+  });
+
+  // Nine outlets rather than the u18 strip's eight, and the switches on its
+  // front are why they had to move: the same eight-outlet run left no room
+  // for them.
+  it("gives the Pyle nine outlets and its front switches, all inside the equipment area", () => {
+    const pdu = RACK_UNITS.find((unit) => unit.id === "pyle-pdu");
+    const strip = RACK_UNITS.find((unit) => unit.id === "pdu-u18");
+
+    expect(pdu?.kind).toBe("pdu");
+    expect(strip?.kind).toBe("pdu");
+    if (pdu?.kind !== "pdu" || strip?.kind !== "pdu") return;
+
+    expect(pdu.outlet_xs).toHaveLength(9);
+    expect(pdu.switch_xs).toHaveLength(3);
+    expect(strip.outlet_xs).toHaveLength(8);
+    expect(strip.switch_xs).toEqual([]);
+
+    // Right edges, not just where each rect starts: an outlet is OUTLET_W
+    // wide and a switch PDU_SWITCH_W, and a run that starts inside the area
+    // can still finish painted over the right mounting rail.
+    for (const [xs, width] of [
+      [pdu.outlet_xs, OUTLET_W],
+      [strip.outlet_xs, OUTLET_W],
+      [pdu.switch_xs, PDU_SWITCH_W],
+    ] as const) {
+      for (const x of xs) {
+        expect(x).toBeGreaterThanOrEqual(EQUIP_X);
+        expect(x + width).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+      }
+    }
+  });
+});
+
+describe("gear standing on a unit", () => {
+  const RISERS = RACK_UNITS.flatMap((unit) =>
+    (unit.risers ?? []).map((riser) => ({ unit, riser, box: riser_box(unit, riser) })),
+  );
+
+  it("stands two Raspberry Pis on the switch and two Lenovo-plus-Spark stacks on the shelf", () => {
+    expect(
+      RISERS.map(({ unit, riser }) => [unit.id, riser.kind]),
+    ).toEqual([
+      ["usw-pro-max-16", "pi"],
+      ["usw-pro-max-16", "pi"],
+      ["shelf-u33", "lenovo_spark"],
+      ["shelf-u33", "lenovo_spark"],
+    ]);
+  });
+
+  // A box standing on something is drawn above it, not inside its own U -
+  // that is the whole decision, and these are the four boxes it produces.
+  // `rack_u_y(29)` is 374, so a 6-tall Pi standing on that face starts at
+  // 368; the shelf's lip is `rack_u_y(33) + SHELF_SURFACE_DY`, 421, so a
+  // 30-tall stack starts at 391. A sign flip, a changed shape or a moved
+  // lip all land here.
+  it("draws each riser above the surface it stands on", () => {
+    expect(RISERS.map(({ box }) => [box.x, box.y, box.width, box.height])).toEqual([
+      [97, 368, 26, 6],
+      [133, 368, 26, 6],
+      [71, 391, 50, 30],
+      [135, 391, 50, 30],
+    ]);
+  });
+
+  // The relationship the box is derived from, stated once: a riser's
+  // underside sits on the surface it stands on, whatever that surface is.
+  it("sits each riser's underside on the surface it stands on", () => {
+    for (const { unit, box } of RISERS) {
+      expect(box.y + box.height).toBe(riser_base_y(unit));
+    }
+  });
+
+  it("keeps every riser inside the equipment area", () => {
+    for (const { box } of RISERS) {
+      expect(box.x).toBeGreaterThanOrEqual(EQUIP_X);
+      expect(box.x + box.width).toBeLessThanOrEqual(EQUIP_X + EQUIP_W);
+    }
+  });
+
+  // `Rack.svelte` carves the Spark off the top of the stack's box and
+  // centres it, so a Spark taller or wider than the box it comes out of
+  // emits a negative height or a negative inset on a rect. Invalid SVG, and
+  // nothing downstream would say so.
+  it("keeps the Spark inside the stack it is carved out of", () => {
+    const stack = RISER_SHAPES.lenovo_spark;
+
+    expect(stack.spark_height).toBeLessThan(stack.height);
+    expect(stack.spark_width).toBeLessThan(stack.width);
+  });
+
+  // The rule the bottom 6U was designed around: gear rises into the U above
+  // it, so that U has to be air. Rack something there later and the drawing
+  // silently paints two faces over each other.
+  it("rises only into U the map leaves empty", () => {
+    // The pitch from the module rather than a literal 10: if it ever moves,
+    // this arithmetic would otherwise go on reporting confidently about the
+    // wrong U.
+    const pitch = rack_u_y(2) - rack_u_y(1);
+    const kind_of_u = new Map<number, string>();
+    for (const unit of RACK_UNITS) {
+      for (let u = unit.u; u < unit.u + unit.units; u += 1) {
+        kind_of_u.set(u, unit.kind);
+      }
+    }
+
+    for (const { unit, box } of RISERS) {
+      const top_u = Math.floor((box.y - rack_u_y(1)) / pitch) + 1;
+      // Exclusive at the bottom: a riser's base edge sits on the surface it
+      // stands on, which is the unit's own U, not a U it rises into.
+      const bottom_u = Math.ceil((box.y + box.height - rack_u_y(1)) / pitch);
+
+      expect(top_u).toBeLessThan(unit.u);
+      for (let u = top_u; u <= bottom_u; u += 1) {
+        if (u === unit.u) continue;
+        expect(kind_of_u.get(u), `U${u} under ${unit.id}'s riser`).toBe("empty");
+      }
+    }
   });
 });
 

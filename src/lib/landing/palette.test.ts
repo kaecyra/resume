@@ -167,12 +167,28 @@ describe("the pipeline hardware tables", () => {
 });
 
 describe("RACK_CHASSIS", () => {
-  // The 42U map gives U29-34 a lighter fill than a genuinely empty U
-  // precisely so the block reads as "something is in here that I am not
+  // The `unlabelled` fitting fills its U lighter than a genuinely empty one
+  // precisely so a block of it reads as "something is in here that I am not
   // naming" rather than as a hole. Equal fills would erase the distinction
-  // and nothing else in this file would notice.
+  // and nothing else in this file would notice. Nothing is drawn with it
+  // since U29-34 was described, and it is kept for the next block that has
+  // not been.
   it("keeps an occupied but unnamed U lighter than an empty one", () => {
     expect(luminance(RACK_CHASSIS.slot_unnamed)).toBeGreaterThan(luminance(RACK_CHASSIS.slot_empty));
+  });
+
+  // A blanking panel is a plate bolted across a U, not a gap in the rack.
+  // At `#141418` it sat a few values off `slot_empty` and read as one, which
+  // put three holes in a column of hardware. It stays well behind the patch
+  // plates - that ladder is checked below - but it has to clear the cabinet
+  // it is mounted in, and its brush slot has to stay darker than the plate
+  // that slot is cut into.
+  it("keeps a blanking panel reading as a plate rather than a gap", () => {
+    expect(contrast_ratio(RACK_CHASSIS.brush_face, RACK_CHASSIS.slot_empty)).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(luminance(RACK_CHASSIS.brush_face)).toBeGreaterThan(luminance(RACK_CHASSIS.cabinet));
+    expect(luminance(RACK_CHASSIS.brush_slot)).toBeLessThan(luminance(RACK_CHASSIS.brush_face));
   });
 
   // The cabinet is a dark box on a dark page; its outline is the only thing
@@ -185,12 +201,56 @@ describe("RACK_CHASSIS", () => {
   // rather than as a stack of empty slots. They are not text, so this is a
   // legibility floor for a shape against its surround, not a WCAG check -
   // hence a ratio well above the 4.5:1 text floor rather than at it.
-  it.each(["faceplate", "faceplate_dim", "drive_bay", "puck"] as const)(
+  it.each(["faceplate", "drive_bay", "puck"] as const)(
     "keeps %s well clear of the cabinet it is bolted into",
     (token) => {
       expect(contrast_ratio(RACK_CHASSIS[token], RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(7);
     },
   );
+
+  // A patch panel is a plate with holes in it, and it sits directly between
+  // two switches. It used to be drawn six values off `faceplate`, which is
+  // not a step anyone can see, so the top of the rack read as five switches
+  // rather than two switches and three panels. It is deliberately not one of
+  // the light parts above: it has to stay behind them.
+  it("keeps a patch panel visibly behind the switch faces around it", () => {
+    expect(luminance(RACK_CHASSIS.patch_face)).toBeLessThan(luminance(RACK_CHASSIS.faceplate));
+    expect(contrast_ratio(RACK_CHASSIS.patch_face, RACK_CHASSIS.faceplate)).toBeGreaterThanOrEqual(
+      2,
+    );
+  });
+
+  // Behind the switches, but still a plate bolted into the rack rather than
+  // a hole in it - which is what it becomes if it falls back toward the
+  // cabinet. A shape floor, not a text one.
+  it("keeps a patch panel reading as installed hardware", () => {
+    expect(contrast_ratio(RACK_CHASSIS.patch_face, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+    expect(luminance(RACK_CHASSIS.patch_face)).toBeGreaterThan(luminance(RACK_CHASSIS.brush_face));
+  });
+
+  // The keystone openings are cut into that plate, so they read as holes
+  // only while they are darker than it.
+  it("cuts the keystone openings darker than the plate they are cut into", () => {
+    expect(luminance(RACK_CHASSIS.keystone)).toBeLessThan(luminance(RACK_CHASSIS.patch_face));
+  });
+
+  // Two reds in the drawing, each meaning one thing: a socket on the power
+  // strip, and the plastic the two Pis are wearing. Collapsing them into one
+  // token would make a case and an outlet the same object.
+  it("keeps the Pi cases' red apart from the PDU's outlet red", () => {
+    expect(RACK_CHASSIS.pi_case).not.toBe(RACK_CHASSIS.outlet);
+    expect(contrast_ratio(RACK_CHASSIS.pi_case, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+  });
+
+  // The Spark's mesh front is cut into its own face, the same relationship
+  // the keystones have to their plate. It is also deliberately duller than
+  // the page's amber, which already means "the node this site runs on" and
+  // is not what a machine on a shelf is.
+  it("keeps the Spark's mesh darker than its face, and the face off the accent", () => {
+    expect(luminance(RACK_CHASSIS.spark_mesh)).toBeLessThan(luminance(RACK_CHASSIS.spark_face));
+    expect(contrast_ratio(RACK_CHASSIS.spark_face, RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(3);
+    expect(luminance(RACK_CHASSIS.spark_face)).toBeLessThan(luminance(HUD_PALETTE.accent));
+  });
 
   // The server bezel is lit from above: a bright strip along its top edge,
   // the face below it, end caps in shadow at either side. Reordering any two
