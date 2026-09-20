@@ -42,6 +42,7 @@ import { load_resume_data, load_variant } from "$lib/data.js";
 import { load_github_contribution_data } from "$lib/github.js";
 import { load_landing_data } from "$lib/landing.js";
 import { load_pipeline_data } from "$lib/pipeline.js";
+import { LANDING_OG_SLUG } from "$lib/seo.js";
 
 import { load } from "./+page.server.js";
 
@@ -265,7 +266,7 @@ describe("landing data wiring", () => {
     expect(result.og.description).not.toBe(variant.tagline);
   });
 
-  it("derives the OG image from the linked resume variant, not a hardcoded default", async () => {
+  it("points the OG image at the landing page's own card, not at the linked variant's", async () => {
     mock_env.PUBLIC_BASE_URL = "https://example.com";
     const linked_to_cto_a: LandingData = {
       hero: { name: "Test Person", role: "Engineer", location: "Somewhere", tagline: "I build things." },
@@ -280,7 +281,11 @@ describe("landing data wiring", () => {
 
     const result = await run_load();
 
-    expect(result.og.image).toBe("https://example.com/og/cto-a.png");
+    // Not `cto-a`, the variant this landing.yaml links: that variant still
+    // drives the CTA and the PDF filename, so a regression back to its card
+    // would be silent - the card renders either way and the page just goes
+    // on advertising the headshot layout.
+    expect(result.og.image).toBe(`https://example.com/og/${LANDING_OG_SLUG}.png`);
   });
 
   it("throws an error listing every validation message for a malformed document", async () => {

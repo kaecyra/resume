@@ -32,11 +32,7 @@
 </div>
 
 <style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-  }
-
+  /* The body reset both cards used to carry is in src/routes/og/+layout.svelte. */
   .card {
     width: 1200px;
     height: 630px;
