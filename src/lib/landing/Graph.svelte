@@ -119,19 +119,19 @@
         class:is-reader={placed.style === "reader"}
         x={placed.label_x}
         y={placed.label_y}
-        fill={placed.emphasis || placed.style === "reader" ? placed.ink : HUD_PALETTE.text}
+        fill={placed.label_ink}
       >
         {source.label}
       </text>
 
-      {#each detail_lines(source) as line, index (index)}
+      {#each detail_lines(source) as text, line (line)}
         <text
           class="detail"
           x={placed.label_x}
-          y={placed.detail_ys[index]}
+          y={placed.detail_ys[line]}
           fill={HUD_PALETTE.secondary}
         >
-          {line}
+          {text}
         </text>
       {/each}
     </g>

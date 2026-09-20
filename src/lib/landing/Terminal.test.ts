@@ -29,17 +29,6 @@ function source(): string {
   return readFileSync(new URL("./Terminal.svelte", import.meta.url), "utf8");
 }
 
-// A colour written by hand, anywhere in the component. The scan covers the
-// whole file rather than the `<style>` block alone, because the palette
-// values reach the page through `style="..."` in the markup, which is above
-// that block. Comments come out first: an issue reference like (#209) is
-// three hex digits to a regex. The trailing boundary in HEX_COLOUR is what
-// keeps Svelte's own `{#each` out of it.
-const HEX_COLOUR = /#[0-9a-fA-F]{3,8}\b/;
-
-function source_without_comments(): string {
-  return source().replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|^[ \t]*\/\/[^\n]*$/gm, "");
-}
 
 describe("Terminal", () => {
   it("draws one bar per width the data gives it, at that width", () => {
@@ -101,6 +90,17 @@ describe("Terminal", () => {
     expect(style).toMatch(/\.cursor\s*\{[^}]*animation: blink/);
     expect(query).toContain("@media (prefers-reduced-motion: reduce)");
     expect(query).toMatch(/\.cursor\s*\{\s*animation: none;/);
+  });
+
+
+  it("paints each speaker's bars from the palette rather than a literal hex", () => {
+    const html = html_for(TERMINAL);
+
+    // The reader's own turn is the brightest of the three, so the
+    // transcript reads as them speaking loudest in their own terminal.
+    expect(html).toContain(HUD_PALETTE.edge);
+    expect(html).toContain(PIPELINE_INK.agent_bar);
+    expect(html).toContain(PIPELINE_INK.tool_bar);
   });
 
 });

@@ -9,7 +9,7 @@
   import Terminal from "./Terminal.svelte";
   import VendorMarks from "./VendorMarks.svelte";
   import { HUD_PALETTE } from "./palette.js";
-  import { build_pipeline_graph } from "./pipeline-graph.js";
+  import { build_pipeline_graphs } from "./pipeline-graph.js";
   import { split_tagline } from "./tagline-format.js";
 
   let { pipeline }: { pipeline: PipelineData } = $props();
@@ -19,16 +19,7 @@
 
   // One layout per band, computed once here rather than inside Graph, so a
   // band's drawing and anything measured against it read the same numbers.
-  const layouts = $derived(pipeline.bands.map(build_pipeline_graph));
-
-  // The crossings are drawn between the bands, not inside them, so they are
-  // rendered by index against the band list: the crossing after band n sits
-  // between band n and band n+1. `validate_pipeline_data` pins the list to
-  // band order and pins the graph sides to alternate, which is what makes
-  // Crossing's index-parity direction correct.
-  function crossing_after(index: number) {
-    return pipeline.crossings[index];
-  }
+  const layouts = $derived(build_pipeline_graphs(pipeline.bands));
 
   // Both the note and the readout name the column they belong to, so the
   // two columns are filled by asking rather than by knowing which band is
@@ -114,8 +105,14 @@
         </div>
       </section>
 
-      {#if crossing_after(index)}
-        <Crossing crossing={crossing_after(index)} {index} />
+      <!-- The crossings are drawn between the bands, not inside them: the
+           crossing after band n sits between band n and band n+1.
+           validate_pipeline_data pins the list to band order and pins the
+           graph sides to alternate, which is what makes Crossing's
+           index-parity direction correct. -->
+      {@const crossing = pipeline.crossings[index]}
+      {#if crossing}
+        <Crossing {crossing} {index} />
       {/if}
     {/each}
 

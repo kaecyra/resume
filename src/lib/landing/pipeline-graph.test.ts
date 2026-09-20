@@ -682,6 +682,31 @@ describe("fork and merge curves", () => {
     expect(detail_lines({ detail: ["one", ""] })).toEqual(["one"]);
   });
 
+  it("inks an emphasised label with its node's own tone and a plain one with page text", () => {
+    // The mockup's rule, and the only colour decision the drawing used to
+    // make for itself: every font-weight="500" label carries the node's
+    // ink, every plain one is the page's text colour whatever tone its node
+    // has. A muted node's label is not muted.
+    const layout = build_pipeline_graph(
+      band({
+        nodes: [
+          node("lit", { tone: "green", emphasis: true }),
+          node("plain", { tone: "muted" }),
+          node("you", { style: "reader", tone: "accent" }),
+        ],
+        edges: [edge("down", "lit", "plain")],
+      }),
+    );
+    const [lit, plain, reader] = layout.nodes;
+
+    expect(lit.label_ink).toBe(lit.ink);
+    expect(plain.label_ink).toBe(HUD_PALETTE.text);
+    expect(plain.label_ink).not.toBe(plain.ink);
+    // The reader's node is set in the display face and reads as the point
+    // of the whole drawing, so it takes its ink without needing emphasis.
+    expect(reader.label_ink).toBe(reader.ink);
+  });
+
   it("skips an edge naming a node the band does not have", () => {
     const layout = build_pipeline_graph(
       band({ nodes: [node("a")], edges: [edge("dangling", "a", "ghost")] }),

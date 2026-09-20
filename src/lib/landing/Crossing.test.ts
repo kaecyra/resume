@@ -25,19 +25,6 @@ function html_for(crossing: PipelineCrossing, index: number): string {
 
 const SOURCE = readFileSync(new URL("./Crossing.svelte", import.meta.url), "utf8");
 
-// The source with its prose removed. Both source-reading guards below are
-// about what the component *declares*, and a comment is free to name an
-// issue (`#209` is a valid hex triplet) or to explain which font was
-// retired without either being a declaration.
-function without_comments(source: string): string {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split("\n")
-    .filter((line) => !line.trimStart().startsWith("//"))
-    .join("\n");
-}
-
-const DECLARED = without_comments(SOURCE);
 
 describe("Crossing", () => {
   describe("content", () => {
@@ -103,7 +90,12 @@ describe("Crossing", () => {
 
     expect(SOURCE).toContain("@media (max-width: 860px)");
     expect(narrow).toMatch(/\.x-v,\s*\.x-h,\s*\.x-tip\s*\{\s*display: none;/);
+    // The label stops being positioned against a connector that is no
+    // longer there, and its substitute rule has to have a height - a
+    // declared ::before with none is an invisible replacement.
+    expect(narrow).toContain("position: static;");
     expect(narrow).toMatch(/\.x-label::before\s*\{/);
+    expect(narrow).toContain("height: 46px;");
   });
 
   describe("palette", () => {

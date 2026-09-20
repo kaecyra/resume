@@ -10,6 +10,10 @@ import { readFileSync } from "node:fs";
 // components still carry hex literals, so a repository-wide version of the
 // first rule would fail today - widening it is a cleanup of its own, not
 // something to smuggle in here.
+//
+// This file replaces only the two rules. Where a component's own test file
+// checked something stronger - Rack's allowlist over the rendered HTML,
+// Terminal's bar inks - that test stays where it is.
 const DIR = new URL("./", import.meta.url);
 
 const COMPONENTS = [
@@ -23,34 +27,39 @@ const COMPONENTS = [
   "VendorMarks.svelte",
 ];
 
+// Every length CSS accepts, which is what the per-component rules matched
+// before this file replaced them: #rgb, #rgba, #rrggbb, #rrggbbaa, and the
+// lengths in between that are nobody's valid colour but are somebody's
+// typo. Narrowing it to 3, 6 and 8 would let `#abcd` through.
+const HEX_LITERAL = /#[0-9a-fA-F]{3,8}\b/;
+
+// The one drop-shadow recipe in the section, written inline because a
+// shadow is plain black at low alpha and a token for one shadow would be
+// the only one of its kind - Terminal.svelte says so where it does it. The
+// exemption is this exact string rather than every `box-shadow`, so a
+// second shadow smuggling in a named colour still fails.
+const ALLOWED_SHADOW = "0 18px 40px -24px #000";
+
 function source_of(name: string): string {
   return readFileSync(new URL(name, DIR), "utf8");
 }
 
-// Shadow recipes are exempt and stripped with the comments: a drop shadow
-// is plain black at low alpha, written inline the way every shadow on this
-// page is, and a token for one shadow would be the only one of its kind
-// (Terminal.svelte says so where it does it). The rule is about colours
-// that name something, not about alpha.
-//
-// Comments are stripped before either rule runs. A comment naming the
-// retired face is the opposite of using it - several of these carry one
-// explaining why the system stack is there instead - and an issue number
-// like #209 is three hex digits as far as a regular expression cares.
+// Comments go before either rule runs, in all three of the syntaxes these
+// files use. A comment naming the retired face is the opposite of using it
+// - several of these carry one explaining why the system stack is there
+// instead - and an issue number like `#209` is three hex digits as far as a
+// regular expression cares.
 function without_comments(source: string): string {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-}
-
-function without_shadows(source: string): string {
-  return source.replace(/box-shadow:[^;]*;/g, "");
+  return source
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^[ \t]*\/\/[^\n]*$/gm, "");
 }
 
 describe("the pipeline section's components", () => {
   it("names every colour in palette.ts rather than writing a hex literal", () => {
     const offenders = COMPONENTS.filter((name) =>
-      /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/.test(
-        without_shadows(without_comments(source_of(name))),
-      ),
+      HEX_LITERAL.test(without_comments(source_of(name)).replaceAll(ALLOWED_SHADOW, "")),
     );
 
     expect(offenders).toEqual([]);

@@ -212,6 +212,12 @@ export interface PipelineGraphNode {
   mark: PipelineGraphMark | null;
   emphasis: boolean;
   label_x: number;
+  // The label's own ink, which is not always the node's. A plain label is
+  // page text whatever tone its node carries; an emphasised one, and the
+  // reader's own node, take the node's ink so the label says what the
+  // drawing is pointing at. The mockup does exactly this - every
+  // font-weight="500" label is inked, every plain one is #ededec.
+  label_ink: string;
   label_y: number;
   // One y per line of the node's detail, empty where it carries none. A
   // list rather than a single y because the copy chooses its own breaks:
@@ -573,6 +579,7 @@ function build_node(node: PipelineNode, at: PipelinePoint): PipelineGraphNode {
           },
     emphasis: node.emphasis === true,
     label_x: GEO.label_x,
+    label_ink: node.emphasis === true || node.style === "reader" ? ink : HUD_PALETTE.text,
     label_y: at.y + (has_detail ? GEO.label_dy : GEO.label_dy_solo),
     detail_ys: lines.map((_unused, line) => at.y + detail_dy + line * GEO.detail_line_dy),
   };

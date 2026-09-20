@@ -57,6 +57,9 @@ describe("Pipeline", () => {
     const html = html_for(REAL);
 
     expect(html).toContain(REAL.heading);
+    // The lede is split around its emphasis phrase, so the halves are what
+    // reach the markup rather than the whole string.
+    expect(html).toContain(REAL.lede.slice(0, 24));
     expect(html).toContain(REAL.closer.slice(0, 20));
   });
 

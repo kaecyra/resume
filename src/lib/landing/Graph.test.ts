@@ -1,13 +1,9 @@
-import { readFileSync } from "node:fs";
-
 import { render } from "svelte/server";
 
 import Graph from "./Graph.svelte";
 import { HUD_PALETTE } from "./palette.js";
 import { build_pipeline_graph } from "./pipeline-graph.js";
 import type { PipelineBand, PipelineNode } from "$lib/types.js";
-
-const SOURCE = readFileSync(new URL("./Graph.svelte", import.meta.url), "utf8");
 
 function node(id: string, overrides: Partial<PipelineNode> = {}): PipelineNode {
   return { id, label: id, style: "disc", tone: "muted", lane: "trunk", ...overrides };
@@ -161,6 +157,25 @@ describe("Graph", () => {
     expect(items[0]).toContain("main");
     expect(items[1]).toContain("a branch");
     expect(items[2]).toContain("merged");
+  });
+
+  it("spends the layout's label ink rather than deciding the colour here", () => {
+    const source = band({
+      nodes: [
+        node("lit", { label: "lit one", tone: "green", emphasis: true }),
+        node("plain", { label: "plain one", tone: "muted" }),
+      ],
+      edges: [{ id: "down", from: "lit", to: "plain", kind: "trunk", tone: "default" }],
+    });
+    const layout = build_pipeline_graph(source);
+    const html = html_for(source);
+
+    for (const placed of layout.nodes) {
+      expect(html).toContain(`fill="${placed.label_ink}"`);
+    }
+    // The two differ, so this is a comparison rather than one colour
+    // appearing twice.
+    expect(layout.nodes[0].label_ink).not.toBe(layout.nodes[1].label_ink);
   });
 
   it("sizes the drawing from the layout's own view box", () => {
