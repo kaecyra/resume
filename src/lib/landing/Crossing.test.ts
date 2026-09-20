@@ -97,6 +97,16 @@ describe("Crossing", () => {
     expect(narrow).toContain("height: 46px;");
   });
 
+  // Phone widths drop the connector entirely, label included - the
+  // 860px layout's in-flow label still reads as clutter between two
+  // bands that already carry their own spacing.
+  it("hides the whole connector, label included, at phone widths", () => {
+    const phone = SOURCE.slice(SOURCE.indexOf("@media (max-width: 480px)"));
+
+    expect(SOURCE).toContain("@media (max-width: 480px)");
+    expect(phone).toMatch(/\.crossing\s*\{\s*display: none;/);
+  });
+
   describe("palette", () => {
     it("paints the rules and the arrow from PIPELINE_INK, which is where those two tones are named", () => {
       const html = html_for(TO_REGISTRY, 0);

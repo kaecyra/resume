@@ -263,4 +263,14 @@
       background: linear-gradient(var(--hud-edge), var(--hud-accent));
     }
   }
+
+  /* At phone widths even the 860px layout's in-flow label reads as
+     clutter between two stacked bands that already carry their own
+     spacing (`.band`'s top padding in Pipeline.svelte) - the connector
+     goes entirely rather than shrinking further. */
+  @media (max-width: 480px) {
+    .crossing {
+      display: none;
+    }
+  }
 </style>
