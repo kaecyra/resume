@@ -185,7 +185,7 @@ describe("RACK_CHASSIS", () => {
   // rather than as a stack of empty slots. They are not text, so this is a
   // legibility floor for a shape against its surround, not a WCAG check -
   // hence a ratio well above the 4.5:1 text floor rather than at it.
-  it.each(["faceplate", "faceplate_dim", "drive_bay", "puck", "bezel_badge"] as const)(
+  it.each(["faceplate", "faceplate_dim", "drive_bay", "puck"] as const)(
     "keeps %s well clear of the cabinet it is bolted into",
     (token) => {
       expect(contrast_ratio(RACK_CHASSIS[token], RACK_CHASSIS.cabinet)).toBeGreaterThanOrEqual(7);

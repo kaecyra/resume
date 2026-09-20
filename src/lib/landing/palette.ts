@@ -207,7 +207,6 @@ export const RACK_CHASSIS = {
   bezel_end_cap: "#1b1b20",
   bezel_lock: "#5e5e68",
   bezel_rib: "#6d6d77",
-  bezel_badge: "#b9b9c0",
   // The light parts. These are what make the drawing read as installed
   // hardware rather than as a stack of empty slots, so they sit far clear of
   // `cabinet` rather than a step away from it.

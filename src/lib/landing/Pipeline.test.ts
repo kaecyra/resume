@@ -244,6 +244,19 @@ describe("Pipeline", () => {
     expect(html_for(pipeline())).not.toContain("band-label");
   });
 
+  it("renders the whole section finished, with no reveal state, on the server", () => {
+    // The reveal (#209 step f) is armed by a Svelte action, which never
+    // runs during SSR and never runs at all where motion is unwelcome or
+    // scripting is off. Those readers get this markup and nothing further,
+    // so it has to be the finished section: every `is-armed` and
+    // `is-revealed` rule in the section's components hides or holds
+    // something, and neither class may appear here.
+    const html = html_for(REAL);
+
+    expect(html).not.toContain("is-armed");
+    expect(html).not.toContain("is-revealed");
+  });
+
   it("pairs the columns by starting both at the top rather than stretching either", () => {
     // Band 3's graph is shorter than the readout facing it. The decision
     // was to let the difference fall below, which is this one declaration;

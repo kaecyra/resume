@@ -4,6 +4,7 @@ import { render } from "svelte/server";
 
 import Graph from "./Graph.svelte";
 import { build_pipeline_graph } from "./pipeline-graph.js";
+import { node_delays, type RevealPhase } from "./pipeline-motion.js";
 import type { PipelineBand, PipelineNode } from "$lib/types.js";
 
 function node(id: string, overrides: Partial<PipelineNode> = {}): PipelineNode {
@@ -29,8 +30,10 @@ function band(overrides: Partial<PipelineBand> = {}): PipelineBand {
   };
 }
 
-function html_for(source: PipelineBand): string {
-  return render(Graph, { props: { band: source, layout: build_pipeline_graph(source) } }).body;
+function html_for(source: PipelineBand, phase?: RevealPhase): string {
+  return render(Graph, {
+    props: { band: source, layout: build_pipeline_graph(source), phase },
+  }).body;
 }
 
 describe("Graph", () => {
@@ -233,5 +236,39 @@ describe("Graph", () => {
     const source = readFileSync(new URL("./Graph.svelte", import.meta.url), "utf8");
 
     expect(source).not.toMatch(/from\s+["'][^"']*palette/);
+  });
+
+  describe("the reveal (#209 step f)", () => {
+    it("draws itself finished, with no reveal state, when no phase is given", () => {
+      const html = html_for(band());
+
+      expect(html).not.toContain("is-armed");
+      expect(html).not.toContain("is-revealed");
+    });
+
+    it("carries the phase it was handed onto the drawing", () => {
+      expect(html_for(band(), "armed")).toContain("is-armed");
+      expect(html_for(band(), "revealed")).toContain("is-revealed");
+    });
+
+    it("gives each node its own stagger, in the order the nodes are drawn", () => {
+      const source = band();
+      const html = html_for(source, "revealed");
+      const delays = [...html.matchAll(/--node-delay: (\d+)ms/g)].map((match) => Number(match[1]));
+
+      expect(delays).toEqual(node_delays(source.nodes.length));
+    });
+
+    it("clips only the lines, so the nodes light on their own clock", () => {
+      const source = band();
+      const layout = build_pipeline_graph(source);
+      const html = html_for(source, "revealed");
+
+      // The clip has to be referenced exactly once - one group holding the
+      // lines. A second reference would mean the nodes were gated on it
+      // too, and they run off --node-delay instead.
+      expect([...html.matchAll(/clip-path="url\(#pipeline-clip-band\)"/g)]).toHaveLength(1);
+      expect(html).toContain(`--clip-height: ${layout.height}px`);
+    });
   });
 });

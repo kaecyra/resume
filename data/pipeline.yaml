@@ -33,6 +33,16 @@ bands:
     tail_arrow: true
 
     nodes:
+      # The other end of the section's bookend: band 3 finishes on "you",
+      # and the whole pipeline starts here, with me at the keyboard. Same
+      # style and tone as that node on purpose.
+      - id: me
+        label: "me"
+        detail: "at my laptop"
+        style: reader
+        tone: accent
+        lane: trunk
+
       - id: repo
         label: "kaecyra/resume"
         detail: "main"
@@ -108,16 +118,25 @@ bands:
         emphasis: true
 
     edges:
+      - id: at-the-keyboard
+        from: me
+        to: repo
+        kind: trunk
+        tone: default
+
       # main, from the branch point down to the merge. Dotted because it is
       # not the live tip while the branch is out; head_tone paints the
-      # stretch above the fork, which still is.
+      # stretch above the fork, which still is - so it is the same tone as
+      # the branch itself, not a step down from it. A dimmer stretch there
+      # reads as a broken connector between the repo and the branch, which
+      # is the one join in the drawing that has to look solid.
       - id: main-while-branched
         from: repo
         to: merged
         kind: trunk
         tone: dim
         dash: dotted
-        head_tone: muted
+        head_tone: default
 
       - id: branch-out
         from: repo

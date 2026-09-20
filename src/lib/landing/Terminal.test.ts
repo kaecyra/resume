@@ -5,6 +5,7 @@ import { render } from "svelte/server";
 import type { PipelineTerminal } from "$lib/types.js";
 
 import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
+import { terminal_replay_delays, type RevealPhase } from "./pipeline-motion.js";
 import Terminal from "./Terminal.svelte";
 
 // Deliberately not the widths the real data carries. Every number here is
@@ -21,8 +22,8 @@ const TERMINAL: PipelineTerminal = {
   ],
 };
 
-function html_for(terminal: PipelineTerminal): string {
-  return render(Terminal, { props: { terminal } }).body;
+function html_for(terminal: PipelineTerminal, phase?: RevealPhase): string {
+  return render(Terminal, { props: { terminal, phase } }).body;
 }
 
 function source(): string {
@@ -99,5 +100,34 @@ describe("Terminal", () => {
     expect(html).toContain(HUD_PALETTE.edge);
     expect(html).toContain(PIPELINE_INK.agent_bar);
     expect(html).toContain(PIPELINE_INK.tool_bar);
+  });
+
+  describe("the replay (#209 step f)", () => {
+    it("renders the finished transcript, with no reveal state, when no phase is given", () => {
+      const html = html_for(TERMINAL);
+
+      expect(html).not.toContain("is-armed");
+      expect(html).not.toContain("is-revealed");
+    });
+
+    it("carries the phase it was handed onto the terminal", () => {
+      expect(html_for(TERMINAL, "armed")).toContain("is-armed");
+      expect(html_for(TERMINAL, "revealed")).toContain("is-revealed");
+    });
+
+    it("spends one clock across the whole transcript, bars and cursor alike", () => {
+      const html = html_for(TERMINAL, "revealed");
+      const replay = terminal_replay_delays(TERMINAL.turns);
+
+      const bars = [...html.matchAll(/--bar-delay: (\d+)ms/g)].map((match) => Number(match[1]));
+      const cursors = [...html.matchAll(/--cursor-delay: (\d+)ms/g)].map((match) =>
+        Number(match[1]),
+      );
+
+      expect(bars).toEqual(replay.flatMap((turn) => turn.bars));
+      expect(cursors).toEqual(
+        replay.flatMap((turn) => (turn.cursor === null ? [] : [turn.cursor])),
+      );
+    });
   });
 });

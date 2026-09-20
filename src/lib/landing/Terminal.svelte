@@ -2,6 +2,7 @@
   import type { PipelineTerminal, PipelineTurnSpeaker } from "$lib/types.js";
 
   import { ELEVATION, HUD_PALETTE, PIPELINE_INK } from "./palette.js";
+  import { terminal_replay_delays, type RevealPhase } from "./pipeline-motion.js";
 
   // Band 1's agent session (#209). It shows no readable text on purpose: a
   // real transcript would date within a week and would say nothing the note
@@ -9,7 +10,16 @@
   // exchange - who spoke, how long their turn ran - carried entirely by the
   // bar widths in `data/pipeline.yaml`. Nothing about the conversation is
   // written here, so editing the data changes the drawing.
-  let { terminal }: { terminal: PipelineTerminal } = $props();
+  let {
+    terminal,
+    phase = "static",
+  }: { terminal: PipelineTerminal; phase?: RevealPhase } = $props();
+
+  // The replay walks one clock across the whole transcript, so a bar's
+  // delay depends on every turn before it. `terminal_replay_delays` is
+  // parallel to `terminal.turns` by index, the same contract the graph's
+  // layout keeps with its band's nodes.
+  const replay = $derived(terminal_replay_delays(terminal.turns));
 
   // `>` is the reader at their own prompt, the bullet (U+2022) an agent
   // replying, the tick (U+2713) a tool that came back clean. The codepoints
@@ -42,6 +52,8 @@
      shell path to announce. The band's note is what carries the meaning. -->
 <div
   class="terminal"
+  class:is-armed={phase === "armed"}
+  class:is-revealed={phase === "revealed"}
   aria-hidden="true"
   style="--term-ground: {ELEVATION.void}; --term-hair: {ELEVATION.hair}; --term-hair-bright: {ELEVATION.hair_bright}; --term-chrome: {HUD_PALETTE.panel}; --dot-ink: {HUD_PALETTE.edge}; --path-ink: {HUD_PALETTE.chip_text}; --term-cursor: {HUD_PALETTE.accent};"
 >
@@ -50,18 +62,19 @@
     <span class="term-path">{terminal.path}</span>
   </div>
   <div class="term-body">
-    {#each terminal.turns as turn}
+    {#each terminal.turns as turn, index}
       <div
         class="turn"
         style="--glyph-ink: {SPEAKER_GLYPH_INK[turn.speaker]}; --bar-ink: {SPEAKER_BAR_INK[turn.speaker]};"
       >
         <span class="glyph">{SPEAKER_GLYPHS[turn.speaker]}</span>
         <span class="lines">
-          {#each turn.bars ?? [] as bar}
-            <span class="ln" style="width: {bar}%"></span>
+          {#each turn.bars ?? [] as bar, line}
+            <span class="ln" style="width: {bar}%; --bar-delay: {replay[index].bars[line]}ms"
+            ></span>
           {/each}
           {#if turn.cursor}
-            <span class="cursor"></span>
+            <span class="cursor" style="--cursor-delay: {replay[index].cursor}ms"></span>
           {/if}
         </span>
       </div>
@@ -142,6 +155,10 @@
     height: 7px;
     border-radius: 2px;
     background: var(--bar-ink);
+    /* Each bar wipes open from the prompt side rather than fading in
+       place, because what the drawing depicts is a turn being written. The
+       width stays the data's, and the transform is what moves. */
+    transform-origin: left center;
   }
 
   .cursor {
@@ -158,9 +175,55 @@
     }
   }
 
+  /* The replay. As in Graph.svelte, none of this applies unless the band's
+     `phase` prop has left "static", and it only leaves "static" where
+     `pipeline-motion.ts` has confirmed motion is welcome - so the reduced
+     motion branch, the no-script branch and the server's own output are
+     all the finished transcript, with the blink below as their only
+     movement. */
+  .is-armed .ln {
+    transform: scaleX(0);
+  }
+
+  .is-revealed .ln {
+    animation: bar-wipe 140ms ease-out var(--bar-delay) both;
+  }
+
+  @keyframes bar-wipe {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* The cursor arrives with its turn and blinks from then on, so the blink
+     carries the same delay: an invisible cursor blinking is a cursor
+     keeping time nobody can see. */
+  .is-armed .cursor {
+    opacity: 0;
+    animation: none;
+  }
+
+  .is-revealed .cursor {
+    animation:
+      cursor-arrive 160ms linear var(--cursor-delay) both,
+      blink 1.1s steps(2, start) var(--cursor-delay) infinite;
+  }
+
+  @keyframes cursor-arrive {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* The blink is this component's own motion and stops on its own. The
-     scroll-driven replay of the whole transcript is a separate step and
-     brings its own reduced-motion branch. */
+     replay above never starts under reduced motion, because the phase it
+     keys off never leaves "static" there. */
   @media (prefers-reduced-motion: reduce) {
     .cursor {
       animation: none;

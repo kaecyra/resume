@@ -10,6 +10,7 @@
   import VendorMarks from "./VendorMarks.svelte";
   import { HUD_PALETTE } from "./palette.js";
   import { build_pipeline_graphs } from "./pipeline-graph.js";
+  import { reveal, type RevealPhase } from "./pipeline-motion.js";
   import { split_tagline } from "./tagline-format.js";
 
   let { pipeline }: { pipeline: PipelineData } = $props();
@@ -28,6 +29,28 @@
   // directly above it in the same column.
   function follows_note(band: PipelineBand): boolean {
     return band.readout !== undefined && band.note.column === band.readout.column;
+  }
+
+  // One reveal phase per band, and the band is what carries it: the
+  // drawing, the terminal and the rack in a band arrive together, off one
+  // observer, rather than three of them racing each other down the same
+  // scroll. It starts `static` - the finished state - so the server's
+  // output, a browser with no JavaScript, and a reader who has asked for
+  // reduced motion all get the section simply present. `reveal` moves it
+  // on only where motion is welcome.
+  //
+  // A prop rather than a class on the band that children match: Svelte
+  // scopes a component's styles to itself, so an ancestor class would need
+  // a `:global()` selector inside every one of them.
+  //
+  // Keyed by band id and absent until the action fills it, rather than an
+  // array sized from `pipeline.bands` up front: sizing it here would
+  // capture the band list as it was at construction, and the id is what
+  // the `{#each}` is already keyed by.
+  let band_phases = $state<Record<string, RevealPhase>>({});
+
+  function phase_of(band: PipelineBand): RevealPhase {
+    return band_phases[band.id] ?? "static";
   }
 </script>
 
@@ -48,7 +71,11 @@
     </p>
 
     {#each pipeline.bands as band, index (band.id)}
-      <section class="band" class:band--flip={band.graph_side === "right"}>
+      <section
+        class="band"
+        class:band--flip={band.graph_side === "right"}
+        use:reveal={(phase) => (band_phases[band.id] = phase)}
+      >
         {#if band.label}
           <p class="band-label">
             {band.label.from}{#if band.label.to}<span class="band-label-hop">&rarr;</span
@@ -58,7 +85,7 @@
 
         <div class="band-grid">
           <div class="col col-graph">
-            <Graph {band} layout={layouts[index]} />
+            <Graph {band} layout={layouts[index]} phase={phase_of(band)} />
 
             {#if band.note.column === "graph"}
               {@const note = split_tagline(band.note.text, band.note.emphasis)}
@@ -74,7 +101,7 @@
 
           <div class="col col-aside">
             {#if band.terminal}
-              <Terminal terminal={band.terminal} />
+              <Terminal terminal={band.terminal} phase={phase_of(band)} />
             {/if}
 
             {#if band.code}
@@ -83,7 +110,7 @@
 
             {#if band.rack}
               <div class="rack-row">
-                <Rack />
+                <Rack phase={phase_of(band)} />
               </div>
             {/if}
 
