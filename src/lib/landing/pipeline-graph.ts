@@ -1,4 +1,4 @@
-// Layout maths for the "Building a pipeline" section's three graphs (#209).
+// Layout maths for the "Pipelines" section's three graphs (#209).
 //
 // data/pipeline.yaml describes each band as nodes and the edges between
 // them and carries no coordinate at all; this module turns that topology

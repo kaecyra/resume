@@ -244,6 +244,23 @@ describe("Pipeline", () => {
     expect(html_for(pipeline())).not.toContain("band-label");
   });
 
+  it("renders the subtitle under the heading, before the lede", () => {
+    const html = html_for(pipeline({ heading: "Pipelines", subtitle: "... so hot right now" }));
+
+    expect(html).toContain("... so hot right now");
+    expect(html.indexOf("Pipelines")).toBeLessThan(html.indexOf("... so hot right now"));
+    expect(html.indexOf("... so hot right now")).toBeLessThan(
+      html.indexOf("This page ships the way the work does."),
+    );
+  });
+
+  // Optional, and carrying a joke rather than a fact: a band with no
+  // subtitle renders no element at all rather than an empty paragraph the
+  // lede's top margin then sits under twice.
+  it("omits the subtitle element entirely when the data carries none", () => {
+    expect(html_for(pipeline())).not.toContain("section-subtitle");
+  });
+
   it("renders the whole section finished, with no reveal state, on the server", () => {
     // The reveal (#209 step f) is armed by a Svelte action, which never
     // runs during SSR and never runs at all where motion is unwelcome or

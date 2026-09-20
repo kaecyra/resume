@@ -62,6 +62,13 @@
   <div class="wrap">
     <h2 class="section-title">{pipeline.heading}</h2>
 
+    <!-- Set in the heading's own face, a size down and a tone quieter, so it
+         reads as the title trailing off rather than as a second heading or
+         as the start of the lede. Omitted entirely when the data has none. -->
+    {#if pipeline.subtitle}
+      <p class="section-subtitle">{pipeline.subtitle}</p>
+    {/if}
+
     <!-- Three text nodes rather than markup in the data: the emphasis
          phrase arrives as plain text and is wrapped here, the same contract
          the hero's tagline uses. -->
@@ -101,7 +108,10 @@
 
           <div class="col col-aside">
             {#if band.terminal}
-              <Terminal terminal={band.terminal} phase={phase_of(band)} />
+              <!-- No phase prop: the terminal observes itself, because its
+                   replay is long enough that the band's own arrival fires
+                   it too early to be watched. See Terminal.svelte. -->
+              <Terminal terminal={band.terminal} />
             {/if}
 
             {#if band.code}
@@ -172,6 +182,21 @@
     margin: 0;
     padding-block: 64px 0;
     text-wrap: balance;
+  }
+
+  /* The body face at its normal weight, not the heading's: the line is an
+     aside under the title, and setting it in the display face made it read
+     as a second heading rather than as the title trailing off. */
+  /* The bottom margin lives here rather than on `.lede`, so the wider gap
+     exists only where a subtitle does. Adjacent margins collapse to the
+     larger of the two, so this is the gap, not an addition to the lede's
+     own 18px. */
+  .section-subtitle {
+    margin: 8px 0 34px;
+    font-weight: 400;
+    font-size: clamp(1rem, 2.4vw, 1.35rem);
+    line-height: 1.2;
+    color: var(--hud-secondary);
   }
 
   .lede {

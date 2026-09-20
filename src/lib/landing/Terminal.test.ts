@@ -5,7 +5,7 @@ import { render } from "svelte/server";
 import type { PipelineTerminal } from "$lib/types.js";
 
 import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
-import { terminal_replay_delays, type RevealPhase } from "./pipeline-motion.js";
+import { terminal_replay_delays } from "./pipeline-motion.js";
 import Terminal from "./Terminal.svelte";
 
 // Deliberately not the widths the real data carries. Every number here is
@@ -22,8 +22,8 @@ const TERMINAL: PipelineTerminal = {
   ],
 };
 
-function html_for(terminal: PipelineTerminal, phase?: RevealPhase): string {
-  return render(Terminal, { props: { terminal, phase } }).body;
+function html_for(terminal: PipelineTerminal): string {
+  return render(Terminal, { props: { terminal } }).body;
 }
 
 function source(): string {
@@ -103,20 +103,27 @@ describe("Terminal", () => {
   });
 
   describe("the replay (#209 step f)", () => {
-    it("renders the finished transcript, with no reveal state, when no phase is given", () => {
+    // The action never runs during SSR, so this is also what a reader with
+    // scripting off or reduced motion gets: the finished transcript.
+    it("renders the finished transcript, with no reveal state, on the server", () => {
       const html = html_for(TERMINAL);
 
       expect(html).not.toContain("is-armed");
       expect(html).not.toContain("is-revealed");
     });
 
-    it("carries the phase it was handed onto the terminal", () => {
-      expect(html_for(TERMINAL, "armed")).toContain("is-armed");
-      expect(html_for(TERMINAL, "revealed")).toContain("is-revealed");
+    // The terminal watches itself rather than taking its band's phase: the
+    // band is over a thousand pixels tall, so a quarter of it is on screen
+    // while the terminal is still at the bottom edge of the viewport, and
+    // the replay would be over before a reader reached it. Crossing.svelte
+    // does the same, for the same reason.
+    it("observes itself rather than taking a phase from its band", () => {
+      expect(source()).toContain("use:reveal");
+      expect(source()).not.toMatch(/phase\??:\s*RevealPhase/);
     });
 
     it("spends one clock across the whole transcript, bars and cursor alike", () => {
-      const html = html_for(TERMINAL, "revealed");
+      const html = html_for(TERMINAL);
       const replay = terminal_replay_delays(TERMINAL.turns);
 
       const bars = [...html.matchAll(/--bar-delay: (\d+)ms/g)].map((match) => Number(match[1]));

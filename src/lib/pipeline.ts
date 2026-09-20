@@ -651,6 +651,7 @@ function check_readout(ctx: z.RefinementCtx, band_label: string, readout: unknow
 const PipelineDataSchema = z
   .object({
     heading: z.any().optional(),
+    subtitle: z.any().optional(),
     lede: z.any().optional(),
     lede_emphasis: z.any().optional(),
 

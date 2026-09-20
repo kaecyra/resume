@@ -2,7 +2,7 @@
   import type { PipelineTerminal, PipelineTurnSpeaker } from "$lib/types.js";
 
   import { ELEVATION, HUD_PALETTE, PIPELINE_INK } from "./palette.js";
-  import { terminal_replay_delays, type RevealPhase } from "./pipeline-motion.js";
+  import { reveal, terminal_replay_delays, type RevealPhase } from "./pipeline-motion.js";
 
   // Band 1's agent session (#209). It shows no readable text on purpose: a
   // real transcript would date within a week and would say nothing the note
@@ -10,16 +10,21 @@
   // exchange - who spoke, how long their turn ran - carried entirely by the
   // bar widths in `data/pipeline.yaml`. Nothing about the conversation is
   // written here, so editing the data changes the drawing.
-  let {
-    terminal,
-    phase = "static",
-  }: { terminal: PipelineTerminal; phase?: RevealPhase } = $props();
+  let { terminal }: { terminal: PipelineTerminal } = $props();
 
   // The replay walks one clock across the whole transcript, so a bar's
   // delay depends on every turn before it. `terminal_replay_delays` is
   // parallel to `terminal.turns` by index, the same contract the graph's
   // layout keeps with its band's nodes.
   const replay = $derived(terminal_replay_delays(terminal.turns));
+
+  // The terminal watches itself rather than taking its band's phase, as
+  // Crossing.svelte does. The band is the wrong clock for this one: it is
+  // over a thousand pixels tall, so a quarter of it is on screen while the
+  // terminal is still at the bottom edge of the viewport - and unlike the
+  // graph's sweep, which keeps travelling down into view, a transcript that
+  // starts there has finished replaying before the reader reaches it.
+  let phase = $state<RevealPhase>("static");
 
   // `>` is the reader at their own prompt, the bullet (U+2022) an agent
   // replying, the tick (U+2713) a tool that came back clean. The codepoints
@@ -55,6 +60,7 @@
   class:is-armed={phase === "armed"}
   class:is-revealed={phase === "revealed"}
   aria-hidden="true"
+  use:reveal={(next) => (phase = next)}
   style="--term-ground: {ELEVATION.void}; --term-hair: {ELEVATION.hair}; --term-hair-bright: {ELEVATION.hair_bright}; --term-chrome: {HUD_PALETTE.panel}; --dot-ink: {HUD_PALETTE.edge}; --path-ink: {HUD_PALETTE.chip_text}; --term-cursor: {HUD_PALETTE.accent};"
 >
   <div class="term-bar">
