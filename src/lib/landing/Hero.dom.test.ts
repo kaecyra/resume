@@ -119,7 +119,7 @@ describe("Hero reduced-motion fallback (client)", () => {
 
   it("attempts to start the globe when reduced motion is not requested, and hides the still once it does", async () => {
     stub_matchmedia(false);
-    start_globe.mockReturnValue({ stop: vi.fn() });
+    start_globe.mockReturnValue({ stop: vi.fn(), set_spin_boost: vi.fn() });
     const { container } = render_hero();
 
     await vi.waitFor(() => {
@@ -167,7 +167,7 @@ describe("Hero reduced-motion fallback (client)", () => {
   // span per word, in order, and nothing is dropped or reordered.
   it("splits the hero name into one staged-reveal span per word once motion is confirmed welcome", async () => {
     stub_matchmedia(false);
-    start_globe.mockReturnValue({ stop: vi.fn() });
+    start_globe.mockReturnValue({ stop: vi.fn(), set_spin_boost: vi.fn() });
     const { container } = render_hero();
 
     await vi.waitFor(() => {
@@ -203,6 +203,115 @@ describe("Hero reduced-motion fallback (client)", () => {
   });
 });
 
+function stub_rect(el: Element, rect: Partial<DOMRect>) {
+  vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+    ...rect,
+  } as DOMRect);
+}
+
+// The divider itself is a sibling component (Divider.svelte via
+// LandingSections), not rendered inside Hero - update_spin_boost looks it
+// up by id, so these tests stand a bare #divider element in for it rather
+// than pulling in the whole landing tree.
+function stub_divider(height: number): HTMLDivElement {
+  const divider = document.createElement("div");
+  divider.id = "divider";
+  document.body.appendChild(divider);
+  stub_rect(divider, { height });
+  return divider;
+}
+
+function last_spin_boost(set_spin_boost: ReturnType<typeof vi.fn>): number {
+  const calls = set_spin_boost.mock.calls;
+  return calls[calls.length - 1]?.[0] as number;
+}
+
+describe("Hero globe spin-up on scroll (client)", () => {
+  let divider: HTMLDivElement;
+  let set_spin_boost: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    set_spin_boost = vi.fn();
+    start_globe.mockReset();
+    start_globe.mockReturnValue({ stop: vi.fn(), set_spin_boost });
+    load_globe_lines.mockReset();
+    load_globe_lines.mockResolvedValue({ world: [], canada: [] });
+    load_satellite_payload.mockReset();
+    load_satellite_payload.mockResolvedValue(null);
+    divider = stub_divider(200);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    divider.remove();
+  });
+
+  it("starts at the normal rate before any scroll", async () => {
+    stub_matchmedia(false);
+    const { container } = render_hero();
+    const hero = container.querySelector("#hero") as HTMLElement;
+    stub_rect(hero, { top: 0, height: 800 });
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    expect(last_spin_boost(set_spin_boost)).toBeCloseTo(1);
+  });
+
+  it("ramps the spin rate up from the very first pixel of scroll, maxing out as the divider nears the top", async () => {
+    stub_matchmedia(false);
+    const { container } = render_hero();
+    const hero = container.querySelector("#hero") as HTMLElement;
+
+    await vi.waitFor(() => {
+      expect(start_globe).toHaveBeenCalledTimes(1);
+    });
+
+    // The very first pixel of scroll already ramps it, however slightly -
+    // no dead zone before the boost kicks in.
+    stub_rect(hero, { top: -1, height: 800 });
+    await fireEvent.scroll(window);
+    const just_started = last_spin_boost(set_spin_boost);
+    expect(just_started).toBeGreaterThan(1);
+    expect(just_started).toBeLessThan(20);
+
+    // Short of the divider clearing the top: partway through the ramp.
+    stub_rect(hero, { top: -700, height: 800 });
+    await fireEvent.scroll(window);
+    const mid = last_spin_boost(set_spin_boost);
+    expect(mid).toBeGreaterThan(just_started);
+    expect(mid).toBeLessThan(20);
+
+    // Divider fully within the vanish buffer of the viewport top: full
+    // boost.
+    stub_rect(hero, { top: -960, height: 800 });
+    await fireEvent.scroll(window);
+    expect(last_spin_boost(set_spin_boost)).toBeCloseTo(20);
+  });
+
+  it("never starts the globe, so never boosts its spin, when prefers-reduced-motion matches", async () => {
+    stub_matchmedia(true);
+    const { container } = render_hero();
+    const hero = container.querySelector("#hero") as HTMLElement;
+    stub_rect(hero, { top: -960, height: 800 });
+
+    await fireEvent.scroll(window);
+    await Promise.resolve();
+
+    expect(set_spin_boost).not.toHaveBeenCalled();
+  });
+});
+
 const RCM_ELEMENTS: GpElements = {
   OBJECT_NAME: "RCM-1",
   OBJECT_ID: "2019-033A",
@@ -232,7 +341,7 @@ const PAYLOAD: SatellitePayload = {
 describe("Hero satellites (client)", () => {
   beforeEach(() => {
     start_globe.mockReset();
-    start_globe.mockReturnValue({ stop: vi.fn() });
+    start_globe.mockReturnValue({ stop: vi.fn(), set_spin_boost: vi.fn() });
     load_globe_lines.mockReset();
     load_globe_lines.mockResolvedValue({ world: [], canada: [] });
     load_satellite_payload.mockReset();

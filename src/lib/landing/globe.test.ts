@@ -1,4 +1,5 @@
 import {
+  advance_spin,
   build_color_buffer,
   build_ring_segments,
   densify_ring,
@@ -332,6 +333,40 @@ describe("globe_spin_at", () => {
     const before = globe_spin_at(0, ROTATION_MS_PER_TURN);
     const after = globe_spin_at(elapsed, ROTATION_MS_PER_TURN);
     expect(after - before).toBeCloseTo(rotation_angle(elapsed, ROTATION_MS_PER_TURN), 9);
+  });
+});
+
+describe("advance_spin", () => {
+  it("matches rotation_angle at boost 1, starting from 0", () => {
+    const dt = ROTATION_MS_PER_TURN / 8;
+    expect(advance_spin(0, dt, ROTATION_MS_PER_TURN, 1)).toBeCloseTo(rotation_angle(dt, ROTATION_MS_PER_TURN), 9);
+  });
+
+  it("covers twice the angle in the same dt at boost 2", () => {
+    const dt = ROTATION_MS_PER_TURN / 8;
+    const at_1x = advance_spin(0, dt, ROTATION_MS_PER_TURN, 1);
+    const at_2x = advance_spin(0, dt, ROTATION_MS_PER_TURN, 2);
+    expect(at_2x).toBeCloseTo(at_1x * 2, 9);
+  });
+
+  it("leaves spin untouched when dt is zero", () => {
+    expect(advance_spin(1.23, 0, ROTATION_MS_PER_TURN, 4)).toBeCloseTo(1.23, 9);
+  });
+
+  it("is additive across steps at a constant boost - repeated small steps match one big step", () => {
+    const dt = ROTATION_MS_PER_TURN / 20;
+    let stepped = 0;
+    for (let i = 0; i < 5; i += 1) {
+      stepped = advance_spin(stepped, dt, ROTATION_MS_PER_TURN, 3);
+    }
+    const one_step = advance_spin(0, dt * 5, ROTATION_MS_PER_TURN, 3);
+    expect(stepped).toBeCloseTo(one_step, 9);
+  });
+
+  it("wraps into [0, 2*pi) rather than growing without bound", () => {
+    const result = advance_spin(0, ROTATION_MS_PER_TURN * 10, ROTATION_MS_PER_TURN, 1);
+    expect(result).toBeGreaterThanOrEqual(0);
+    expect(result).toBeLessThan(2 * Math.PI);
   });
 });
 

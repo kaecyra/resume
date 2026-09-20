@@ -304,6 +304,20 @@ export function globe_spin_at(elapsed_ms: number, ms_per_turn: number): number {
   return rotation_angle(elapsed_ms, ms_per_turn) + MONTREAL_START_SPIN_RAD;
 }
 
+// Advances a running spin angle by one frame's worth of rotation at
+// `boost` times the globe's normal rate, wrapped into [0, 2*pi) the same
+// way rotation_angle is. Unlike globe_spin_at above - a pure function of
+// total elapsed time, which only works because the rate never changes -
+// this is a per-frame accumulator: start_globe's frame loop calls it once
+// per frame with that frame's own dt_ms and the current scroll-driven spin
+// boost, so the rate can change moment to moment (see globe-scroll.ts)
+// without the globe's angle jumping when the boost does. boost is a plain
+// multiplier, not an offset: 1 reproduces the original constant rate.
+export function advance_spin(spin_rad: number, dt_ms: number, ms_per_turn: number, boost: number): number {
+  const next = spin_rad + ((2 * Math.PI) / ms_per_turn) * boost * dt_ms;
+  return (((next % (2 * Math.PI)) + 2 * Math.PI)) % (2 * Math.PI);
+}
+
 // Where the Montreal marker sits on screen, and how visible it is, at a
 // given spin angle. A pure function of the same rotation the shader uses,
 // so the DOM flag/label and the canvas can never disagree about where
@@ -487,6 +501,10 @@ function create_program(gl: WebGLRenderingContext): WebGLProgram | null {
 
 export interface GlobeController {
   stop: () => void;
+  // Multiplies the globe's normal spin rate: 1 is the original constant
+  // rate, higher values spin faster. Hero.svelte drives this from scroll
+  // position (see globe-scroll.ts) rather than a fixed constant.
+  set_spin_boost: (boost: number) => void;
 }
 
 export interface StartGlobeOptions {
@@ -597,7 +615,6 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   ctx.clearColor(0, 0, 0, 0);
 
   const tilt = tilt_radians();
-  const start_ms = performance.now();
 
   // Cached from the canvas's own getBoundingClientRect() - only size_canvas
   // (called on mount and on resize, which already has a listener) touches
@@ -711,12 +728,29 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   let hero_visible = true;
   let tab_visible = document.visibilityState === "visible";
 
+  // Spin is now a running accumulator (advance_spin), not a pure function
+  // of total elapsed time (globe_spin_at) - the scroll-driven boost (see
+  // set_spin_boost below) can change the rate moment to moment, which only
+  // an accumulator can reflect without the angle jumping whenever the rate
+  // does. Starts at the same angle globe_spin_at(0, ...) always opened on.
+  let spin_rad = MONTREAL_START_SPIN_RAD;
+  let spin_boost = 1;
+  // Reset by stop_frame (see below) so the frame right after a pause always
+  // treats itself as the first: with a stale last_frame_ts, dt_ms would be
+  // the whole paused duration, and the globe would leap forward by however
+  // long the tab or hero was out of view instead of staying exactly where
+  // it was left.
+  let last_frame_ts: DOMHighResTimeStamp | null = null;
+
   function frame(ts: DOMHighResTimeStamp) {
     raf_id = null;
     if (!running || !hero_visible || !tab_visible) {
       return;
     }
-    draw(globe_spin_at(ts - start_ms, ROTATION_MS_PER_TURN));
+    const dt_ms = last_frame_ts === null ? 0 : ts - last_frame_ts;
+    last_frame_ts = ts;
+    spin_rad = advance_spin(spin_rad, dt_ms, ROTATION_MS_PER_TURN, spin_boost);
+    draw(spin_rad);
     raf_id = requestAnimationFrame(frame);
   }
 
@@ -725,6 +759,7 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
       cancelAnimationFrame(raf_id);
       raf_id = null;
     }
+    last_frame_ts = null;
   }
 
   function schedule() {
@@ -756,6 +791,9 @@ export function start_globe(options: StartGlobeOptions): GlobeController | null 
   schedule();
 
   return {
+    set_spin_boost: (boost: number) => {
+      spin_boost = boost;
+    },
     stop: () => {
       running = false;
       stop_frame();
