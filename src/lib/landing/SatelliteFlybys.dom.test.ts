@@ -33,6 +33,15 @@ function flybys(container: HTMLElement): HTMLElement[] {
 beforeEach(() => {
   vi.useFakeTimers();
   set_visibility("visible");
+  // Pins every gap SatelliteFlybys.svelte draws (via flyby-motion.ts's
+  // next_spawn_delay_ms/random_flyby_plan, both defaulting to Math.random)
+  // to the midpoint of their range. Without this, two spawns can land
+  // within one SPAWN_GAP_MS.max window - the first draw and the immediately
+  // rescheduled second draw can each land low enough in [20000, 60000] that
+  // their sum is still <= 60000ms - which made the "spawns exactly one"
+  // assertions below flaky (~1/8 of runs). flyby-motion.test.ts already
+  // covers the actual random distribution; this file only needs a fixed one.
+  vi.spyOn(Math, "random").mockReturnValue(0.5);
 });
 
 afterEach(() => {
