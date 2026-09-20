@@ -14,6 +14,8 @@ const NOW = Date.parse("2026-09-20T12:00:00.000Z");
 const FRESH = new Date(NOW - 1000).toISOString();
 const STALE = new Date(NOW - MAX_READING_AGE_MS - 1000).toISOString();
 const AT_THE_BOUNDARY = new Date(NOW - MAX_READING_AGE_MS).toISOString();
+const IN_THE_FUTURE = new Date(NOW + 1000).toISOString();
+const FAR_IN_THE_FUTURE = new Date(NOW + 365 * 24 * 60 * 60 * 1000).toISOString();
 
 describe("parse_basement_metrics", () => {
   it("reads temperature, humidity and updated_at out of a clean JSON body", () => {
@@ -63,6 +65,19 @@ describe("is_fresh_reading", () => {
 
   it("is stale exactly at the boundary - newer than, not as old as", () => {
     expect(is_fresh_reading(AT_THE_BOUNDARY, NOW)).toBe(false);
+  });
+
+  // A timestamp ahead of `now` gives a negative age, which is unboundedly
+  // "less than" the window unless there is a lower bound too - clock skew
+  // (or a corrupted value that happens to parse into the future) must not
+  // read as fresh forever.
+  it("is stale for a timestamp in the future, however far", () => {
+    expect(is_fresh_reading(IN_THE_FUTURE, NOW)).toBe(false);
+    expect(is_fresh_reading(FAR_IN_THE_FUTURE, NOW)).toBe(false);
+  });
+
+  it("is fresh at the instant now itself - zero age", () => {
+    expect(is_fresh_reading(new Date(NOW).toISOString(), NOW)).toBe(true);
   });
 
   it("is stale for a missing or unparseable timestamp", () => {

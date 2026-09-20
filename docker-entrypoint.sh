@@ -18,6 +18,7 @@ fi
 # image, one Watchtower scope, no new port. Unset any of the four vars and
 # this is a no-op - the endpoint 404s and the landing page's sample values
 # stand, same as UMAMI_API_TOKEN's "unset = skip" default above.
+poll_pid=""
 if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] && [ -n "$HA_HUMIDITY_ENTITY_ID" ]; then
     (
         mkdir -p /usr/share/nginx/html/api/basement
@@ -49,7 +50,24 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
             # `last_reported` (HA 2024.9+) is when the entity last reported in
             # at all, changed or not - the truest "is this still syncing"
             # signal. `last_updated` is the fallback for older HA versions.
-            updated_at=$(printf '%s' "$temp_response" | jq -r '.last_reported // .last_updated // empty')
+            temp_updated_at=$(printf '%s' "$temp_response" | jq -r '.last_reported // .last_updated // empty')
+            humidity_updated_at=$(printf '%s' "$humidity_response" | jq -r '.last_reported // .last_updated // empty')
+
+            # This write only proves Home Assistant itself is reachable and
+            # syncing - not that both individual sensors are healthy, which
+            # is format_basement_readout's job on the values this timestamp
+            # ends up attached to. So the newer of the two: either reading
+            # being recent is enough to write. ISO 8601 UTC timestamps from
+            # the same HA instance sort correctly as plain text.
+            if [ -z "$temp_updated_at" ]; then
+                updated_at=$humidity_updated_at
+            elif [ -z "$humidity_updated_at" ]; then
+                updated_at=$temp_updated_at
+            elif [ "$temp_updated_at" ">" "$humidity_updated_at" ]; then
+                updated_at=$temp_updated_at
+            else
+                updated_at=$humidity_updated_at
+            fi
 
             if is_usable_reading "$temperature" && is_usable_reading "$humidity" && [ -n "$updated_at" ]; then
                 jq -n --arg t "$temperature" --arg h "$humidity" --arg u "$updated_at" \
@@ -62,6 +80,36 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
             sleep 300
         done
     ) &
+    poll_pid=$!
 fi
 
-exec nginx -g 'daemon off;'
+# Not `exec nginx`: that would replace this shell with nginx's process
+# image, leaving nothing around to notice a stop signal and pass it on to
+# the poll loop above, which would then only stop once the container
+# runtime's kill grace period expires and SIGKILLs everything. nginx runs
+# as a tracked child instead, so both get the same chance to stop cleanly -
+# nginx already knows how; the loop's atomic mv means there is no unclean
+# state for it to leave regardless, but there is no reason to rely on that
+# when forwarding the signal costs a few lines.
+nginx -g 'daemon off;' &
+nginx_pid=$!
+
+# QUIT, not just TERM/INT: the nginx:stable-alpine base image this build's
+# final stage is FROM sets STOPSIGNAL SIGQUIT (confirmed via `docker inspect
+# nginx:stable-alpine`, and inherited since this Dockerfile never overrides
+# it), so `docker stop` sends SIGQUIT by default - a trap that only caught
+# TERM/INT never fired at all, and the container sat until the runtime's own
+# grace period ran out and SIGKILLed everything. The handler exits itself
+# once nginx is down, rather than killing both and falling through to the
+# `wait` below, since a trap firing mid-wait is not guaranteed to resume it.
+trap '
+    kill -TERM "$nginx_pid" 2>/dev/null
+    [ -n "$poll_pid" ] && kill -TERM "$poll_pid" 2>/dev/null
+    wait "$nginx_pid" 2>/dev/null
+    exit 0
+' TERM INT QUIT
+
+wait "$nginx_pid"
+exit_code=$?
+[ -n "$poll_pid" ] && kill -TERM "$poll_pid" 2>/dev/null
+exit "$exit_code"

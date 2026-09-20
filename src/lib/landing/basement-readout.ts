@@ -92,8 +92,13 @@ export function parse_basement_metrics(body: string): BasementMetrics {
 }
 
 // True when `updated_at` parses to a time within MAX_READING_AGE_MS of
-// `now`. A missing or unparseable timestamp is stale, not an error - the
-// same "no measurement" treatment as a missing number.
+// `now`, and not after it. A missing or unparseable timestamp is stale, not
+// an error - the same "no measurement" treatment as a missing number. The
+// lower bound matters as much as the upper one: without it, a timestamp
+// ahead of the reader's clock - skew between HA's clock and theirs, or a
+// corrupted value that happens to parse into the future - has a negative
+// age, which is unboundedly "less than" the window and would read as fresh
+// forever, however far in the future it is.
 export function is_fresh_reading(updated_at: string | undefined, now: number): boolean {
   if (updated_at === undefined) {
     return false;
@@ -106,7 +111,7 @@ export function is_fresh_reading(updated_at: string | undefined, now: number): b
 
   const age = now - timestamp;
 
-  return age < MAX_READING_AGE_MS;
+  return age >= 0 && age < MAX_READING_AGE_MS;
 }
 
 // True when `ids` is exactly the set of fields this module fills. The
