@@ -1,0 +1,118 @@
+import { readFileSync } from "node:fs";
+
+import { render } from "svelte/server";
+
+import type { PipelineTerminal } from "$lib/types.js";
+
+import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
+import Terminal from "./Terminal.svelte";
+
+// Deliberately not the widths the real data carries. Every number here is
+// absent from data/pipeline.yaml and from the mockup, so a component that
+// drew its own bars instead of the ones it was handed would fail rather
+// than coincidentally agree.
+const TERMINAL: PipelineTerminal = {
+  path: "~/tmp/scratch",
+  turns: [
+    { speaker: "you", bars: [37, 12] },
+    { speaker: "agent", bars: [63, 58, 9] },
+    { speaker: "tool", bars: [21] },
+    { speaker: "you", cursor: true },
+  ],
+};
+
+function html_for(terminal: PipelineTerminal): string {
+  return render(Terminal, { props: { terminal } }).body;
+}
+
+function source(): string {
+  return readFileSync(new URL("./Terminal.svelte", import.meta.url), "utf8");
+}
+
+// The CSS this component ships, which is where a colour would be written
+// by hand. Anything the script block needs is imported from palette.ts and
+// lands in the rendered `style` attribute, which the render assertions
+// check directly.
+function style_block(): string {
+  const src = source();
+  return src.slice(src.indexOf("<style>"));
+}
+
+describe("Terminal", () => {
+  it("draws one bar per width the data gives it, at that width", () => {
+    const html = html_for(TERMINAL);
+
+    for (const width of [37, 12, 63, 58, 9, 21]) {
+      expect(html).toContain(`width: ${width}%`);
+    }
+
+    expect([...html.matchAll(/class="ln[ "]/g)]).toHaveLength(6);
+  });
+
+  // Reads the component's own source: the widths are the whole content of
+  // this drawing, and a component carrying the mockup's six turns inline
+  // would render identically against the real data while ignoring any edit
+  // to it. There is no rendered-output assertion that can tell the two
+  // apart, so this pins the absence of hardcoded widths directly.
+  it("takes every width from the data rather than carrying the mockup's own", () => {
+    expect(source()).not.toMatch(/width:\s*(?!100%)[\d.]+%/);
+  });
+
+  it("gives each speaker its own glyph", () => {
+    const html = html_for(TERMINAL);
+    const glyphs = [...html.matchAll(/<span class="glyph[^"]*">([^<]*)</g)].map((m) => m[1]);
+
+    // `>` for the reader at their own prompt, a bullet for the agent's
+    // reply, a tick for a tool that came back clean.
+    expect(glyphs).toEqual([">", "\u2022", "\u2713", ">"]);
+  });
+
+  it("renders the cursor only on the turn the data marks with one, and no bars there", () => {
+    const html = html_for(TERMINAL);
+
+    expect([...html.matchAll(/class="cursor[ "]/g)]).toHaveLength(1);
+
+    const last_turn = html.slice(html.lastIndexOf("<div class=\"turn"));
+    expect(last_turn).toContain("cursor");
+    expect(last_turn).not.toMatch(/class="ln[ "]/);
+  });
+
+  it("shows the working directory the data names", () => {
+    expect(html_for(TERMINAL)).toContain("~/tmp/scratch");
+  });
+
+  it("is hidden from assistive technology, because it says nothing a reader could read", () => {
+    // Resolution 1 of the plan: decorative drawing is `aria-hidden`. The
+    // bars carry no text on purpose, so announcing a bare shell path and
+    // then silence would be worse than announcing nothing. The note beside
+    // the terminal is what carries the meaning.
+    expect(html_for(TERMINAL)).toMatch(/<div class="terminal[^"]*" aria-hidden="true"/);
+  });
+
+  it("stops the cursor blinking under prefers-reduced-motion", () => {
+    const style = source();
+    const query = style.slice(style.indexOf("@media (prefers-reduced-motion: reduce)"));
+
+    expect(query).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(query).toMatch(/\.cursor\s*\{\s*animation: none;/);
+  });
+
+  it("paints each speaker's bars from the palette rather than a literal hex", () => {
+    const html = html_for(TERMINAL);
+
+    // The reader's own turn is the brightest of the three, so the
+    // transcript reads as them speaking loudest in their own terminal.
+    expect(html).toContain(HUD_PALETTE.edge);
+    expect(html).toContain(PIPELINE_INK.agent_bar);
+    expect(html).toContain(PIPELINE_INK.tool_bar);
+
+    // The drop shadow is plain black at low alpha and has no token by
+    // design (see palette.ts), so it is the one colour allowed to be
+    // written here. Nothing else may be.
+    expect(style_block().replace(/#000\b/g, "")).not.toMatch(/#[0-9a-fA-F]{3}/);
+  });
+
+  it("keeps Share Tech Mono out of this component, which #187 retired outside the hero", () => {
+    expect(source()).not.toContain("Share Tech Mono");
+  });
+});
