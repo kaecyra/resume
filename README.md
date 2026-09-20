@@ -60,6 +60,7 @@ npm install
 data/
   resume.yaml             # All resume content
   landing.yaml            # Landing page content (hero, projects, appearances, resume links, contact)
+  pipeline.yaml           # Content for the landing page's "Pipelines" section
   variants/               # Variant manifests for tailored output
     cto-a.yaml
     cto-b.yaml
@@ -72,6 +73,7 @@ src/
   lib/
     data.ts               # Data loading and variant resolution
     landing.ts            # Landing page data loading and validation
+    pipeline.ts           # "Pipelines" section data loading and validation
     landing/              # Landing page components (greyscale + amber "Signal" design)
     github.ts             # GitHub contribution calendar transform (grid model, level bucketing)
     types.ts              # TypeScript type definitions
@@ -108,6 +110,8 @@ Resume content lives in `data/resume.yaml` as a single source of truth containin
 ### Landing Page
 
 The landing page is not a resume theme: it has no PDF path and no variant resolution, so its content lives in its own file, `data/landing.yaml`, loaded and validated by `src/lib/landing.ts`. It defines the hero block, a list of projects (drawn from the same work referenced in `field_deployments`, but written for a general audience), a list of conference/event appearances (`appearances`), which resume variants are linked publicly (`resume_links`), contact links, and the GitHub account shown next to the commit history. Only variants named in `resume_links` are ever linked from the landing page; every other variant stays reachable by direct link only.
+
+The "Pipelines" section keeps its content in a second file, `data/pipeline.yaml`, loaded and validated by `src/lib/pipeline.ts` and threaded to the page as its own prop. It carries more structure than the other sections put together, so it stays out of `landing.yaml`: three bands of graph nodes and edges, a terminal transcript, the rack, and two readouts. There are no coordinates in it. `src/lib/landing/pipeline-graph.ts` turns the nodes and edges into positions and path strings, and each tone is named by role (`default`, `muted`, `dim`, `accent`, `green`), resolved against `src/lib/landing/palette.ts` when the section renders, so a colour change never touches the data file.
 
 The hero's Montreal marker flag (`static/landing/canada-flag.svg`) is from the [flag-icons](https://github.com/lipis/flag-icons) project, MIT licensed; the upstream license notice is reproduced in a comment at the top of the file.
 
