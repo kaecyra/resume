@@ -50,7 +50,7 @@
      Off the Clock read as two sections rather than one long dark run. -->
 <div class="about-band" style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background};">
   <ul class="about-interests">
-    {#each about.interests as interest, index (index)}
+    {#each about.interests as interest}
       <li>{interest}</li>
     {/each}
   </ul>
@@ -70,7 +70,7 @@
 
       <div class="about-prose">
         <p class="about-lead">{about.lead}</p>
-        {#each about.paragraphs as paragraph, index (index)}
+        {#each about.paragraphs as paragraph}
           <p>{paragraph}</p>
         {/each}
       </div>

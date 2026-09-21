@@ -490,6 +490,13 @@ describe("validate_landing_data: about", () => {
     );
   });
 
+  it("detects a slash-backslash image path, which browsers read as protocol-relative", () => {
+    const book = { ...MOCK_ABOUT.books[0], cover: "/\\covers.example.com/a.jpg" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" cover must be a site path starting with "/"',
+    );
+  });
+
   it("still reports every other about error when the portrait is missing", () => {
     // A missing portrait used to fail the about object's own parse, which
     // stopped check_about from running and hid every other problem behind a

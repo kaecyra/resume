@@ -33,7 +33,6 @@ function html_for(projects: LandingProject[]): string {
 }
 
 describe("Work", () => {
-
   it("marks only the first project as featured, and every other one as secondary", () => {
     const html = html_for(PROJECTS);
 
