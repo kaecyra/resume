@@ -1,4 +1,8 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { list_variants, load_resume_data, load_variant } from "./data.js";
+import { load_landing_data } from "./landing.js";
 import { build_master_ids, validate_resume_data, validate_variant } from "./validate.js";
 
 // Unlike validate-resume.test.ts next door, this file reads the real files
@@ -32,5 +36,22 @@ describe("data/ integrity", () => {
     // Asserted as the full list, not a count: a failure message that names
     // the variant and the dangling id is the entire value of this test.
     expect(failures).toEqual([]);
+  });
+
+  it("every image data/landing.yaml's about block names exists under static/", () => {
+    // validate_landing_data checks the paths are site-relative; only the
+    // real files can say whether the image is actually there. A missing
+    // cover renders as a broken image with no build error.
+    const about = load_landing_data().about;
+    expect(about).toBeDefined();
+
+    const paths = [
+      about!.portrait.src,
+      ...about!.photos.map((photo) => photo.src),
+      ...about!.books.map((book) => book.cover),
+    ];
+    const missing = paths.filter((path) => !existsSync(resolve("static", `.${path}`)));
+
+    expect(missing).toEqual([]);
   });
 });

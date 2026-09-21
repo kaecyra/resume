@@ -90,11 +90,73 @@ contact:
 github:
   user: "kaecyra"
 
+# "Off the Clock" (#241). Image paths are site-relative and served from
+# static/; the CSP blocks images from any other host.
+about:
+  heading: "Off the Clock"
+  interests:
+    - "Homelab"
+    - "Motorcycles"
+    - "Cars"
+    - "Golf"
+    - "Sci-fi"
+    - "Space"
+  portrait:
+    src: "/assets/headshot-illustration.png"
+    alt: "Illustrated portrait of Tim Gunter"
+  lead: "I like building things, at work and away from it."
+  paragraphs:
+    - |
+      At home that means a homelab I run for myself. It scratches the same itch I had
+      when I ran operations at a SaaS company.
+    - "I ride motorcycles, and I really love cars."
+    - "I read a lot of science fiction, and I follow space and aerospace closely."
+    - |
+      Every year a group of friends and I hold our own golf tournament, the Off-Island
+      Invitational. My teammate and I won it this year.
+  photos_label: "Lately"
+  # The photos group stays hidden until this list has entries. Drop the files
+  # in static/landing/photos/ and uncomment:
+  photos: []
+  #  - id: golf
+  #    src: "/landing/photos/golf.jpg"
+  #    alt: ""
+  #    caption: "Off-Island Invitational, 2026. Champions."
+  #  - id: motorcycle
+  #    src: "/landing/photos/motorcycle.jpg"
+  #    alt: ""
+  #    caption: ""
+  #  - id: car
+  #    src: "/landing/photos/car.jpg"
+  #    alt: ""
+  #    caption: ""
+  books_label: "Worth reading"
+  books:
+    - id: dungeon-crawler-carl
+      title: "Dungeon Crawler Carl"
+      author: "Matt Dinniman"
+      cover: "/landing/books/dungeon-crawler-carl.jpg"
+      cover_alt: "Cover of Dungeon Crawler Carl"
+      url: "https://mattdinniman.com/"
+    - id: troy-rising
+      title: "Troy Rising"
+      author: "John Ringo"
+      cover: "/landing/books/troy-rising.jpg"
+      cover_alt: "Cover of Live Free or Die, book one of Troy Rising"
+      url: "https://www.baen.com/authors/john-ringo.html"
+    - id: polity
+      title: "Polity"
+      author: "Neal Asher"
+      cover: "/landing/books/polity.jpg"
+      cover_alt: "Cover of Dark Intelligence, book one of the Transformation trilogy"
+      url: "https://www.nealasher.co.uk/books/transformation-trilogy/"
+
 sections:
   - "hero"
   - "divider"
   - "commits"
   - "pipeline"
+  - "about"
   - "work"
   - "appearances"
   - "contact"
