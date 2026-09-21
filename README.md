@@ -183,7 +183,7 @@ There is a ~5 minute delay between push and deploy (Watchtower poll interval).
 
 ### Host Setup
 
-The host is an Ubuntu VM on a Proxmox host. It is provisioned using `setup-host.sh`, which configures Docker, the firewall, Watchtower, and basic security hardening. The Cloudflare tunnel is set up separately (see [Ingress Configuration](#ingress-configuration)).
+The server is an Ubuntu VM running on Proxmox. It is provisioned using `setup-host.sh`, which configures Docker, the firewall, Watchtower, and basic security hardening. The Cloudflare tunnel is set up separately (see [Ingress Configuration](#ingress-configuration)).
 
 **Prerequisites:** Fresh Ubuntu VM with sudo access
 
@@ -242,7 +242,7 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 
 ### Ingress Configuration
 
-Nothing on the home network listens for inbound traffic. `cloudflared` runs on the VM as a systemd service and holds a tunnel open to Cloudflare from the inside, so Cloudflare has somewhere to send requests without any port forwarded on the router.
+Nothing on the home network accepts traffic from the internet. `cloudflared` runs on the VM as a systemd service and holds a tunnel open to Cloudflare from the inside, so Cloudflare has somewhere to send requests without any port forwarded on the router.
 
 The tunnel carries two public hostnames:
 
@@ -318,10 +318,11 @@ Confirm every hostname under the zone serves HTTPS before turning it on. The
 origin's own `includeSubDomains`, in `security-headers.conf`, does not have this
 reach: it only ever travels on responses for this hostname.
 
-Turning these on means a plain-HTTP request from the LAN direct to the origin
-(`http://<vm-ip>:3000`) that carries `X-Forwarded-Proto: http` starts
-redirecting to an address with no TLS listener. Use the public hostname for
-debugging instead.
+A request from the LAN straight to the origin (`http://<vm-ip>:3000`) never
+passes through Cloudflare, so neither setting affects it. The origin itself
+redirects it only if it carries `X-Forwarded-Proto: http`, to an `https://`
+address with nothing listening behind it; without that header it is served
+as-is.
 
 
 ## Analytics
