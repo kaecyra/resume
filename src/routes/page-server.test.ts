@@ -53,6 +53,24 @@ async function run_load(): Promise<PageData> {
   return (await load({} as Parameters<typeof load>[0])) as PageData;
 }
 
+// A landing document whose hero role carries an employer after the comma,
+// the shape data/landing.yaml itself uses. Shared by the three head tests
+// below, which differ only in what they assert about it.
+const WITH_EMPLOYER: LandingData = {
+  hero: {
+    name: "Test Person",
+    role: "VP Engineering, Acme",
+    location: "Somewhere",
+    tagline: "I build things.",
+  },
+  projects: [{ id: "p1", name: "Project", blurb: "A thing.", stack: ["TypeScript"], status: "Active" }],
+  appearances: [],
+  resume_links: ["default"],
+  contact: [{ label: "Email", url: "mailto:test@example.com" }],
+  github: { user: "testuser" },
+  sections: ["hero", "divider", "commits", "work", "contact"],
+};
+
 describe("landing page load", () => {
   it("sets the canonical URL to the bare base URL, not to /default", async () => {
     mock_env.PUBLIC_BASE_URL = "https://example.com";
@@ -261,9 +279,51 @@ describe("landing data wiring", () => {
     expect(result.og.title).not.toBe(real_profile_name);
     expect(result.og.title).not.toBe(variant.title);
 
-    expect(result.og.description).toBe(distinguishable_landing.hero.tagline);
+    // The description now frames the hero tagline as a resume (#237)
+    // rather than shipping it bare, so it carries the tagline instead of
+    // equalling it - what matters here is still that it comes from the
+    // landing hero and never from the linked variant.
+    expect(result.og.description).toContain(distinguishable_landing.hero.tagline);
+    expect(result.og.description).toContain("Resume of Distinguishable Landing Hero");
     expect(result.og.description).not.toBe(variant.summary);
     expect(result.og.description).not.toBe(variant.tagline);
+  });
+
+  it("titles the document as a resume while og.title stays the bare hero name", async () => {
+    mock_env.PUBLIC_BASE_URL = "https://example.com";
+    vi.mocked(load_landing_data).mockReturnValueOnce(WITH_EMPLOYER);
+
+    const result = await run_load();
+
+    expect(result.document_title).toBe("Test Person \u2014 VP Engineering | Resume");
+    expect(result.og.title).toBe("Test Person");
+  });
+
+  it("publishes a ProfilePage whose subject carries the employer, the GitHub profile and the skills", async () => {
+    mock_env.PUBLIC_BASE_URL = "https://example.com";
+    vi.mocked(load_landing_data).mockReturnValueOnce(WITH_EMPLOYER);
+
+    const result = await run_load();
+    const person = result.jsonld.profile_page.mainEntity;
+
+    expect(result.jsonld.profile_page["@type"]).toBe("ProfilePage");
+    expect(person.worksFor).toEqual({ "@type": "Organization", name: "Acme" });
+    expect(person.sameAs).toContain("https://github.com/testuser");
+    // The skill names from data/resume.yaml, in order - not merely a
+    // non-empty array, which data.domains, data.languages or the skill ids
+    // would all satisfy just as well.
+    expect(person.knowsAbout).toEqual(load_resume_data().skills.map((skill) => skill.name));
+  });
+
+  it("names the occupation without the employer glued to it", async () => {
+    mock_env.PUBLIC_BASE_URL = "https://example.com";
+    vi.mocked(load_landing_data).mockReturnValueOnce(WITH_EMPLOYER);
+
+    const person = (await run_load()).jsonld.profile_page.mainEntity;
+
+    expect(person.jobTitle).toBe("VP Engineering");
+    expect(person.hasOccupation).toEqual({ "@type": "Occupation", name: "VP Engineering" });
+    expect(person.worksFor).toEqual({ "@type": "Organization", name: "Acme" });
   });
 
   it("points the OG image at the landing page's own card, not at the linked variant's", async () => {

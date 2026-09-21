@@ -46,8 +46,7 @@
     <link rel="icon" type="image/svg+xml" href={theme_favicon} />
   {/if}
 
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
+  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.profile_page)}</script>`}
   {@html `<style>body { background-color: ${data.palette.page_background}; }</style>`}
 </svelte:head>
 

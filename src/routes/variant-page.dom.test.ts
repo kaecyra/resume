@@ -42,7 +42,7 @@ const RESUME: ResolvedResume = {
 const PAGE_DATA = {
   umami_website_id: "",
   resume: RESUME,
-  variant_name: "default",
+  variant_name: "cto-a",
   palette: {
     background: "#ffffff",
     page_background: "#ffffff",
@@ -55,20 +55,23 @@ const PAGE_DATA = {
     title: "Tim Gunter - Chief Technology Officer",
     description: "Ships things that work.",
     image: "/og/default.png",
-    url: "https://example.com/default",
+    url: "https://example.com/cto-a",
   },
+  canonical_url: "https://example.com/default",
+  document_title: "Tim Gunter \u2014 Chief Technology Officer | Resume",
   jsonld: {
-    person: {
+    profile_page: {
       "@context": "https://schema.org" as const,
-      "@type": "Person" as const,
-      name: "Tim Gunter",
-      jobTitle: "Chief Technology Officer",
-    },
-    webpage: {
-      "@context": "https://schema.org" as const,
-      "@type": "WebPage" as const,
-      name: "Tim Gunter - Chief Technology Officer",
+      "@type": "ProfilePage" as const,
+      name: "Tim Gunter \u2014 Chief Technology Officer | Resume",
       description: "Ships things that work.",
+      mainEntity: {
+        "@context": "https://schema.org" as const,
+        "@type": "Person" as const,
+        name: "Tim Gunter",
+        jobTitle: "Chief Technology Officer",
+        hasOccupation: { "@type": "Occupation" as const, name: "Chief Technology Officer" },
+      },
     },
   },
   theme_color: "#ffffff",
@@ -81,9 +84,9 @@ describe("variant route page", () => {
     await fireEvent.click(getByText("Download PDF"));
 
     expect(track_pdf_download).toHaveBeenCalledWith({
-      variant: "default",
+      variant: "cto-a",
       type: "resume",
-      slug: "default",
+      slug: "cto-a",
     });
   });
 
@@ -95,5 +98,47 @@ describe("variant route page", () => {
     expect(link.getAttribute("download")).toBe(
       resume_pdf_filename(RESUME.profile.name, RESUME.title),
     );
+  });
+});
+
+// #237: the variant pages all canonical to one of them, so the tag in the
+// head must be the canonical variant's URL while og:url stays this page's
+// own. A change that collapsed the two back into one value would restore
+// the six-way duplicate the canonical exists to end, or - in the other
+// direction - point a share card at a resume nobody shared.
+describe("variant route page - head (#237)", () => {
+  it("canonicals to the canonical variant, not to itself", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    const canonical = document.querySelector('link[rel="canonical"]');
+
+    expect(canonical?.getAttribute("href")).toBe("https://example.com/default");
+  });
+
+  it("keeps og:url on the page that was actually shared", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    const og_url = document.querySelector('meta[property="og:url"]');
+
+    expect(og_url?.getAttribute("content")).toBe("https://example.com/cto-a");
+  });
+
+  it("names the document a resume in the title while og:title stays the share-card form", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    expect(document.title).toBe("Tim Gunter \u2014 Chief Technology Officer | Resume");
+    expect(document.querySelector('meta[property="og:title"]')?.getAttribute("content")).toBe(
+      "Tim Gunter - Chief Technology Officer",
+    );
+  });
+
+  it("publishes the page as a ProfilePage with the person as its subject", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    const tags = Array.from(document.head.querySelectorAll('script[type="application/ld+json"]'));
+    const payloads = tags.map((tag) => JSON.parse(tag.textContent ?? "{}"));
+    const profile_page = payloads.find((payload) => payload["@type"] === "ProfilePage");
+
+    expect(profile_page?.mainEntity).toMatchObject({ "@type": "Person", name: "Tim Gunter" });
   });
 });

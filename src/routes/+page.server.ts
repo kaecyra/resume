@@ -5,10 +5,14 @@ import { build_contribution_grid, load_github_contribution_data } from "$lib/git
 import { load_landing_data, validate_landing_data } from "$lib/landing.js";
 import { load_pipeline_data, validate_pipeline_data } from "$lib/pipeline.js";
 import {
+  build_landing_description,
+  build_landing_title,
   build_og_metadata,
+  build_person_context,
   build_person_jsonld,
-  build_webpage_jsonld,
+  build_profile_page_jsonld,
   LANDING_OG_SLUG,
+  split_hero_role,
 } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -68,11 +72,31 @@ export const load: PageServerLoad = () => {
       base_url, LANDING_OG_SLUG,
     ),
     title: landing.hero.name,
+    description: build_landing_description(landing.hero),
     url: canonical_url,
   };
 
-  const person_jsonld = build_person_jsonld(data.profile, landing.hero.role, canonical_url);
-  const webpage_jsonld = build_webpage_jsonld(og.title, og.description, canonical_url);
+  // The document title and og:title deliberately differ (#237). The tab,
+  // the search result and any proxy classifying this page by its title all
+  // read document_title, which names the role and the word "resume" - a
+  // page whose title is only a person's name reads as a personal profile,
+  // which is how the site came to be blocked as social media in the first
+  // place. og:title stays the bare name because the OG card (#233) already
+  // renders the name and the role badge as artwork, and a feed thumbnail
+  // repeating them in its caption is noise.
+  const document_title = build_landing_title(landing.hero);
+
+  // The role half of hero.role, not the whole string: the employer belongs
+  // in worksFor (build_person_context puts it there), and an Occupation
+  // named "VP Engineering, .Monks" beside an Organization named ".Monks"
+  // states the employer twice and names no occupation.
+  const person_jsonld = build_person_jsonld(
+    data.profile, split_hero_role(landing.hero).role, canonical_url,
+    build_person_context(landing, data.skills),
+  );
+  const profile_page_jsonld = build_profile_page_jsonld(
+    document_title, og.description, canonical_url, person_jsonld,
+  );
 
   // data/generated/github.json is gitignored and only exists when
   // `npm run fetch-github` has run with a token (CI, or a contributor's own
@@ -90,6 +114,7 @@ export const load: PageServerLoad = () => {
     contributions_grid,
     pipeline,
     og,
-    jsonld: { person: person_jsonld, webpage: webpage_jsonld },
+    document_title,
+    jsonld: { profile_page: profile_page_jsonld },
   };
 };
