@@ -27,11 +27,18 @@ RUN (npm run preview &) && \
     for i in $(seq 1 30); do wget -qO /dev/null http://localhost:4173/ && break || sleep 1; done && \
     npm run generate-og && npm run generate-pdf
 
+# Last in the stage, after everything that writes into build/: hashes every
+# page's inline script into the nginx map that feeds script-src (#239).
+RUN npm run generate-csp
+
 FROM nginx:stable-alpine
 
 RUN apk add --no-cache apache2-utils curl jq
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY security-headers.conf /etc/nginx/security-headers.conf
+# http-level map, loaded from conf.d ahead of default.conf
+COPY --from=build /app/csp-map.conf /etc/nginx/conf.d/csp-map.conf
 COPY --from=build /app/build /usr/share/nginx/html
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

@@ -79,6 +79,7 @@ src/
     types.ts              # TypeScript type definitions
   routes/                 # SvelteKit pages
 scripts/
+  generate-csp.ts         # Hashes each page's inline script into the nginx CSP map
   generate-og-images.ts   # Puppeteer-based OG image generation
   generate-pdf.ts         # Puppeteer-based PDF generation
   linkedin-export.ts      # LinkedIn copy/paste text exporter
@@ -89,6 +90,7 @@ scripts/
 VERSION                   # CalVer version (YYYY.MM.DD)
 Dockerfile                # Multi-stage Docker build
 nginx.conf                # Container nginx configuration
+security-headers.conf     # Security headers, included by every nginx location
 docker-compose.yml        # Docker Compose for local dev and production
 ```
 
@@ -243,14 +245,80 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 The network proxy server (separate from the VM) handles SSL termination and routes traffic to the VM. Example nginx config for the proxy:
 
 ```nginx
+# Preserve the scheme the client actually used. A plain `$scheme` here is the
+# scheme of Cloudflare's connection to this proxy, not the visitor's, and it
+# overwrites the header Cloudflare set - which leaves the container with no way
+# to tell a plain-HTTP visitor from an HTTPS one.
+map $http_x_forwarded_proto $client_proto {
+    default                 $scheme;
+    "~*^(http|https)$"      $http_x_forwarded_proto;
+}
+
 location / {
     proxy_pass http://<vm-ip>:3000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Proto $client_proto;
 }
 ```
+
+### Security Headers
+
+Every nginx location includes `security-headers.conf`, which sets
+`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
+`Strict-Transport-Security` and `Content-Security-Policy`. The repetition is
+deliberate: nginx stops inheriting `add_header` into any block that declares an
+`add_header` of its own, and several locations set their own `Cache-Control`, so
+a single server-level declaration would silently vanish from exactly the routes
+that look most covered.
+
+**CSP.** SvelteKit inlines a hydration script into every prerendered page, and
+that script carries page-specific data, so every page has a different hash.
+`scripts/generate-csp.ts` runs at the end of the Docker build stage, hashes each
+page's inline scripts and writes `csp-map.conf`:
+
+```nginx
+map $uri $csp_script_hashes {
+    default "";
+    "/cto-a"      "'sha256-...'";
+    "/cto-a.html" "'sha256-...'";
+}
+```
+
+The Dockerfile copies that into `/etc/nginx/conf.d/`, and `script-src` splices
+in `$csp_script_hashes`, so each response names only the hash of the page it is
+serving. The file is derived from `build/` and is neither committed nor edited
+by hand - it is regenerated on every build. Two keys are emitted per page
+because the bare route is resolved through `try_files $uri $uri.html`.
+
+`style-src` carries `'unsafe-inline'`: the built pages contain inline `<style>`
+elements and the landing components set `style=` attributes. It also allows
+`https://fonts.googleapis.com`, which `src/app.css` reaches through an
+`@import`, with the faces themselves coming from `fonts.gstatic.com` under
+`font-src`.
+
+**HSTS and the HTTPS redirect.** TLS terminates at Cloudflare, so the container
+only ever sees port 80 and has to be told how the visitor arrived. It redirects
+when `X-Forwarded-Proto` says `http`, and leaves a request carrying no such
+header alone - that is the container healthcheck, which must not be sent to an
+`https://` address with nothing listening behind it.
+
+That origin redirect only fires if the proxy in front passes the visitor's
+scheme through rather than overwriting it with its own (see [Ingress
+Configuration](#ingress-configuration)). Cloudflare is what closes the gap
+regardless, and both settings live under SSL/TLS > Edge Certificates:
+
+- **Always Use HTTPS**: on.
+- **HTTP Strict Transport Security (HSTS)**: enabled, max-age 12 months,
+  `includeSubDomains` on, **No preload**. Preloading is not reversible on any
+  useful timescale; the header alone can be withdrawn by lowering max-age and
+  waiting out what browsers have cached.
+
+Turning these on means a plain-HTTP request direct to the origin
+(`http://<vm-ip>:3000`) starts redirecting to an address with no TLS listener.
+Use the public hostname for debugging instead.
+
 
 ## Analytics
 

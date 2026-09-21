@@ -29,3 +29,6 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      # Catches a generator failure outside the Docker build, where it would
+      # otherwise only surface at image build time.
+      - run: npm run generate-csp
