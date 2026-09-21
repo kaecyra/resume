@@ -13,7 +13,7 @@
   style="--hud-bg: {HUD_PALETTE.background}; --hud-panel: {HUD_PALETTE.panel}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-chip-bg: {HUD_PALETTE.chip_bg}; --hud-chip-text: {HUD_PALETTE.chip_text}; --hud-void: {ELEVATION.void}; --hud-hair: {ELEVATION.hair}; --hud-hair-bright: {ELEVATION.hair_bright};"
 >
   <div class="work-wrap">
-    <h2 class="work-heading">Work</h2>
+    <h2 class="work-heading">Building Stuff</h2>
 
     <div class="work-grid">
       {#each projects as project, index (project.id)}

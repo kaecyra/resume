@@ -32,6 +32,12 @@ function html_for(projects: LandingProject[]): string {
 }
 
 describe("Work", () => {
+  it("is headed \"Building Stuff\"", () => {
+    const html = render(Work, { props: { projects: [project({})] } }).body;
+
+    expect(html).toMatch(/<h2 class="work-heading[^"]*">Building Stuff<\/h2>/);
+  });
+
   it("marks only the first project as featured, and every other one as secondary", () => {
     const html = html_for(PROJECTS);
 
