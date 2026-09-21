@@ -44,8 +44,8 @@ const SCRIPT_ELEMENT = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 const SRC_ATTRIBUTE = /(^|\s)src\s*=/i;
 const TYPE_ATTRIBUTE = /(^|\s)type\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
 // Every inline script type whose body script-src checks: the HTML spec's
-// JavaScript MIME type essences, plus the three non-JavaScript types that are
-// still subject to the policy. A type attribute holding anything else - a
+// JavaScript MIME type essences, plus the non-JavaScript types that are still
+// subject to the policy. A type attribute holding anything else - a
 // JavaScript type carrying a parameter included, since that is not an essence
 // match - makes the element a data block the policy never sees.
 //
