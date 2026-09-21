@@ -18,26 +18,37 @@
 </script>
 
 <svelte:head>
-  <title>{data.og.title}</title>
+  <title>{data.document_title}</title>
   <meta name="version" content={__APP_VERSION__} />
   <meta name="description" content={data.og.description} />
+  <meta name="author" content={data.resume.profile.name} />
 
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={data.resume.profile.name} />
+  <meta property="og:locale" content="en_CA" />
   <meta property="og:title" content={data.og.title} />
   <meta property="og:description" content={data.og.description} />
   <meta property="og:image" content={data.og.image} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={data.og.title} />
+  <!-- og:url is this page, canonical is the variant every variant defers
+       to (#237). They differ on purpose: a share card should preview the
+       URL that was shared, while the index should consolidate on one
+       resume instead of ranking six near-identical ones against each
+       other. -->
   {#if data.og.url}
     <meta property="og:url" content={data.og.url} />
-    <link rel="canonical" href={data.og.url} />
+  {/if}
+  {#if data.canonical_url}
+    <link rel="canonical" href={data.canonical_url} />
   {/if}
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.og.title} />
   <meta name="twitter:description" content={data.og.description} />
   <meta name="twitter:image" content={data.og.image} />
+  <meta name="twitter:image:alt" content={data.og.title} />
 
   <meta name="theme-color" content={data.theme_color} />
 
@@ -45,8 +56,7 @@
     <link rel="icon" type="image/svg+xml" href={theme_favicon} />
   {/if}
 
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
+  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.profile_page)}</script>`}
   {@html `<style>body { background-color: ${data.palette.page_background}; }</style>`}
 </svelte:head>
 

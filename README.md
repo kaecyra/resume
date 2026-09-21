@@ -102,6 +102,14 @@ docker-compose.yml        # Docker Compose for local dev and production
 | `/{variant}/{slug}` | A job-specific sub-variant, e.g. `/cto-a/a7f3b9c2` |
 | `/{variant}/{slug}/letter` | That sub-variant's cover letter, when one exists |
 | `/variants` | Auth-gated dashboard listing all variants and sub-variants |
+| `/sitemap.xml` | The landing page and `/default`, the only two URLs offered for indexing |
+| `/llms.txt` | Plain-text index of the same facts, for answer engines |
+
+### Indexing
+
+Every variant is one career history written for a different audience, so all of them carry `<link rel="canonical">` pointing at `/default` and only `/` and `/default` appear in the sitemap - six self-canonical near-duplicates competed with each other for one person's name. The variants stay reachable and shareable; `og:url` still names the page that was actually shared, which is also what the printed QR code encodes. `CANONICAL_VARIANT` in `src/lib/seo.ts` is the one place the canonical variant is named.
+
+Document titles carry a `| Resume` suffix and the landing page's title names the role, while `og:title` stays the bare name for the share card. Each page publishes a single `ProfilePage` JSON-LD block with the `Person` as its `mainEntity`, built from `data/resume.yaml` and `data/landing.yaml` - employer, GitHub profile and skills included.
 
 ## Data Model
 

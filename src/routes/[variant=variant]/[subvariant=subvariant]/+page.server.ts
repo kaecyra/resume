@@ -7,8 +7,14 @@ import {
   load_sub_variant,
   load_variant,
 } from "$lib/data.js";
+import { load_landing_data } from "$lib/landing.js";
 import { generate_qr_svg } from "$lib/qr.js";
-import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
+import {
+  build_og_metadata,
+  build_person_context,
+  build_person_jsonld,
+  build_profile_page_jsonld,
+} from "$lib/seo.js";
 import { get_theme_palette } from "$lib/theme-palettes.js";
 
 import type { EntryGenerator, PageServerLoad } from "./$types";
@@ -49,8 +55,17 @@ export const load: PageServerLoad = async ({ params }) => {
     resume.online_qr_svg = await generate_qr_svg(og.url, palette.accent);
   }
 
-  const person_jsonld = build_person_jsonld(resume.profile, resume.title, og.url);
-  const webpage_jsonld = build_webpage_jsonld(og.title, og.description, og.url);
+  // No canonical and no resume-suffixed title here: sub-variants are
+  // noindex, nofollow (see +page.svelte), so nothing about them is an
+  // indexing decision. They carry the same schema shape as the public
+  // pages only so there is one JSON-LD code path, not two.
+  const person_jsonld = build_person_jsonld(
+    resume.profile, resume.title, og.url,
+    build_person_context(load_landing_data(), resume.skills),
+  );
+  const profile_page_jsonld = build_profile_page_jsonld(
+    og.title, og.description, og.url, person_jsonld,
+  );
   const theme_color = palette.background;
 
   return {
@@ -63,7 +78,7 @@ export const load: PageServerLoad = async ({ params }) => {
     job_title: sub_variant.job.title,
     palette,
     og,
-    jsonld: { person: person_jsonld, webpage: webpage_jsonld },
+    jsonld: { profile_page: profile_page_jsonld },
     theme_color,
   };
 };

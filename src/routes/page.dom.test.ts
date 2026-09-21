@@ -67,21 +67,54 @@ const PAGE_DATA = {
     image: "/og/default.png",
     url: "https://example.com",
   },
+  document_title: "Test Person \u2014 Engineer | Resume",
   jsonld: {
-    person: {
+    profile_page: {
       "@context": "https://schema.org" as const,
-      "@type": "Person" as const,
-      name: "Test Person",
-      jobTitle: "Engineer",
-    },
-    webpage: {
-      "@context": "https://schema.org" as const,
-      "@type": "WebPage" as const,
-      name: "Test Person",
-      description: "I build things.",
+      "@type": "ProfilePage" as const,
+      name: "Test Person \u2014 Engineer | Resume",
+      description: "Resume of Test Person, Engineer in Somewhere. I build things.",
+      mainEntity: {
+        "@context": "https://schema.org" as const,
+        "@type": "Person" as const,
+        name: "Test Person",
+        jobTitle: "Engineer",
+        hasOccupation: { "@type": "Occupation" as const, name: "Engineer" },
+      },
     },
   },
 };
+
+// #237: the landing page's title is the one a proxy or a crawler reads to
+// decide what this site is. A regression back to the bare name - which is
+// still what og:title carries, on purpose - is what this pins.
+describe("landing route page - head (#237)", () => {
+  it("names the role and the document type in the title, not just the person", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    expect(document.title).toBe("Test Person \u2014 Engineer | Resume");
+    expect(document.title).not.toBe(PAGE_DATA.og.title);
+  });
+
+  it("keeps the bare name on og:title for the share card", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    expect(document.querySelector('meta[property="og:title"]')?.getAttribute("content")).toBe(
+      "Test Person",
+    );
+  });
+
+  it("publishes the page as a ProfilePage with the person as its subject", () => {
+    render(Page, { props: { data: PAGE_DATA } });
+
+    const tags = Array.from(document.head.querySelectorAll('script[type="application/ld+json"]'));
+    const payloads = tags.map((tag) => JSON.parse(tag.textContent ?? "{}"));
+    const profile_page = payloads.find((payload) => payload["@type"] === "ProfilePage");
+
+    expect(profile_page).toBeDefined();
+    expect(profile_page.mainEntity["@type"]).toBe("Person");
+  });
+});
 
 describe("landing route page", () => {
   it("sets theme-color to the HUD palette's background, not a stale literal", () => {

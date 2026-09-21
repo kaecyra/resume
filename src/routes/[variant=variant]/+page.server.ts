@@ -2,8 +2,16 @@ import { error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
 
 import { list_variants, load_resume_data, load_variant, resolve_resume } from "$lib/data.js";
+import { load_landing_data } from "$lib/landing.js";
 import { generate_qr_svg } from "$lib/qr.js";
-import { build_og_metadata, build_person_jsonld, build_webpage_jsonld } from "$lib/seo.js";
+import {
+  build_document_title,
+  build_og_metadata,
+  build_person_context,
+  build_person_jsonld,
+  build_profile_page_jsonld,
+  build_variant_canonical_url,
+} from "$lib/seo.js";
 import { get_theme_palette } from "$lib/theme-palettes.js";
 
 import type { EntryGenerator, PageServerLoad } from "./$types";
@@ -41,8 +49,22 @@ export const load: PageServerLoad = async ({ params }) => {
     resume.online_qr_svg = await generate_qr_svg(og.url, palette.accent);
   }
 
-  const person_jsonld = build_person_jsonld(resume.profile, resume.title, og.url);
-  const webpage_jsonld = build_webpage_jsonld(og.title, og.description, og.url);
+  // Every variant is one career history told for a different audience, so
+  // they all canonical to a single one of them (#237) rather than competing
+  // with each other in the index. This is not og.url, and must not become
+  // it: og.url is the page's own address, and it is what the QR code above
+  // encodes - a reader scanning the code on a printed cto-b resume has to
+  // arrive at cto-b, not at whichever variant is canonical.
+  const canonical_url = build_variant_canonical_url(base_url);
+  const document_title = build_document_title(og.title);
+
+  const person_jsonld = build_person_jsonld(
+    resume.profile, resume.title, canonical_url,
+    build_person_context(load_landing_data(), resume.skills),
+  );
+  const profile_page_jsonld = build_profile_page_jsonld(
+    document_title, og.description, canonical_url, person_jsonld,
+  );
   const theme_color = palette.background;
 
   return {
@@ -50,7 +72,9 @@ export const load: PageServerLoad = async ({ params }) => {
     variant_name,
     palette,
     og,
-    jsonld: { person: person_jsonld, webpage: webpage_jsonld },
+    canonical_url,
+    document_title,
+    jsonld: { profile_page: profile_page_jsonld },
     theme_color,
   };
 };

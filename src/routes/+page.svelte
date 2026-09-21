@@ -51,11 +51,14 @@
 </script>
 
 <svelte:head>
-  <title>{data.og.title}</title>
+  <title>{data.document_title}</title>
   <meta name="version" content={__APP_VERSION__} />
   <meta name="description" content={data.og.description} />
+  <meta name="author" content={data.profile_name} />
 
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={data.profile_name} />
+  <meta property="og:locale" content="en_CA" />
   <meta property="og:title" content={data.og.title} />
   <meta property="og:description" content={data.og.description} />
   <meta property="og:image" content={data.og.image} />
@@ -71,6 +74,7 @@
   <meta name="twitter:title" content={data.og.title} />
   <meta name="twitter:description" content={data.og.description} />
   <meta name="twitter:image" content={data.og.image} />
+  <meta name="twitter:image:alt" content={data.og.title} />
 
   <meta name="theme-color" content={HUD_PALETTE.background} />
 
@@ -83,12 +87,11 @@
        a literal <style> element (even inside <svelte:head>) as its
        component-scoped stylesheet and doesn't evaluate expressions inside
        it, so `{...}` here would render as literal, uninterpolated text
-       instead of CSS. Same reason the jsonld <script> tags below go
+       instead of CSS. Same reason the jsonld <script> tag below goes
        through {@html} rather than a literal <script> tag. -->
   {@html `<style>:root { --hud-bg: ${HUD_PALETTE.background}; }</style>`}
 
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.person)}</script>`}
-  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.webpage)}</script>`}
+  {@html `<script type="application/ld+json">${JSON.stringify(data.jsonld.profile_page)}</script>`}
 </svelte:head>
 
 <main id="main-content" class="landing">

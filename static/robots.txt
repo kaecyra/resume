@@ -1,4 +1,18 @@
 User-agent: *
 Allow: /
 
+# The wildcard above already covers these. They are named because the
+# crawlers below are the ones people most often block, and an explicit
+# Allow states the intent: this is a resume, and it is meant to be read,
+# quoted and summarized by search and answer engines alike.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://resume.timgunter.ca/sitemap.xml
