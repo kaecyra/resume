@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   BASEMENT_HISTORY_URL,
   HISTORY_WINDOW_MS,
+  SPARKLINE_DOT_RADIUS,
   SPARKLINE_HEIGHT,
+  SPARKLINE_STROKE_WIDTH,
+  SPARKLINE_WIDTH,
   format_basement_sparkline,
   parse_basement_history,
   resample_history,
@@ -242,6 +245,21 @@ describe("format_basement_sparkline", () => {
     const points = on_curve(sparkline?.path ?? "");
 
     expect(sparkline?.end).toEqual(points[points.length - 1]);
+  });
+
+  it("leaves room for the whole dot inside the drawing, even at the top of the range", () => {
+    const sparkline = format_basement_sparkline(
+      "temperature",
+      [
+        { t: WINDOW_START, v: 20 },
+        { t: NOW - 60_000, v: 30 },
+      ],
+      NOW,
+    );
+    const reach = SPARKLINE_DOT_RADIUS + SPARKLINE_STROKE_WIDTH / 2;
+
+    expect(sparkline?.end.x).toBeLessThanOrEqual(SPARKLINE_WIDTH - reach);
+    expect(sparkline?.end.y).toBeGreaterThanOrEqual(reach);
   });
 
   it("draws a flat series as a flat line through the middle", () => {

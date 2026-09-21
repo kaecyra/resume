@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { SPARKLINE_HEIGHT, SPARKLINE_WIDTH, type BasementSparkline } from "./basement-history.js";
+  import {
+    SPARKLINE_DOT_RADIUS,
+    SPARKLINE_HEIGHT,
+    SPARKLINE_STROKE_WIDTH,
+    SPARKLINE_WIDTH,
+    type BasementSparkline,
+  } from "./basement-history.js";
   import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
 
   // One basement value's last 24 hours (#242), drawn under it in the
@@ -21,12 +27,12 @@
       d={sparkline.path}
       fill="none"
       stroke={HUD_PALETTE.chip_text}
-      stroke-width="1.5"
+      stroke-width={SPARKLINE_STROKE_WIDTH}
       stroke-linecap="round"
       stroke-linejoin="round"
       vector-effect="non-scaling-stroke"
     />
-    <circle cx={sparkline.end.x} cy={sparkline.end.y} r="2.5" fill={PIPELINE_INK.live} />
+    <circle cx={sparkline.end.x} cy={sparkline.end.y} r={SPARKLINE_DOT_RADIUS} fill={PIPELINE_INK.live} />
   </svg>
   <span class="spark-range" aria-hidden="true">
     <span>{sparkline.high}</span>

@@ -620,6 +620,19 @@ describe("Readout, drawing the basement's last 24 hours", () => {
     expect(labels(sparklines(container)[0])).toEqual(["22.0", "19.0"]);
   });
 
+  it("keeps the sparklines it has when a later history read answers with something unreadable", async () => {
+    stub_metrics(
+      [metrics_json(21, 51, now)],
+      [history_json(now), "<!doctype html><title>502</title>"],
+    );
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    await flush(5 * 60_000);
+
+    expect(sparklines(container)).toHaveLength(2);
+  });
+
   it("stops re-reading the history once the component unmounts", async () => {
     const fetch_mock = stub_metrics([metrics_json(21, 51, now)], [history_json(now)]);
 

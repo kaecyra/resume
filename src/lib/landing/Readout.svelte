@@ -226,7 +226,13 @@
         return;
       }
 
+      // A body that parses to no series at all - an HTML error page from a
+      // proxy, a truncated write - is unreadable, not an empty day.
       const history = parse_basement_history(await response.text());
+      if (Object.keys(history).length === 0) {
+        return;
+      }
+
       const now = Date.now();
       const drawn: Record<string, BasementSparkline> = {};
       for (const field of BASEMENT_FIELD_IDS) {

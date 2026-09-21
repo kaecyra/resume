@@ -91,7 +91,8 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
                         {temperature: series($temp), humidity: series($humidity)}' \
                     > /usr/share/nginx/html/api/basement/history.json.tmp \
                     && mv /usr/share/nginx/html/api/basement/history.json.tmp \
-                        /usr/share/nginx/html/api/basement/history.json
+                        /usr/share/nginx/html/api/basement/history.json \
+                    || rm -f /usr/share/nginx/html/api/basement/history.json.tmp
             fi
 
             sleep 300

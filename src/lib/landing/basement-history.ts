@@ -33,8 +33,15 @@ export const HISTORY_BUCKET_COUNT = 48;
 export const SPARKLINE_WIDTH = 120;
 export const SPARKLINE_HEIGHT = 28;
 
-// Room for the stroke and the end dot at the edges of the drawing.
-const SPARKLINE_PAD = 3;
+// The line's weight and the "now" dot's size, which Sparkline.svelte draws
+// with. They live here because the padding below is sized from them: the
+// dot sits on the drawing's edge, so a bigger dot or a heavier line with
+// the padding left alone would be clipped by the SVG's box.
+export const SPARKLINE_STROKE_WIDTH = 1.5;
+export const SPARKLINE_DOT_RADIUS = 2.5;
+
+// Room for the dot and half the stroke at the edges of the drawing.
+const SPARKLINE_PAD = SPARKLINE_DOT_RADIUS + SPARKLINE_STROKE_WIDTH / 2;
 
 // The smallest change drawn at full height. Without it the scale fits
 // whatever the day happened to do, and a room holding within a tenth of a
@@ -130,7 +137,7 @@ export function resample_history(
   window_ms: number = HISTORY_WINDOW_MS,
   bucket_count: number = HISTORY_BUCKET_COUNT,
 ): SparkSample[] {
-  const known = points.filter((point) => point.t <= now).sort((a, b) => a.t - b.t);
+  const known = known_readings(points, now);
   if (known.length === 0) {
     return [];
   }
@@ -202,12 +209,18 @@ export function format_basement_sparkline(
   };
 }
 
+// The readings at or before `now`, oldest first - the only ones either the
+// line or its labels may use.
+function known_readings(points: readonly HistoryPoint[], now: number): HistoryPoint[] {
+  return points.filter((point) => point.t <= now).sort((a, b) => a.t - b.t);
+}
+
 function reading_range(
   points: readonly HistoryPoint[],
   now: number,
 ): { low: number; high: number } | null {
   const start = now - HISTORY_WINDOW_MS;
-  const known = points.filter((point) => point.t <= now).sort((a, b) => a.t - b.t);
+  const known = known_readings(points, now);
   const held_in = known.filter((point) => point.t <= start).at(-1);
   const values = [
     ...(held_in ? [held_in.v] : []),
