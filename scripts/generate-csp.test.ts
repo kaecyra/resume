@@ -49,6 +49,48 @@ describe("extract_inline_script_bodies", () => {
     expect(extract_inline_script_bodies(html)).toEqual(['import "/x.js"']);
   });
 
+  it("keeps a script whose type is a JavaScript MIME type", () => {
+    const html = '<script type="text/javascript">a</script><script type="APPLICATION/ECMASCRIPT">b</script>';
+    expect(extract_inline_script_bodies(html)).toEqual(["a", "b"]);
+  });
+
+  it("keeps a present but empty type, which is executable per spec", () => {
+    const html = '<script type="">a</script><script type=" ">b</script>';
+    expect(extract_inline_script_bodies(html)).toEqual(["a", "b"]);
+  });
+
+  it("keeps the non-executable types script-src still checks", () => {
+    // The question here is not "does the browser run this block" but "does
+    // script-src check it". Neither of these executes, and both are checked:
+    // an unhashed import map is blocked, taking module resolution for the
+    // whole page with it, and inline speculation rules are blocked unless
+    // allowed by a hash, a nonce or 'inline-speculation-rules' - which is why
+    // that source expression exists at all.
+    const html = [
+      '<script type="importmap">{"imports":{}}</script>',
+      '<script type="speculationrules">{"prerender":[]}</script>',
+    ].join("");
+    expect(extract_inline_script_bodies(html)).toEqual(['{"imports":{}}', '{"prerender":[]}']);
+  });
+
+  it("skips any other data block, not only ld+json", () => {
+    // SvelteKit emits application/json as `data-sveltekit-fetched` the moment
+    // a route's load() fetches. Hashing one is harmless in effect but makes
+    // the policy claim something the browser never asked about.
+    const html = [
+      '<script type="application/json" data-sveltekit-fetched>{}</script>',
+      '<script type="text/template">{}</script>',
+    ].join("");
+    expect(extract_inline_script_bodies(html)).toEqual([]);
+  });
+
+  it("skips a JavaScript type carrying parameters, which is not an essence match", () => {
+    // HTML parses the attribute as an essence match, so a parameter makes the
+    // block non-executable - the browser treats it as data and so must we.
+    const html = '<script type="text/javascript; charset=utf-8">a</script>';
+    expect(extract_inline_script_bodies(html)).toEqual([]);
+  });
+
   it("returns the bodies of several scripts in document order", () => {
     const html = "<script>one</script><p>x</p><script>two</script>";
     expect(extract_inline_script_bodies(html)).toEqual(["one", "two"]);
