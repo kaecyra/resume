@@ -108,4 +108,14 @@ describe("Work", () => {
 
     expect(declarations).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
+
+  it("caps its content at the same width as the Pipelines section above it", () => {
+    const max_width = (name: string, selector: string) =>
+      readFileSync(new URL(name, import.meta.url), "utf8").match(
+        new RegExp(`\\${selector}\\s*\\{[^}]*max-width:\\s*([^;]+);`),
+      )?.[1];
+
+    expect(max_width("./Pipeline.svelte", ".wrap")).toBeDefined();
+    expect(max_width("./Work.svelte", ".work-wrap")).toBe(max_width("./Pipeline.svelte", ".wrap"));
+  });
 });
