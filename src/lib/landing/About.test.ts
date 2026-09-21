@@ -5,6 +5,7 @@ import { render } from "svelte/server";
 import type { LandingAbout } from "$lib/types.js";
 
 import About from "./About.svelte";
+import { content_measure } from "./svelte-source.js";
 
 const ABOUT: LandingAbout = {
   heading: "Off the Clock",
@@ -153,13 +154,8 @@ describe("About.svelte source", () => {
     expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
-  it("caps its content at the same width as the Pipelines section above it", () => {
-    const pipeline = readFileSync(new URL("./Pipeline.svelte", import.meta.url), "utf8");
-    const max_width = (css: string, selector: string) =>
-      css.match(new RegExp(`\\${selector}\\s*\\{[^}]*max-width:\\s*([^;]+);`))?.[1];
-
-    expect(max_width(pipeline, ".wrap")).toBeDefined();
-    expect(max_width(source, ".about-wrap")).toBe(max_width(pipeline, ".wrap"));
+  it("shares the Pipelines section's content width and gutters", () => {
+    expect(content_measure("About.svelte", ".about-wrap")).toEqual(content_measure("Pipeline.svelte", ".wrap"));
   });
 
   // `border: 0` is allowed: it removes the browser's default frame on the

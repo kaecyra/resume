@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { LandingAbout, LandingPhoto } from "$lib/types.js";
+  import type { LandingAbout, LandingBook, LandingPhoto } from "$lib/types.js";
 
   import { HUD_PALETTE } from "./palette.js";
 
@@ -36,13 +36,21 @@
   }
 </script>
 
+{#snippet book_content(book: LandingBook)}
+  <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
+  <span class="about-book-text">
+    <span class="about-book-title">{book.title}</span>
+    <span class="about-book-author">{book.author}</span>
+  </span>
+{/snippet}
+
 <!-- The band that opens the section (#241). Same inverted treatment as
      Divider.svelte's hero band, and a `div` for the same reason: it has no
      heading of its own. It lists what the section covers, so Pipelines and
      Off the Clock read as two sections rather than one long dark run. -->
 <div class="about-band" style="--hud-text: {HUD_PALETTE.text}; --hud-bg: {HUD_PALETTE.background};">
   <ul class="about-interests">
-    {#each about.interests as interest (interest)}
+    {#each about.interests as interest, index (index)}
       <li>{interest}</li>
     {/each}
   </ul>
@@ -62,7 +70,7 @@
 
       <div class="about-prose">
         <p class="about-lead">{about.lead}</p>
-        {#each about.paragraphs as paragraph (paragraph)}
+        {#each about.paragraphs as paragraph, index (index)}
           <p>{paragraph}</p>
         {/each}
       </div>
@@ -110,19 +118,11 @@
               <li class="about-item about-item-book">
                 {#if book.url}
                   <a class="about-book" href={book.url} target="_blank" rel="noopener noreferrer">
-                    <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
-                    <span class="about-book-text">
-                      <span class="about-book-title">{book.title}</span>
-                      <span class="about-book-author">{book.author}</span>
-                    </span>
+                    {@render book_content(book)}
                   </a>
                 {:else}
                   <div class="about-book">
-                    <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
-                    <span class="about-book-text">
-                      <span class="about-book-title">{book.title}</span>
-                      <span class="about-book-author">{book.author}</span>
-                    </span>
+                    {@render book_content(book)}
                   </div>
                 {/if}
               </li>
@@ -234,9 +234,10 @@
   }
 
   .about-media {
-    /* Capped at 8rem so the whole strip - one portrait photo, three
-       landscape ones, three covers and the gaps - fits inside
-       .about-wrap's 1100px of content. A fifth photo would not. */
+    /* The cap is what keeps the whole strip - every photo and cover at this
+       height, plus the gaps - inside .about-wrap's 1100px of content. Add
+       items and it has to come down, or the strip overflows before the
+       1100px breakpoint stacks it. */
     --strip-h: clamp(7rem, 10vw, 8rem);
     margin-top: 4.5rem;
     display: flex;
