@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import yaml from "js-yaml";
 
-import type { LandingData } from "./types.js";
+import type { LandingAbout, LandingData } from "./types.js";
 
 vi.mock("node:fs", () => ({
   readFileSync: vi.fn(),
@@ -399,5 +399,189 @@ describe("validate_landing_data", () => {
         expect.objectContaining({ message: "projects must be an array" }),
       );
     });
+  });
+});
+
+// --- "Off the Clock" (#241) ---
+
+const MOCK_ABOUT: LandingAbout = {
+  heading: "Off the Clock",
+  interests: ["Homelab", "Golf"],
+  portrait: { src: "/assets/portrait.png", alt: "Portrait" },
+  lead: "I like building things.",
+  paragraphs: ["I run a homelab."],
+  photos_label: "Lately",
+  photos: [
+    { id: "golf", src: "/landing/photos/golf.jpg", alt: "Golf", caption: "Won it.", width: 800, height: 600 },
+  ],
+  books_label: "Worth reading",
+  books: [
+    {
+      id: "book-a",
+      title: "Book A",
+      author: "Author A",
+      cover: "/landing/books/a.jpg",
+      cover_alt: "Cover of Book A",
+      url: "https://example.com/a",
+    },
+  ],
+};
+
+function make_about(overrides: Partial<LandingAbout> = {}): LandingData {
+  return make_landing({
+    about: { ...MOCK_ABOUT, ...overrides },
+    sections: [...MOCK_LANDING_DATA.sections, "about"],
+  });
+}
+
+function about_errors(landing: LandingData): string[] {
+  return validate_landing_data(landing, ["default"]).map((error) => error.message);
+}
+
+describe("validate_landing_data: about", () => {
+  it("accepts a complete about block named in sections", () => {
+    expect(about_errors(make_about())).toEqual([]);
+  });
+
+  it("accepts a document with no about block when sections does not name it", () => {
+    expect(about_errors(make_landing())).toEqual([]);
+  });
+
+  it("requires the about block when sections names it", () => {
+    const landing = make_landing({ sections: [...MOCK_LANDING_DATA.sections, "about"] });
+    expect(about_errors(landing)).toContain('about is required when sections includes "about"');
+  });
+
+  it.each(["heading", "lead"] as const)("detects a missing about %s", (field) => {
+    expect(about_errors(make_about({ [field]: "" }))).toContain(
+      "about is missing required fields (heading, lead)",
+    );
+  });
+
+  it("detects a portrait missing its alt text", () => {
+    expect(about_errors(make_about({ portrait: { src: "/a.png", alt: "" } }))).toContain(
+      "about.portrait is missing src or alt",
+    );
+  });
+
+  it("detects an image path that is not site-relative", () => {
+    // The CSP serves images from 'self' only, so a hotlinked cover renders
+    // as a broken image in production while looking fine in a test.
+    const book = { ...MOCK_ABOUT.books[0], cover: "https://covers.example.com/a.jpg" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" cover must be a site path starting with "/"',
+    );
+  });
+
+  it("detects a portrait or photo path that is not site-relative", () => {
+    const photo = { ...MOCK_ABOUT.photos[0], src: "photos/golf.jpg" };
+    const errors = about_errors(
+      make_about({ portrait: { src: "https://example.com/me.png", alt: "Me" }, photos: [photo] }),
+    );
+
+    expect(errors).toContain('about.portrait src must be a site path starting with "/"');
+    expect(errors).toContain('photo "golf" src must be a site path starting with "/"');
+  });
+
+  it("detects an interests entry that is not a non-empty string", () => {
+    expect(about_errors(make_about({ interests: ["Golf", ""] }))).toContain(
+      "about.interests must be a list of non-empty strings",
+    );
+  });
+
+  it("detects paragraphs that are not a list", () => {
+    expect(about_errors(make_about({ paragraphs: "one" as unknown as string[] }))).toContain(
+      "about.paragraphs must be a list of non-empty strings",
+    );
+  });
+
+  it("detects a photo missing its caption", () => {
+    const photo = { ...MOCK_ABOUT.photos[0], caption: "" };
+    expect(about_errors(make_about({ photos: [photo] }))).toContain(
+      'photo "golf" is missing src, alt, or caption',
+    );
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["zero", 0],
+    ["fractional", 1.5],
+    ["a string", "800"],
+  ])("detects a photo whose width is %s", (_label, width) => {
+    const photo = { ...MOCK_ABOUT.photos[0], width: width as number };
+    expect(about_errors(make_about({ photos: [photo] }))).toContain(
+      'photo "golf" width and height must be positive whole numbers of pixels',
+    );
+  });
+
+  it("accepts a photo with a site-relative full_src and one without", () => {
+    const with_full = { ...MOCK_ABOUT.photos[0], full_src: "/landing/photos/golf-full.jpg" };
+    expect(about_errors(make_about({ photos: [with_full] }))).toEqual([]);
+    expect(about_errors(make_about())).toEqual([]);
+  });
+
+  it("detects a full_src that is not site-relative", () => {
+    const photo = { ...MOCK_ABOUT.photos[0], full_src: "https://example.com/golf.jpg" };
+    expect(about_errors(make_about({ photos: [photo] }))).toContain(
+      'photo "golf" full_src must be a site path starting with "/"',
+    );
+  });
+
+  it("detects a photo with no height", () => {
+    const { height: _height, ...photo } = MOCK_ABOUT.photos[0];
+    expect(about_errors(make_about({ photos: [photo as typeof MOCK_ABOUT.photos[0]] }))).toContain(
+      'photo "golf" width and height must be positive whole numbers of pixels',
+    );
+  });
+
+  it("detects duplicate photo ids", () => {
+    const photos = [MOCK_ABOUT.photos[0], MOCK_ABOUT.photos[0]];
+    expect(about_errors(make_about({ photos }))).toContain('duplicate photo id "golf"');
+  });
+
+  it("requires photos_label when there are photos", () => {
+    expect(about_errors(make_about({ photos_label: "" }))).toContain(
+      "about.photos_label is required when about.photos is not empty",
+    );
+  });
+
+  it("allows an empty photos list with no label", () => {
+    expect(about_errors(make_about({ photos: [], photos_label: "" }))).toEqual([]);
+  });
+
+  it.each(["title", "author", "cover", "cover_alt"] as const)("detects a book missing %s", (field) => {
+    const book = { ...MOCK_ABOUT.books[0], [field]: "" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" is missing title, author, cover, or cover_alt',
+    );
+  });
+
+  it("detects duplicate book ids", () => {
+    const books = [MOCK_ABOUT.books[0], MOCK_ABOUT.books[0]];
+    expect(about_errors(make_about({ books }))).toContain('duplicate book id "book-a"');
+  });
+
+  it("detects a book url that is not https", () => {
+    const book = { ...MOCK_ABOUT.books[0], url: "http://example.com" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" url must start with https://',
+    );
+  });
+
+  it("accepts a book with no url", () => {
+    const { url: _url, ...book } = MOCK_ABOUT.books[0];
+    expect(about_errors(make_about({ books: [book] }))).toEqual([]);
+  });
+
+  it("requires books_label when there are books", () => {
+    expect(about_errors(make_about({ books_label: "" }))).toContain(
+      "about.books_label is required when about.books is not empty",
+    );
+  });
+
+  it("does not throw when books is a map instead of an array", () => {
+    const landing = make_about({ books: { a: {} } as unknown as never });
+    expect(() => validate_landing_data(landing, ["default"])).not.toThrow();
+    expect(about_errors(landing)).toContain("about.books must be an array");
   });
 });

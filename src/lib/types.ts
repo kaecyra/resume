@@ -183,8 +183,58 @@ export interface LandingGithub {
   user: string;
 }
 
+// --- "Off the Clock" (#241) ---
+//
+// Every image path is site-relative ("/landing/..."), served from static/.
+// The CSP allows images from 'self' only, so a hotlinked cover would be
+// blocked in production.
+export interface LandingImage {
+  src: string;
+  alt: string;
+}
+
+export interface LandingPhoto {
+  id: string;
+  src: string;
+  alt: string;
+  caption: string;
+  // The larger file the lightbox opens. Absent means `src` itself.
+  full_src?: string;
+  // The image file's pixel size. The strip sets one height for every
+  // photo, and these give each its own width, so a portrait photo stays
+  // portrait instead of being cropped to a shared ratio.
+  width: number;
+  height: number;
+}
+
+export interface LandingBook {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  cover_alt: string;
+  url?: string;
+}
+
+export interface LandingAbout {
+  heading: string;
+  // Rendered in the inverted band that opens the section, as an index of
+  // what follows.
+  interests: string[];
+  portrait: LandingImage;
+  lead: string;
+  paragraphs: string[];
+  photos_label: string;
+  photos: LandingPhoto[];
+  books_label: string;
+  books: LandingBook[];
+}
+
 export interface LandingData {
   hero: LandingHero;
+  // Optional so a landing document without the section stays valid;
+  // validate_landing_data requires it whenever `sections` names "about".
+  about?: LandingAbout;
   projects: LandingProject[];
   appearances: LandingAppearance[];
   resume_links: string[];

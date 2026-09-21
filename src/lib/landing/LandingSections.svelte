@@ -2,6 +2,7 @@
   import type { ContributionGridModel } from "$lib/github.js";
   import type { LandingData, PipelineData } from "$lib/types.js";
 
+  import About from "./About.svelte";
   import Appearances from "./Appearances.svelte";
   import Commits from "./Commits.svelte";
   import Contact from "./Contact.svelte";
@@ -55,6 +56,12 @@
     <Commits github={landing.github} {contributions_grid} />
   {:else if section === "pipeline"}
     <Pipeline {pipeline} />
+  {:else if section === "about"}
+    <!-- validate_landing_data requires `about` whenever `sections` names
+         it; the guard only keeps an unvalidated document from crashing. -->
+    {#if landing.about}
+      <About about={landing.about} />
+    {/if}
   {:else if section === "work"}
     <Work projects={landing.projects} />
   {:else if section === "appearances"}

@@ -12,56 +12,66 @@
   class="work"
   style="--hud-bg: {HUD_PALETTE.background}; --hud-panel: {HUD_PALETTE.panel}; --hud-panel-alt: {HUD_PALETTE.panel_alt}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary}; --hud-chip-bg: {HUD_PALETTE.chip_bg}; --hud-chip-text: {HUD_PALETTE.chip_text}; --hud-void: {ELEVATION.void}; --hud-hair: {ELEVATION.hair}; --hud-hair-bright: {ELEVATION.hair_bright};"
 >
-  <h2 class="work-heading">Work</h2>
+  <div class="work-wrap">
+    <h2 class="work-heading">Building Stuff</h2>
 
-  <div class="work-grid">
-    {#each projects as project, index (project.id)}
-      <!-- The featured (first) project carries the page's amber accent
-           (rail + status colour); every other status reads in `secondary` -
-           the accent stays meaningful by marking only the one thing being
-           pointed at, rather than decorating every status equally. -->
-      {@const status_color = index === 0 ? HUD_PALETTE.accent : HUD_PALETTE.secondary}
-      {@const link = project_link(project)}
-      <!-- Elevation ladder (#197): the featured card is raised (diagonal
-           surface gradient, inset highlight, drop shadow, amber rail); every
-           other card is recessed into ELEVATION.void and rises to the same
-           raised treatment on hover/focus, via the work-card-secondary
-           modifier below - not a second, independent look. -->
-      <article
-        class="work-card"
-        class:work-card-featured={index === 0}
-        class:work-card-secondary={index !== 0}
-        style={index === 0 ? `border-left-color: ${HUD_PALETTE.accent};` : undefined}
-      >
-        <div class="work-card-header">
-          <h3 class="work-name">
-            {#if link}
-              <a href={link} target="_blank" rel="noopener noreferrer">{project.name}</a>
-            {:else}
-              {project.name}
-            {/if}
-          </h3>
-          <span class="work-status" style="color: {status_color};">{project.status}</span>
-        </div>
+    <div class="work-grid">
+      {#each projects as project, index (project.id)}
+        <!-- The featured (first) project carries the page's amber accent
+             (rail + status colour); every other status reads in `secondary` -
+             the accent stays meaningful by marking only the one thing being
+             pointed at, rather than decorating every status equally. -->
+        {@const status_color = index === 0 ? HUD_PALETTE.accent : HUD_PALETTE.secondary}
+        {@const link = project_link(project)}
+        <!-- Elevation ladder (#197): the featured card is raised (diagonal
+             surface gradient, inset highlight, drop shadow, amber rail); every
+             other card is recessed into ELEVATION.void and rises to the same
+             raised treatment on hover/focus, via the work-card-secondary
+             modifier below - not a second, independent look. -->
+        <article
+          class="work-card"
+          class:work-card-featured={index === 0}
+          class:work-card-secondary={index !== 0}
+          style={index === 0 ? `border-left-color: ${HUD_PALETTE.accent};` : undefined}
+        >
+          <div class="work-card-header">
+            <h3 class="work-name">
+              {#if link}
+                <a href={link} target="_blank" rel="noopener noreferrer">{project.name}</a>
+              {:else}
+                {project.name}
+              {/if}
+            </h3>
+            <span class="work-status" style="color: {status_color};">{project.status}</span>
+          </div>
 
-        <p class="work-blurb">{project.blurb}</p>
+          <p class="work-blurb">{project.blurb}</p>
 
-        {#if project.stack?.length}
-          <ul class="work-stack">
-            {#each project.stack as tag}
-              <li>{tag}</li>
-            {/each}
-          </ul>
-        {/if}
-      </article>
-    {/each}
+          {#if project.stack?.length}
+            <ul class="work-stack">
+              {#each project.stack as tag}
+                <li>{tag}</li>
+              {/each}
+            </ul>
+          {/if}
+        </article>
+      {/each}
+    </div>
   </div>
 </section>
 
 <style>
   .work {
-    padding: 5rem 2.5rem 0;
+    padding-block: 5rem 0;
     background: var(--hud-bg);
+  }
+
+  /* Same measure as Pipeline.svelte's .wrap and About.svelte's
+     .about-wrap, so the sections share a left edge. */
+  .work-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 40px;
   }
 
   .work-heading {
@@ -227,7 +237,12 @@
 
   @media (max-width: 700px) {
     .work {
-      padding: 3.5rem 1.25rem 0;
+      padding-block: 3.5rem 0;
+    }
+
+    /* Matches Pipeline.svelte's own narrow-screen gutter. */
+    .work-wrap {
+      padding-inline: 20px;
     }
 
     .work-grid {

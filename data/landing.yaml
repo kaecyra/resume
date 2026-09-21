@@ -90,11 +90,91 @@ contact:
 github:
   user: "kaecyra"
 
+# "Off the Clock" (#241). Image paths are site-relative and served from
+# static/; the CSP blocks images from any other host.
+about:
+  heading: "Off the Clock"
+  interests:
+    - "Mara"
+    - "Homelab"
+    - "Motorcycles"
+    - "Cars"
+    - "Golf"
+    - "Sci-fi"
+    - "Space"
+  portrait:
+    src: "/assets/headshot-illustration.png"
+    alt: "Illustrated portrait of Tim Gunter"
+  lead: "I love building things, at work and at home."
+  paragraphs:
+    - |
+      At home that means a homelab I run for myself. It scratches the same itch I had
+      when I ran operations at Vanilla.
+    - "I read a lot of science fiction, and I follow space and aerospace closely. I also ride motorcycles, and I love cars."
+    - |
+      Every year a group of friends and I hold our own golf tournament, the Off-Island
+      Invitational. My teammate and I won it this year. Start of a dynasty?
+    - "And of course there's Mara, my gorgeous dog."
+  photos_label: "Lately"
+  # src is the thumbnail, full_src the larger file the lightbox opens.
+  # width/height are the thumbnail's pixel size. Every photo renders at the same
+  # height, and these set its width, so Mara's portrait stays portrait.
+  photos:
+    - id: mara
+      src: "/landing/photos/mara.jpg"
+      full_src: "/landing/photos/mara-full.jpg"
+      alt: "Mara, a black and white dog with big upright ears, sitting up on a couch"
+      caption: "Mara."
+      width: 600
+      height: 800
+    - id: car
+      src: "/landing/photos/car.jpg"
+      full_src: "/landing/photos/car-full.jpg"
+      alt: "A blue BMW M2 in a garage with its hood up"
+      caption: 'BMW M2, "Emma".'
+      width: 800
+      height: 600
+    - id: sim
+      src: "/landing/photos/sim.jpg"
+      full_src: "/landing/photos/sim-full.jpg"
+      alt: "Tim at the controls of a CAE Challenger 650 flight simulator, an instructor beside him"
+      caption: "Challenger 650 sim, CAE."
+      width: 800
+      height: 600
+    - id: plane
+      src: "/landing/photos/plane.jpg"
+      full_src: "/landing/photos/plane-full.jpg"
+      alt: "An RCAF Aurora patrol plane flying low past the Peggy's Cove lighthouse"
+      caption: "RCAF Aurora at Peggy's Cove."
+      width: 800
+      height: 600
+  books_label: "Worth reading"
+  books:
+    - id: dungeon-crawler-carl
+      title: "Dungeon Crawler Carl"
+      author: "Matt Dinniman"
+      cover: "/landing/books/dungeon-crawler-carl.jpg"
+      cover_alt: "Cover of Dungeon Crawler Carl"
+      url: "https://mattdinniman.com/books/dungeon-crawler-carl/"
+    - id: troy-rising
+      title: "Troy Rising"
+      author: "John Ringo"
+      cover: "/landing/books/troy-rising.jpg"
+      cover_alt: "Cover of Live Free or Die, book one of Troy Rising"
+      url: "https://www.fantasticfiction.com/r/john-ringo/troy-rising.htm"
+    - id: polity
+      title: "Polity"
+      author: "Neal Asher"
+      cover: "/landing/books/polity.jpg"
+      cover_alt: "Cover of Dark Intelligence, book one of the Transformation trilogy"
+      url: "https://www.nealasher.co.uk/books/polity/"
+
 sections:
   - "hero"
   - "divider"
   - "commits"
   - "pipeline"
+  - "about"
   - "work"
   - "appearances"
   - "contact"

@@ -32,6 +32,12 @@ function html_for(projects: LandingProject[]): string {
 }
 
 describe("Work", () => {
+  it("is headed \"Building Stuff\"", () => {
+    const html = render(Work, { props: { projects: [project({})] } }).body;
+
+    expect(html).toMatch(/<h2 class="work-heading[^"]*">Building Stuff<\/h2>/);
+  });
+
   it("marks only the first project as featured, and every other one as secondary", () => {
     const html = html_for(PROJECTS);
 
@@ -107,5 +113,15 @@ describe("Work", () => {
     const declarations = style_block.replace(/\/\*[\s\S]*?\*\//g, "");
 
     expect(declarations).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+
+  it("caps its content at the same width as the Pipelines section above it", () => {
+    const max_width = (name: string, selector: string) =>
+      readFileSync(new URL(name, import.meta.url), "utf8").match(
+        new RegExp(`\\${selector}\\s*\\{[^}]*max-width:\\s*([^;]+);`),
+      )?.[1];
+
+    expect(max_width("./Pipeline.svelte", ".wrap")).toBeDefined();
+    expect(max_width("./Work.svelte", ".work-wrap")).toBe(max_width("./Pipeline.svelte", ".wrap"));
   });
 });

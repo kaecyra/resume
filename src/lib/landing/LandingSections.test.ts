@@ -55,7 +55,26 @@ const LANDING: LandingData = {
     { label: "GitHub", url: "https://github.com/testuser" },
   ],
   github: { user: "testuser" },
-  sections: ["hero", "divider", "commits", "pipeline", "work", "appearances", "contact"],
+  about: {
+    heading: "Off the Clock",
+    interests: ["Homelab"],
+    portrait: { src: "/assets/portrait.png", alt: "Portrait" },
+    lead: "I like building things.",
+    paragraphs: [],
+    photos_label: "",
+    photos: [],
+    books_label: "Worth reading",
+    books: [
+      {
+        id: "book-a",
+        title: "Book A",
+        author: "Author A",
+        cover: "/landing/books/a.jpg",
+        cover_alt: "Cover of Book A",
+      },
+    ],
+  },
+  sections: ["hero", "divider", "commits", "pipeline", "about", "work", "appearances", "contact"],
 };
 
 // Minimal but well-formed: the placeholder Pipeline.svelte reads only the
@@ -474,6 +493,29 @@ describe("LandingSections", () => {
 // Walking the set is what links the two lists. Every id in it has to
 // produce its own wrapper element, which is the one thing every section
 // component agrees on (see the `id="..."` on each).
+describe("the about section (#241)", () => {
+  it("renders between Pipelines and Work, in landing.sections order", () => {
+    const html = html_for(LANDING);
+
+    const pipeline_index = html.indexOf('class="pipeline');
+    const about_index = html.indexOf('id="about"');
+    const work_index = html.indexOf('id="work"');
+
+    expect(pipeline_index).toBeGreaterThanOrEqual(0);
+    expect(about_index).toBeGreaterThan(pipeline_index);
+    expect(work_index).toBeGreaterThan(about_index);
+  });
+
+  it("renders nothing for the about id when the about block is absent", () => {
+    // Validation rejects this document, so this only guards the component
+    // tree against an unvalidated one: no crash, and no empty section.
+    const { about: _about, ...without_about } = LANDING;
+    const html = html_for({ ...without_about, sections: ["about"] });
+
+    expect(html).not.toContain('id="about"');
+  });
+});
+
 describe("the section registry", () => {
   it("dispatches every id in KNOWN_SECTIONS to a component that renders it", () => {
     for (const section of KNOWN_SECTIONS) {

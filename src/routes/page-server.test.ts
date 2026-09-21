@@ -117,6 +117,7 @@ describe("landing data wiring", () => {
       "divider",
       "commits",
       "pipeline",
+      "about",
       "work",
       "appearances",
       "contact",
