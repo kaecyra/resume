@@ -4,6 +4,13 @@
   import type { PipelineReadout, PipelineTone } from "$lib/types.js";
 
   import {
+    BASEMENT_HISTORY_URL,
+    format_basement_sparkline,
+    parse_basement_history,
+    type BasementSparkline,
+  } from "./basement-history.js";
+  import {
+    BASEMENT_FIELD_IDS,
     BASEMENT_METRICS_URL,
     covers_basement_fields,
     format_basement_readout,
@@ -21,6 +28,7 @@
   import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
   import RunwayDiagram from "./RunwayDiagram.svelte";
   import { find_pop } from "./runway-catalog.js";
+  import Sparkline from "./Sparkline.svelte";
 
   // One readout, used twice (#209): band 2's basement pair and band 3's
   // four delivery values. The difference is entirely in the data - `live`
@@ -95,6 +103,16 @@
   // immediately replace it - the swap this section exists to avoid.
   let basement_ready = $state(false);
 
+  // How often the 24-hour history behind the sparklines is re-read. The
+  // poller rewrites it once per cycle, so this matches that cycle.
+  const HISTORY_POLL_INTERVAL_MS = 5 * 60_000;
+
+  // Each basement field's sparkline, keyed by entry id, from the last
+  // history file that could be read. Drawn only beside a fresh reading: a
+  // line ending in a "now" dot next to an OFFLINE hyphen would claim a
+  // current value the readout itself has just declined to show.
+  let sparklines = $state<Record<string, BasementSparkline>>({});
+
   const basement_pending = $derived(
     readout.live === "basement" && basement_hydrated && !basement_ready,
   );
@@ -148,8 +166,13 @@
     if (readout.live === "basement" && covers_basement_fields(ids)) {
       basement_hydrated = true;
       void poll_basement();
+      void poll_history();
       const interval = setInterval(() => void poll_basement(), BASEMENT_POLL_INTERVAL_MS);
-      return () => clearInterval(interval);
+      const history_interval = setInterval(() => void poll_history(), HISTORY_POLL_INTERVAL_MS);
+      return () => {
+        clearInterval(interval);
+        clearInterval(history_interval);
+      };
     }
   });
 
@@ -190,6 +213,39 @@
     measured = reading.values;
     basement_fresh = reading.fresh;
     basement_ready = true;
+  }
+
+  // Polled on HISTORY_POLL_INTERVAL_MS. A fetch that fails or answers with
+  // anything but a readable file keeps the sparklines already drawn, the
+  // same way a failed value poll keeps the cached reading: whether they
+  // show at all is decided by basement_fresh, not by this.
+  async function poll_history(): Promise<void> {
+    try {
+      const response = await fetch(BASEMENT_HISTORY_URL, { cache: "no-store" });
+      if (!response.ok) {
+        return;
+      }
+
+      // A body that parses to no series at all - an HTML error page from a
+      // proxy, a truncated write - is unreadable, not an empty day.
+      const history = parse_basement_history(await response.text());
+      if (Object.keys(history).length === 0) {
+        return;
+      }
+
+      const now = Date.now();
+      const drawn: Record<string, BasementSparkline> = {};
+      for (const field of BASEMENT_FIELD_IDS) {
+        const sparkline = format_basement_sparkline(field, history[field] ?? [], now);
+        if (sparkline) {
+          drawn[field] = sparkline;
+        }
+      }
+      sparklines = drawn;
+    } catch {
+      // Offline, or no history written yet. Nothing is drawn that was not
+      // already.
+    }
   }
 
   function read_navigation_timing(): DeliveryTiming {
@@ -246,6 +302,9 @@
     <div style="--readout-value: {TONE_COLORS[entry.tone ?? 'default']};">
       <dt>{entry.label}</dt>
       <dd>{entry.value}{#if entry.unit}<small>{entry.unit}</small>{/if}</dd>
+      {#if basement_fresh && sparklines[entry.id]}
+        <dd class="readout-spark"><Sparkline sparkline={sparklines[entry.id]} /></dd>
+      {/if}
     </div>
   {/each}
 </dl>
@@ -327,6 +386,15 @@
     letter-spacing: 0;
     margin-left: 4px;
     color: var(--readout-unit);
+  }
+
+  /* The sparkline is a second <dd> after the value, which column-reverse
+     would put on top. `order` sends it to the bottom instead, under the
+     label, and the margin gives it air from the label. */
+  .readout dd.readout-spark {
+    order: -1;
+    margin-top: 8px;
+    font-size: inherit;
   }
 
   /* A readout set under a note needs the air between the two. Band 2's

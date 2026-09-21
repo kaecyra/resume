@@ -140,6 +140,17 @@ export function format_basement_readout(metrics: BasementMetrics, now: number): 
   return { fresh: true, values: { temperature, humidity } };
 }
 
+// One field's value as the readout prints it, or null for a value no
+// working sensor reports. basement-history.ts filters and labels its series
+// through this too, so the sparkline and the number above it can never
+// disagree about what counts as a real reading or how one is written.
+export function format_basement_value(
+  field: BasementFieldId,
+  value: number | undefined,
+): BasementReadoutValue | null {
+  return field === "temperature" ? format_temperature(value) : format_humidity(value);
+}
+
 function format_temperature(value: number | undefined): BasementReadoutValue | null {
   if (
     !is_usable_number(value) ||

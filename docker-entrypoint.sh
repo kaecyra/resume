@@ -65,6 +65,36 @@ if [ -n "$HA_BASE_URL" ] && [ -n "$HA_TOKEN" ] && [ -n "$HA_TEMP_ENTITY_ID" ] &&
                         /usr/share/nginx/html/api/basement/metrics.json
             fi
 
+            # The last 24 hours behind the readout's sparklines (#242).
+            # Fetched whole every cycle rather than accumulated here: HA
+            # already keeps the history, so a restart loses nothing and this
+            # loop holds no state. HA answers with one list per entity, each
+            # opening with the state as of the window's start - so a sensor
+            # that has not moved all day still draws a full, flat line - and
+            # then one entry per change. Entries whose state is not a number
+            # ("unavailable", "unknown") are dropped here, and HA's
+            # microsecond timestamps are cut to whole seconds, since only
+            # millisecond precision is a date format every browser's
+            # Date.parse is required to read. Everything else
+            # about what counts as a real reading is decided in the browser,
+            # by basement-history.ts. A failed call or unreadable body
+            # leaves the previous file in place.
+            history_start=$(date -u -d "@$(($(date +%s) - 86400))" +"%Y-%m-%dT%H:%M:%SZ")
+            history_response=$(curl -sf --max-time 10 -H "Authorization: Bearer $HA_TOKEN" \
+                "$ha_base_url/api/history/period/$history_start?filter_entity_id=$HA_TEMP_ENTITY_ID,$HA_HUMIDITY_ENTITY_ID&minimal_response&no_attributes")
+
+            if [ -n "$history_response" ]; then
+                printf '%s' "$history_response" \
+                    | jq -c --arg temp "$HA_TEMP_ENTITY_ID" --arg humidity "$HA_HUMIDITY_ENTITY_ID" '
+                        def series($id): [.[] | select(.[0].entity_id == $id) | .[]
+                            | {t: (.last_changed | sub("\\.[0-9]+"; "")), v: (.state | tonumber?)}];
+                        {temperature: series($temp), humidity: series($humidity)}' \
+                    > /usr/share/nginx/html/api/basement/history.json.tmp \
+                    && mv /usr/share/nginx/html/api/basement/history.json.tmp \
+                        /usr/share/nginx/html/api/basement/history.json \
+                    || rm -f /usr/share/nginx/html/api/basement/history.json.tmp
+            fi
+
             sleep 300
         done
     ) &

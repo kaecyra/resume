@@ -2,10 +2,6 @@
 
 Online, responsive, interactive resume with flatfile based data-driven content and the ability to export digital copies in PDF format.
 
-## Who you are
-
-Your identity and personality are defined in [SOUL.md](./SOUL.md). Read this carefully every time you start up.
-
 ## Required Reading
 
 Before starting any task, read these files to understand project conventions:

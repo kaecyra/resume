@@ -14,7 +14,8 @@ import { tick } from "svelte";
 
 import type { PipelineReadout } from "$lib/types.js";
 
-import { MAX_READING_AGE_MS } from "./basement-readout.js";
+import { BASEMENT_HISTORY_URL, HISTORY_WINDOW_MS } from "./basement-history.js";
+import { BASEMENT_METRICS_URL, MAX_READING_AGE_MS } from "./basement-readout.js";
 import { HUD_PALETTE, PIPELINE_INK } from "./palette.js";
 import Readout from "./Readout.svelte";
 
@@ -74,7 +75,7 @@ function badge_text(container: HTMLElement): string | null {
 }
 
 function dot_fill(container: HTMLElement): string | null {
-  return container.querySelector("circle")?.getAttribute("fill") ?? null;
+  return container.querySelector(".live-dot circle")?.getAttribute("fill") ?? null;
 }
 
 function is_pending(container: HTMLElement): boolean {
@@ -90,11 +91,35 @@ async function flush(ms = 0): Promise<void> {
   await tick();
 }
 
-function stub_metrics(bodies: readonly (string | Error)[]): ReturnType<typeof vi.fn> {
-  let call = 0;
-  const fetch_mock = vi.fn(async () => {
-    const body = bodies[Math.min(call, bodies.length - 1)];
-    call += 1;
+// A history file body: each series steps from `low` to `high` halfway
+// through the window, so the sparkline's labels are known in advance.
+function history_json(now: number, low = 19, high = 21): string {
+  const series = (offset: number) => [
+    { t: new Date(now - HISTORY_WINDOW_MS).toISOString(), v: low + offset },
+    { t: new Date(now - HISTORY_WINDOW_MS / 2).toISOString(), v: high + offset },
+  ];
+
+  return JSON.stringify({ temperature: series(0), humidity: series(30) });
+}
+
+// Answers the metrics endpoint from `bodies`, one per call and repeating
+// the last, and the history endpoint from `history` the same way. With no
+// `history`, that endpoint 404s - what nginx does before the poller has
+// written a first file.
+function stub_metrics(
+  bodies: readonly (string | Error)[],
+  history: readonly (string | Error)[] = [],
+): ReturnType<typeof vi.fn> {
+  const calls = new Map<string, number>();
+  const fetch_mock = vi.fn(async (url: string) => {
+    const answers = url === BASEMENT_HISTORY_URL ? history : bodies;
+    const call = calls.get(url) ?? 0;
+    calls.set(url, call + 1);
+    if (answers.length === 0) {
+      return new Response("", { status: 404 });
+    }
+
+    const body = answers[Math.min(call, answers.length - 1)];
     if (body instanceof Error) {
       throw body;
     }
@@ -103,6 +128,14 @@ function stub_metrics(bodies: readonly (string | Error)[]): ReturnType<typeof vi
   vi.stubGlobal("fetch", fetch_mock);
 
   return fetch_mock;
+}
+
+function calls_to(fetch_mock: ReturnType<typeof vi.fn>, url: string): number {
+  return fetch_mock.mock.calls.filter(([called]) => called === url).length;
+}
+
+function sparklines(container: HTMLElement): HTMLElement[] {
+  return [...container.querySelectorAll<HTMLElement>(".readout-spark")];
 }
 
 function navigation_entry(overrides: Partial<PerformanceNavigationTiming> = {}): PerformanceEntry {
@@ -127,7 +160,9 @@ function stub_trace(body: string, status = 200): ReturnType<typeof vi.fn> {
 }
 
 function values(container: HTMLElement): string[] {
-  return [...container.querySelectorAll("dd")].map((value) => value.textContent ?? "");
+  return [...container.querySelectorAll("dd:not(.readout-spark)")].map(
+    (value) => value.textContent ?? "",
+  );
 }
 
 // The three fallback tests have nothing to wait for: a measurement that
@@ -341,11 +376,12 @@ describe("Readout, polling the basement sensor", () => {
 
   it("stays hidden until the first poll resolves, then reveals the correct state directly", async () => {
     let resolve_fetch!: (response: Response) => void;
-    const fetch_mock = vi.fn(
-      () =>
-        new Promise<Response>((resolve) => {
-          resolve_fetch = resolve;
-        }),
+    const fetch_mock = vi.fn(async (url: string) =>
+      url === BASEMENT_METRICS_URL
+        ? new Promise<Response>((resolve) => {
+            resolve_fetch = resolve;
+          })
+        : new Response("", { status: 404 }),
     );
     vi.stubGlobal("fetch", fetch_mock);
 
@@ -380,7 +416,7 @@ describe("Readout, polling the basement sensor", () => {
 
     expect(values(container)).toEqual(["19.4°C", "53%"]);
     expect(badge_text(container)).toBe("LIVE");
-    expect(fetch_mock).toHaveBeenCalledTimes(2);
+    expect(calls_to(fetch_mock, BASEMENT_METRICS_URL)).toBe(2);
   });
 
   it("shows OFFLINE hyphens when the metrics endpoint cannot be fetched", async () => {
@@ -416,7 +452,7 @@ describe("Readout, polling the basement sensor", () => {
 
     await flush(30_000);
 
-    expect(fetch_mock).toHaveBeenCalledTimes(2);
+    expect(calls_to(fetch_mock, BASEMENT_METRICS_URL)).toBe(2);
     expect(badge_text(container)).toBe("LIVE");
     expect(values(container)).toEqual(["19.2°C", "52%"]);
   });
@@ -472,11 +508,139 @@ describe("Readout, polling the basement sensor", () => {
 
     const { unmount } = render(Readout, { props: { readout: BASEMENT_LIVE } });
     await flush();
-    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(calls_to(fetch_mock, BASEMENT_METRICS_URL)).toBe(1);
 
     unmount();
     await flush(60_000);
 
-    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(calls_to(fetch_mock, BASEMENT_METRICS_URL)).toBe(1);
+  });
+});
+
+describe("Readout, drawing the basement's last 24 hours", () => {
+  let now: number;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    now = Date.now();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function labels(spark: HTMLElement): string[] {
+    return [...spark.querySelectorAll(".spark-range span")].map((label) => label.textContent ?? "");
+  }
+
+  it("draws a sparkline under each value, labelled with the day's high and low", async () => {
+    const fetch_mock = stub_metrics([metrics_json(21, 51, now)], [history_json(now)]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    const [temperature, humidity] = sparklines(container);
+    expect(labels(temperature)).toEqual(["21.0", "19.0"]);
+    expect(labels(humidity)).toEqual(["51", "49"]);
+    expect(temperature.querySelector("path")?.getAttribute("d")).toMatch(/^M[\d.]+,[\d.]+ C/);
+    expect(temperature.textContent).toContain("Last 24 hours: low 19.0 °C, high 21.0 °C");
+    expect(values(container)).toEqual(["21.0°C", "51%"]);
+    expect(fetch_mock).toHaveBeenCalledWith(
+      BASEMENT_HISTORY_URL,
+      expect.objectContaining({ cache: "no-store" }),
+    );
+  });
+
+  it("marks now with a dot in the LIVE colour", async () => {
+    stub_metrics([metrics_json(21, 51, now)], [history_json(now)]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    const dot = sparklines(container)[0].querySelector("circle");
+    expect(dot?.getAttribute("fill")).toBe(PIPELINE_INK.live);
+  });
+
+  it("draws nothing before the poller has written any history", async () => {
+    stub_metrics([metrics_json(21, 51, now)]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(badge_text(container)).toBe("LIVE");
+    expect(sparklines(container)).toEqual([]);
+  });
+
+  it("draws nothing when the history cannot be fetched", async () => {
+    stub_metrics([metrics_json(21, 51, now)], [new Error("offline")]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(sparklines(container)).toEqual([]);
+  });
+
+  it("draws nothing beside a reading that is not current", async () => {
+    stub_metrics([metrics_json(21, 51, now, MAX_READING_AGE_MS + 1000)], [history_json(now)]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+
+    expect(badge_text(container)).toBe("OFFLINE");
+    expect(sparklines(container)).toEqual([]);
+  });
+
+  it("takes the sparklines away when the reading ages out to OFFLINE", async () => {
+    stub_metrics([metrics_json(21, 51, now)], [history_json(now)]);
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    expect(sparklines(container)).toHaveLength(2);
+
+    await flush(MAX_READING_AGE_MS);
+
+    expect(badge_text(container)).toBe("OFFLINE");
+    expect(sparklines(container)).toEqual([]);
+  });
+
+  it("re-reads the history every five minutes, not on every value poll", async () => {
+    const fetch_mock = stub_metrics(
+      [metrics_json(22, 51, now)],
+      [history_json(now), history_json(now, 19, 22)],
+    );
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    await flush(4 * 60_000);
+    expect(calls_to(fetch_mock, BASEMENT_HISTORY_URL)).toBe(1);
+
+    await flush(60_000);
+
+    expect(calls_to(fetch_mock, BASEMENT_HISTORY_URL)).toBe(2);
+    expect(labels(sparklines(container)[0])).toEqual(["22.0", "19.0"]);
+  });
+
+  it("keeps the sparklines it has when a later history read answers with something unreadable", async () => {
+    stub_metrics(
+      [metrics_json(21, 51, now)],
+      [history_json(now), "<!doctype html><title>502</title>"],
+    );
+
+    const { container } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    await flush(5 * 60_000);
+
+    expect(sparklines(container)).toHaveLength(2);
+  });
+
+  it("stops re-reading the history once the component unmounts", async () => {
+    const fetch_mock = stub_metrics([metrics_json(21, 51, now)], [history_json(now)]);
+
+    const { unmount } = render(Readout, { props: { readout: BASEMENT_LIVE } });
+    await flush();
+    unmount();
+    await flush(10 * 60_000);
+
+    expect(calls_to(fetch_mock, BASEMENT_HISTORY_URL)).toBe(1);
   });
 });

@@ -24,6 +24,7 @@ const COMPONENTS = [
   "Rack.svelte",
   "Readout.svelte",
   "RunwayDiagram.svelte",
+  "Sparkline.svelte",
   "Terminal.svelte",
   "VendorMarks.svelte",
 ];
