@@ -125,6 +125,20 @@ export function build_csp_map(pages: PageHashes[]): string {
     }
   }
 
+  // Pages were walked but nothing matched - the shape a SvelteKit markup
+  // change produces, and the one this whole file exists to survive. The map
+  // would be its empty default and nothing else, so every page would ship
+  // `script-src 'self'`, every hydration script would be blocked, and the
+  // build would say so nowhere: the walk succeeded, the file was written, the
+  // exit code was zero. Fail the build instead.
+  if (lines.length === 0) {
+    throw new Error(
+      `${pages.length} HTML pages found but none carried an inline script - the ` +
+        `markup this script matches has probably changed, and every page would ` +
+        `be served a policy that blocks its own hydration`,
+    );
+  }
+
   lines.sort();
 
   return [

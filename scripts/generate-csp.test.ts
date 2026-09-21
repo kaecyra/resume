@@ -157,6 +157,14 @@ describe("build_csp_map", () => {
   it("throws when there are no pages at all, rather than emitting a map that blocks every page", () => {
     expect(() => build_csp_map([])).toThrow();
   });
+
+  it("throws when pages were found but none yielded a hash", () => {
+    // The shape a markup change produces: every page is still walked, so the
+    // empty-input guard above never fires, but nothing matched and the map
+    // would be nothing but its empty default - leaving every page to ship
+    // script-src 'self' and every hydration script blocked, silently.
+    expect(() => build_csp_map([{ keys: ["/a"], hashes: [] }])).toThrow();
+  });
 });
 
 describe("collect_page_hashes", () => {

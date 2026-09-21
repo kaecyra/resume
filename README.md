@@ -244,16 +244,23 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 
 The network proxy server (separate from the VM) handles SSL termination and routes traffic to the VM. Example nginx config for the proxy:
 
+The `map` belongs at `http` level, outside and above any `server` block - nginx
+rejects it anywhere else with `"map" directive is not allowed here`:
+
 ```nginx
-# Preserve the scheme the client actually used. A plain `$scheme` here is the
-# scheme of Cloudflare's connection to this proxy, not the visitor's, and it
-# overwrites the header Cloudflare set - which leaves the container with no way
+# Preserve the scheme the client actually used. A plain `$scheme` below would be
+# the scheme of Cloudflare's connection to this proxy, not the visitor's, and it
+# would overwrite the header Cloudflare set - leaving the container with no way
 # to tell a plain-HTTP visitor from an HTTPS one.
 map $http_x_forwarded_proto $client_proto {
     default                 $scheme;
     "~*^(http|https)$"      $http_x_forwarded_proto;
 }
+```
 
+The `location` goes inside the `server` block that serves this hostname:
+
+```nginx
 location / {
     proxy_pass http://<vm-ip>:3000;
     proxy_set_header Host $host;
@@ -271,7 +278,9 @@ Every nginx location includes `security-headers.conf`, which sets
 deliberate: nginx stops inheriting `add_header` into any block that declares an
 `add_header` of its own, and several locations set their own `Cache-Control`, so
 a single server-level declaration would silently vanish from exactly the routes
-that look most covered.
+that look most covered. It is included once at server level as well, for the two
+responses no location produces - the HTTPS redirect and the trailing-slash
+rewrite both answer in the rewrite phase, before a location is selected.
 
 **CSP.** SvelteKit inlines a hydration script into every prerendered page, and
 that script carries page-specific data, so every page has a different hash.
@@ -314,6 +323,15 @@ regardless, and both settings live under SSL/TLS > Edge Certificates:
   `includeSubDomains` on, **No preload**. Preloading is not reversible on any
   useful timescale; the header alone can be withdrawn by lowering max-age and
   waiting out what browsers have cached.
+
+Cloudflare's HSTS switch is zone-wide, not per-hostname: the header goes out on
+every proxied hostname in the zone, apex included. `includeSubDomains` served
+from `timgunter.ca` therefore commits *every* subdomain in that zone to
+HTTPS-only for the full max-age, in any browser that has touched the apex - not
+just this site, and including hosts that may have no TLS listener at all.
+Confirm every hostname under the zone serves HTTPS before turning it on. The
+origin's own `includeSubDomains`, in `security-headers.conf`, does not have this
+reach: it only ever travels on responses for this hostname.
 
 Turning these on means a plain-HTTP request direct to the origin
 (`http://<vm-ip>:3000`) starts redirecting to an address with no TLS listener.
