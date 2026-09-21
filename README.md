@@ -174,16 +174,16 @@ The deploy workflow also runs nightly (`schedule:` trigger, 06:00 UTC) and can b
 ```
 Push to main -> GitHub Actions builds and pushes to GHCR
 Watchtower (on VM) polls GHCR -> detects new image -> pulls and recreates container
-Internet -> Cloudflare -> Proxy server -> VM:3000 -> Resume (nginx, static site)
-                                          VM:3001 -> Umami (analytics dashboard + collection)
-                                          umami_db -> Postgres (analytics data, Docker volume)
+Internet -> Cloudflare -> cloudflared tunnel (on the VM) -> localhost:3000 -> Resume (nginx, static site)
+                                                           localhost:3001 -> Umami (analytics dashboard + collection)
+                                                           umami_db -> Postgres (analytics data, Docker volume)
 ```
 
 There is a ~5 minute delay between push and deploy (Watchtower poll interval).
 
 ### Host Setup
 
-The host VM is provisioned using `setup-host.sh`, which configures Docker, the firewall, Watchtower, and basic security hardening.
+The server is an Ubuntu VM running on Proxmox. It is provisioned using `setup-host.sh`, which configures Docker, the firewall, Watchtower, and basic security hardening. The Cloudflare tunnel is set up separately (see [Ingress Configuration](#ingress-configuration)).
 
 **Prerequisites:** Fresh Ubuntu VM with sudo access
 
@@ -194,7 +194,7 @@ ssh user@<vm-ip> 'sudo bash ~/setup-host.sh'
 
 The script configures:
 - System package updates
-- UFW firewall (OpenSSH + ports 3000, 3001)
+- UFW firewall (OpenSSH + ports 3000, 3001, from the LAN only)
 - Docker CE with log rotation
 - Umami credentials (auto-generated, written to `/opt/resume/.env`)
 - GHCR authentication for pulling images
@@ -242,33 +242,18 @@ Deployment is gated by the `DEPLOY_ENABLED` repository variable (Settings > Secr
 
 ### Ingress Configuration
 
-The network proxy server (separate from the VM) handles SSL termination and routes traffic to the VM. Example nginx config for the proxy:
+Nothing on the home network accepts traffic from the internet. `cloudflared` runs on the VM as a systemd service and holds a tunnel open to Cloudflare from the inside, so Cloudflare has somewhere to send requests without any port forwarded on the router.
 
-The `map` belongs at `http` level, outside and above any `server` block - nginx
-rejects it anywhere else with `"map" directive is not allowed here`:
+The tunnel carries two public hostnames:
 
-```nginx
-# Preserve the scheme the client actually used. A plain `$scheme` below would be
-# the scheme of Cloudflare's connection to this proxy, not the visitor's, and it
-# would overwrite the header Cloudflare set - leaving the container with no way
-# to tell a plain-HTTP visitor from an HTTPS one.
-map $http_x_forwarded_proto $client_proto {
-    default                 $scheme;
-    "~*^(http|https)$"      $http_x_forwarded_proto;
-}
-```
+| Hostname | Origin |
+|---|---|
+| The site | `http://localhost:3000` (the resume container) |
+| The Umami dashboard | `http://localhost:3001` (see [Ingress for Umami Dashboard](#ingress-for-umami-dashboard)) |
 
-The `location` goes inside the `server` block that serves this hostname:
+TLS terminates at Cloudflare's edge. The container only ever sees plain HTTP on port 80 behind the published port, and learns how the visitor arrived from the `X-Forwarded-Proto` header Cloudflare sets (see [HSTS and the HTTPS redirect](#security-headers)).
 
-```nginx
-location / {
-    proxy_pass http://<vm-ip>:3000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $client_proto;
-}
-```
+`setup-host.sh` does not install `cloudflared`. Install it on the VM, create the tunnel, add the two hostnames above and run it as a service, following Cloudflare's tunnel documentation.
 
 ### Security Headers
 
@@ -313,8 +298,8 @@ when `X-Forwarded-Proto` says `http`, and leaves a request carrying no such
 header alone - that is the container healthcheck, which must not be sent to an
 `https://` address with nothing listening behind it.
 
-That origin redirect only fires if the proxy in front passes the visitor's
-scheme through rather than overwriting it with its own (see [Ingress
+That origin redirect relies on `X-Forwarded-Proto` reaching the container as
+Cloudflare set it, which the tunnel does (see [Ingress
 Configuration](#ingress-configuration)). Cloudflare is what closes the gap
 regardless, and both settings live under SSL/TLS > Edge Certificates:
 
@@ -333,9 +318,11 @@ Confirm every hostname under the zone serves HTTPS before turning it on. The
 origin's own `includeSubDomains`, in `security-headers.conf`, does not have this
 reach: it only ever travels on responses for this hostname.
 
-Turning these on means a plain-HTTP request direct to the origin
-(`http://<vm-ip>:3000`) starts redirecting to an address with no TLS listener.
-Use the public hostname for debugging instead.
+A request from the LAN straight to the origin (`http://<vm-ip>:3000`) never
+passes through Cloudflare, so neither setting affects it. The origin itself
+redirects it only if it carries `X-Forwarded-Proto: http`, to an `https://`
+address with nothing listening behind it; without that header it is served
+as-is.
 
 
 ## Analytics
@@ -348,7 +335,7 @@ The tracking script is conditionally injected at build time when `PUBLIC_UMAMI_W
 
 Umami is provisioned automatically by `setup-host.sh`. After the stack is running:
 
-1. Open `http://<host>:3001` and log in with the default credentials (`admin` / `umami`)
+1. Open `http://<vm-ip>:3001` from the LAN (or the dashboard's tunnel hostname) and log in with the default credentials (`admin` / `umami`)
 2. **Change the default password immediately**
 3. Add a website in the Umami dashboard and copy the Website ID
 4. Set `PUBLIC_UMAMI_WEBSITE_ID` as a GitHub Actions variable
@@ -356,18 +343,7 @@ Umami is provisioned automatically by `setup-host.sh`. After the stack is runnin
 
 ### Ingress for Umami Dashboard
 
-The Umami dashboard (port 3001) needs its own reverse proxy rule for admin access. Tracking data collection is proxied through the resume container's nginx and does not require a separate ingress rule.
-
-```nginx
-# Umami dashboard (admin access only)
-location / {
-    proxy_pass http://<vm-ip>:3001;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
+The Umami dashboard is its own public hostname on the same Cloudflare tunnel, pointed at `http://localhost:3001`. Tracking data collection is proxied through the resume container's nginx and needs no hostname of its own.
 
 ### Chicken-and-Egg: Website ID
 
