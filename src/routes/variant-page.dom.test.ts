@@ -121,9 +121,6 @@ describe("variant route page - head (#237)", () => {
     const og_url = document.querySelector('meta[property="og:url"]');
 
     expect(og_url?.getAttribute("content")).toBe("https://example.com/cto-a");
-    expect(og_url?.getAttribute("content")).not.toBe(
-      document.querySelector('link[rel="canonical"]')?.getAttribute("href"),
-    );
   });
 
   it("names the document a resume in the title while og:title stays the share-card form", () => {
@@ -142,8 +139,6 @@ describe("variant route page - head (#237)", () => {
     const payloads = tags.map((tag) => JSON.parse(tag.textContent ?? "{}"));
     const profile_page = payloads.find((payload) => payload["@type"] === "ProfilePage");
 
-    expect(profile_page).toBeDefined();
-    expect(profile_page.mainEntity["@type"]).toBe("Person");
-    expect(profile_page.mainEntity.name).toBe("Tim Gunter");
+    expect(profile_page?.mainEntity).toMatchObject({ "@type": "Person", name: "Tim Gunter" });
   });
 });

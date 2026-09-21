@@ -17,9 +17,11 @@ export function GET() {
 
   // The email lives in the landing contact block as a mailto: link, which
   // is also where the page itself reads it from - not lifted out of
-  // data/resume.yaml, whose address can be REDACTED in a fork.
+  // data/resume.yaml, whose address can be REDACTED in a fork. Anything
+  // after "?" is mailto query parameters (subject, body): wanted in the
+  // href the page renders, never part of the address published here.
   const mailto = landing.contact.find((link) => link.url.startsWith("mailto:"));
-  const email = mailto?.url.slice("mailto:".length);
+  const email = mailto?.url.slice("mailto:".length).split("?")[0];
 
   const text = build_llms_txt({
     hero: landing.hero,

@@ -29,11 +29,14 @@ const HERO: LandingHero = {
   tagline: "I build systems, and lately I build them by directing AI agents.",
 };
 
-describe("build_sitemap_urls", () => {
-  beforeEach(() => {
-    mock_variants.list = ["default", "cto-a", "cto-b"];
-  });
+// list_variants is module state shared by every describe below, and the
+// canonical-variant test mutates it. Reset at file scope, not inside one
+// block, so a mutated list can never leak into a later test.
+beforeEach(() => {
+  mock_variants.list = ["default", "cto-a", "cto-b"];
+});
 
+describe("build_sitemap_urls", () => {
   it("lists only the landing page and the canonical variant, not every variant", () => {
     const urls = build_sitemap_urls("https://resume.timgunter.ca");
     expect(urls).toEqual([
@@ -114,10 +117,19 @@ describe("build_landing_description", () => {
 });
 
 describe("build_document_title", () => {
-  it("marks the page as a resume without touching the share-card title", () => {
-    expect(build_document_title("Tim Gunter - Chief Technology Officer")).toBe(
-      "Tim Gunter - Chief Technology Officer | Resume",
+  it("joins with an em dash and marks the page as a resume", () => {
+    expect(build_document_title("Tim Gunter", "Chief Technology Officer")).toBe(
+      "Tim Gunter \u2014 Chief Technology Officer | Resume",
     );
+  });
+
+  it("reads the same way as the landing title, which og:title's hyphen does not", () => {
+    const variant_title = build_document_title("Tim Gunter", "Chief Technology Officer");
+    const landing_title = build_landing_title(HERO);
+
+    expect(variant_title).toContain(" \u2014 ");
+    expect(landing_title).toContain(" \u2014 ");
+    expect(variant_title).not.toContain(" - ");
   });
 });
 

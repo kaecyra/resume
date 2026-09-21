@@ -56,14 +56,19 @@ export const load: PageServerLoad = async ({ params }) => {
   // encodes - a reader scanning the code on a printed cto-b resume has to
   // arrive at cto-b, not at whichever variant is canonical.
   const canonical_url = build_variant_canonical_url(base_url);
-  const document_title = build_document_title(og.title);
+  const document_title = build_document_title(resume.profile.name, resume.title);
 
   const person_jsonld = build_person_jsonld(
     resume.profile, resume.title, canonical_url,
     build_person_context(load_landing_data(), resume.skills),
   );
+  // ProfilePage.url is this page, not the canonical one: schema.org's "URL
+  // of the item", and the item is the document the block is embedded in.
+  // Consolidation is the <link rel="canonical"> tag's job. person.url above
+  // is the opposite case - the person has one page, and it is the canonical
+  // resume.
   const profile_page_jsonld = build_profile_page_jsonld(
-    document_title, og.description, canonical_url, person_jsonld,
+    document_title, og.description, og.url, person_jsonld,
   );
   const theme_color = palette.background;
 

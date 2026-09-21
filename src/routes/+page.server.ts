@@ -12,6 +12,7 @@ import {
   build_person_jsonld,
   build_profile_page_jsonld,
   LANDING_OG_SLUG,
+  split_hero_role,
 } from "$lib/seo.js";
 
 import type { PageServerLoad } from "./$types";
@@ -85,8 +86,12 @@ export const load: PageServerLoad = () => {
   // repeating them in its caption is noise.
   const document_title = build_landing_title(landing.hero);
 
+  // The role half of hero.role, not the whole string: the employer belongs
+  // in worksFor (build_person_context puts it there), and an Occupation
+  // named "VP Engineering, .Monks" beside an Organization named ".Monks"
+  // states the employer twice and names no occupation.
   const person_jsonld = build_person_jsonld(
-    data.profile, landing.hero.role, canonical_url,
+    data.profile, split_hero_role(landing.hero).role, canonical_url,
     build_person_context(landing, data.skills),
   );
   const profile_page_jsonld = build_profile_page_jsonld(

@@ -19,6 +19,10 @@ export const CANONICAL_VARIANT = "default";
 // that distinguishes the two.
 const RESUME_TITLE_SUFFIX = " | Resume";
 
+// Joins a name to a role in a document title. og:title keeps its own hyphen
+// (see build_og_metadata) - that one is share-card copy, not a page title.
+const TITLE_SEPARATOR = " \u2014 ";
+
 // Shared by every meta description this module builds, matching what the
 // major engines actually render.
 const DESCRIPTION_LIMIT = 200;
@@ -53,8 +57,12 @@ export function build_variant_canonical_url(base_url: string): string | null {
 // hero.role carries the employer after a comma ("VP Engineering, .Monks").
 // split_role_badge is the hero's own tested splitter - reused rather than
 // re-parsed here, and rather than adding a second YAML field that could
-// drift from the string the page actually renders.
-function split_hero_role(hero: LandingHero): { role: string; employer: string } {
+// drift from the string the page actually renders. Exported because the
+// landing route needs the role half on its own: passing the whole string as
+// a jobTitle publishes an Occupation named "VP Engineering, .Monks" beside
+// an Organization named ".Monks", which states the employer twice and names
+// no occupation.
+export function split_hero_role(hero: LandingHero): { role: string; employer: string } {
   const { tag, label } = split_role_badge(hero.role);
   return { role: tag, employer: label };
 }
@@ -64,12 +72,13 @@ export function build_landing_title(hero: LandingHero): string {
   return `${hero.name} — ${role}${RESUME_TITLE_SUFFIX}`;
 }
 
-// The variant pages' og:title is already "<name> - <title>", which reads
-// correctly in a share card; the document title takes the suffix on top so
-// the tab, the search result and anything classifying the page by its title
-// all see the word "resume".
-export function build_document_title(og_title: string): string {
-  return `${og_title}${RESUME_TITLE_SUFFIX}`;
+// The document title for a variant page, built from its parts rather than
+// by suffixing og:title: og:title joins with a hyphen and keeps doing so
+// for the share card, while every document title on the site joins with an
+// em dash, landing page included. Suffixing og:title would have made the
+// two page families read differently in the same search results.
+export function build_document_title(name: string, title: string): string {
+  return `${name}${TITLE_SEPARATOR}${title}${RESUME_TITLE_SUFFIX}`;
 }
 
 export function build_landing_description(hero: LandingHero): string {
@@ -277,12 +286,11 @@ export interface LlmsTxtInput {
 export function build_llms_txt(input: LlmsTxtInput): string {
   const { hero, base_url, email, links, variants } = input;
   const url = (path: string) => (base_url ? `${base_url}/${path}` : `/${path}`);
-  // Variant summaries are multi-line YAML blocks carrying markdown. A raw
-  // newline mid-bullet would end the list item, so each one collapses to a
-  // single line of plain text. Not truncated the way a meta description is:
-  // nothing renders this in a fixed box, and a summary cut mid-word is
-  // worse to quote than a long one.
-  const blurb = (summary: string) => strip_markdown(summary).replace(/\s+/g, " ").trim();
+  // strip_markdown collapses whitespace, which is what keeps a multi-line
+  // YAML summary from ending its own list item mid-bullet. Not truncated
+  // the way a meta description is: nothing renders this in a fixed box, and
+  // a summary cut mid-word is worse to quote than a long one.
+  const blurb = strip_markdown;
 
   const canonical = variants.find((variant) => variant.slug === CANONICAL_VARIANT);
   const others = variants.filter((variant) => variant.slug !== CANONICAL_VARIANT);

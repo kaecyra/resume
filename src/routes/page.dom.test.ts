@@ -93,7 +93,6 @@ describe("landing route page - head (#237)", () => {
     render(Page, { props: { data: PAGE_DATA } });
 
     expect(document.title).toBe("Test Person \u2014 Engineer | Resume");
-    expect(document.title).not.toBe(PAGE_DATA.og.title);
   });
 
   it("keeps the bare name on og:title for the share card", () => {
@@ -111,8 +110,7 @@ describe("landing route page - head (#237)", () => {
     const payloads = tags.map((tag) => JSON.parse(tag.textContent ?? "{}"));
     const profile_page = payloads.find((payload) => payload["@type"] === "ProfilePage");
 
-    expect(profile_page).toBeDefined();
-    expect(profile_page.mainEntity["@type"]).toBe("Person");
+    expect(profile_page?.mainEntity).toMatchObject({ "@type": "Person", name: "Test Person" });
   });
 });
 

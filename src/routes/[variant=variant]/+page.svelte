@@ -3,6 +3,7 @@
 
   import { track_pdf_download, track_resume_view } from "$lib/analytics.js";
   import { resume_pdf_filename } from "$lib/landing/resume-download.js";
+  import { SITE_LOCALE } from "$lib/site-meta.js";
   import { get_theme, get_theme_favicon } from "$lib/themes/index.js";
 
   import type { PageData } from "./$types";
@@ -25,7 +26,7 @@
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content={data.resume.profile.name} />
-  <meta property="og:locale" content="en_CA" />
+  <meta property="og:locale" content={SITE_LOCALE} />
   <meta property="og:title" content={data.og.title} />
   <meta property="og:description" content={data.og.description} />
   <meta property="og:image" content={data.og.image} />
