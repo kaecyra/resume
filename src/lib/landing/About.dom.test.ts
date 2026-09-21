@@ -37,11 +37,29 @@ const ABOUT: LandingAbout = {
   books: [],
 };
 
-function mount() {
-  const view = render(About, { props: { about: ABOUT } });
-  const dialog = view.container.ownerDocument.querySelector("dialog") as HTMLDialogElement;
+function mount(about: LandingAbout = ABOUT) {
+  const view = render(About, { props: { about } });
+  const dialog = view.container.ownerDocument.querySelector("dialog");
+  if (!(dialog instanceof HTMLDialogElement)) {
+    throw new Error("About rendered no <dialog> for the lightbox");
+  }
   return { ...view, dialog };
 }
+
+describe("About lists", () => {
+  it("renders identical paragraphs and interests without a duplicate-key error", () => {
+    // Keyed by text, two identical entries made Svelte throw
+    // each_key_duplicate; nothing in validation rules them out.
+    const { container } = mount({
+      ...ABOUT,
+      interests: ["Dogs", "Dogs"],
+      paragraphs: ["Same line.", "Same line."],
+    });
+
+    expect(container.querySelectorAll(".about-interests li")).toHaveLength(2);
+    expect(container.textContent?.match(/Same line\./g)).toHaveLength(2);
+  });
+});
 
 describe("About lightbox", () => {
   it("links each thumbnail to its large image, so it still works without JS", () => {

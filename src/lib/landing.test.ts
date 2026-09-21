@@ -483,6 +483,39 @@ describe("validate_landing_data: about", () => {
     expect(errors).toContain('photo "golf" src must be a site path starting with "/"');
   });
 
+  it("detects a protocol-relative image path, which is a hotlink too", () => {
+    const book = { ...MOCK_ABOUT.books[0], cover: "//covers.example.com/a.jpg" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" cover must be a site path starting with "/"',
+    );
+  });
+
+  it("detects a slash-backslash image path, which browsers read as protocol-relative", () => {
+    const book = { ...MOCK_ABOUT.books[0], cover: "/\\covers.example.com/a.jpg" };
+    expect(about_errors(make_about({ books: [book] }))).toContain(
+      'book "book-a" cover must be a site path starting with "/"',
+    );
+  });
+
+  it("still reports every other about error when the portrait is missing", () => {
+    // A missing portrait used to fail the about object's own parse, which
+    // stopped check_about from running and hid every other problem behind a
+    // bare "Required".
+    const photo = { ...MOCK_ABOUT.photos[0], caption: "" };
+    const errors = about_errors(
+      make_about({ portrait: undefined as unknown as LandingAbout["portrait"], photos: [photo] }),
+    );
+
+    expect(errors).toContain("about.portrait is missing src or alt");
+    expect(errors).toContain('photo "golf" is missing src, alt, or caption');
+  });
+
+  it("reports a portrait that is not an object without throwing", () => {
+    const landing = make_about({ portrait: "me.png" as unknown as LandingAbout["portrait"] });
+    expect(() => validate_landing_data(landing, ["default"])).not.toThrow();
+    expect(about_errors(landing)).toContain("about.portrait is missing src or alt");
+  });
+
   it("detects an interests entry that is not a non-empty string", () => {
     expect(about_errors(make_about({ interests: ["Golf", ""] }))).toContain(
       "about.interests must be a list of non-empty strings",

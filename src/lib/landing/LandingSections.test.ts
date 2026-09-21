@@ -480,19 +480,6 @@ describe("LandingSections", () => {
   });
 });
 
-// The section registry is written down twice and linked by nothing: the
-// KNOWN_SECTIONS set in $lib/landing.ts, which is what validation accepts,
-// and the {#if} chain in LandingSections.svelte, which is what actually
-// renders. The two failure modes are not symmetric. Forgetting the set
-// throws at prerender, loudly. Forgetting the chain renders *nothing* -
-// the section is accepted, the {#each} reaches it, no arm matches, and the
-// page comes out one section short with no error anywhere. #209 walked
-// straight into this shape, and LandingData.sections is `string[]` rather
-// than a union, so the compiler has nothing to say about it either.
-//
-// Walking the set is what links the two lists. Every id in it has to
-// produce its own wrapper element, which is the one thing every section
-// component agrees on (see the `id="..."` on each).
 describe("the about section (#241)", () => {
   it("renders between Pipelines and Work, in landing.sections order", () => {
     const html = html_for(LANDING);
@@ -516,6 +503,19 @@ describe("the about section (#241)", () => {
   });
 });
 
+// The section registry is written down twice and linked by nothing: the
+// KNOWN_SECTIONS set in $lib/landing.ts, which is what validation accepts,
+// and the {#if} chain in LandingSections.svelte, which is what actually
+// renders. The two failure modes are not symmetric. Forgetting the set
+// throws at prerender, loudly. Forgetting the chain renders *nothing* -
+// the section is accepted, the {#each} reaches it, no arm matches, and the
+// page comes out one section short with no error anywhere. #209 walked
+// straight into this shape, and LandingData.sections is `string[]` rather
+// than a union, so the compiler has nothing to say about it either.
+//
+// Walking the set is what links the two lists. Every id in it has to
+// produce its own wrapper element, which is the one thing every section
+// component agrees on (see the `id="..."` on each).
 describe("the section registry", () => {
   it("dispatches every id in KNOWN_SECTIONS to a component that renders it", () => {
     for (const section of KNOWN_SECTIONS) {

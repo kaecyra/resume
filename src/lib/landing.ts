@@ -76,9 +76,10 @@ export function load_landing_data(): LandingData {
 // `superRefine` blocks below reproduce the same falsy/shape checks the
 // hand-rolled validator used, so error messages are unchanged, while the
 // type assertion is what keeps a *new* field from going unchecked silently.
-// Only the outer containers - the document root, and each of the six
-// top-level fields - keep real zod typing, so a wrong-typed collection
-// (a YAML map where a list belongs) is a single clean validation error
+// Only the containers - the document root, each top-level field, and the
+// `about.photos` and `about.books` lists - keep real zod typing, so a
+// wrong-typed collection (a YAML map where a list belongs) is a single
+// clean validation error
 // instead of a thrown exception, with no manual `Array.isArray` juggling
 // needed to get there.
 
@@ -133,6 +134,9 @@ const _github_schema_covers_type: SchemaCoversType<
   z.infer<typeof LandingGithubSchema>
 > = true;
 
+// Never parsed through: `portrait` below is loose (see there). Kept for its
+// assertion, so a field added to LandingImage still breaks the build until
+// check_about is taught about it.
 const LandingImageSchema = z.object({
   src: z.any().optional(),
   alt: z.any().optional(),
@@ -166,7 +170,10 @@ const _book_schema_covers_type: SchemaCoversType<LandingBook, z.infer<typeof Lan
 const LandingAboutSchema = z.object({
   heading: z.any().optional(),
   interests: z.any().optional(),
-  portrait: LandingImageSchema,
+  // Loose, like a leaf: a strictly typed object here would fail the about
+  // block's own parse when the portrait is missing, and Zod would then skip
+  // check_about, hiding every other about error. check_about checks it.
+  portrait: z.any().optional(),
   lead: z.any().optional(),
   paragraphs: z.any().optional(),
   photos_label: z.any().optional(),
@@ -184,9 +191,11 @@ const _about_schema_covers_type: SchemaCoversType<LandingAbout, z.infer<typeof L
   true;
 
 // Images are served from static/ under a CSP that allows 'self' only, so a
-// full URL would pass review and then render as a broken image.
+// full URL would pass review and then render as a broken image. A
+// protocol-relative "//host/..." is a full URL too, and so is "/\host/...",
+// since browsers read a backslash there as a slash.
 function is_site_path(value: unknown): boolean {
-  return typeof value === "string" && value.startsWith("/");
+  return typeof value === "string" && /^\/(?![/\\])/.test(value);
 }
 
 function is_pixel_size(value: unknown): boolean {
@@ -210,9 +219,11 @@ function check_about(about: z.infer<typeof LandingAboutSchema>, ctx: z.Refinemen
     issue("about.paragraphs must be a list of non-empty strings");
   }
 
-  if (!about.portrait.src || !about.portrait.alt) {
+  const portrait: z.infer<typeof LandingImageSchema> =
+    typeof about.portrait === "object" && about.portrait !== null ? about.portrait : {};
+  if (!portrait.src || !portrait.alt) {
     issue("about.portrait is missing src or alt");
-  } else if (!is_site_path(about.portrait.src)) {
+  } else if (!is_site_path(portrait.src)) {
     issue('about.portrait src must be a site path starting with "/"');
   }
 

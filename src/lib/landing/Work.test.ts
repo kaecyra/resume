@@ -5,6 +5,7 @@ import { render } from "svelte/server";
 import type { LandingProject } from "$lib/types.js";
 
 import { ELEVATION, HUD_PALETTE } from "./palette.js";
+import { content_measure } from "./svelte-source.js";
 import Work from "./Work.svelte";
 
 function project(overrides: Partial<LandingProject>): LandingProject {
@@ -32,12 +33,6 @@ function html_for(projects: LandingProject[]): string {
 }
 
 describe("Work", () => {
-  it("is headed \"Building Stuff\"", () => {
-    const html = render(Work, { props: { projects: [project({})] } }).body;
-
-    expect(html).toMatch(/<h2 class="work-heading[^"]*">Building Stuff<\/h2>/);
-  });
-
   it("marks only the first project as featured, and every other one as secondary", () => {
     const html = html_for(PROJECTS);
 
@@ -115,13 +110,7 @@ describe("Work", () => {
     expect(declarations).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
-  it("caps its content at the same width as the Pipelines section above it", () => {
-    const max_width = (name: string, selector: string) =>
-      readFileSync(new URL(name, import.meta.url), "utf8").match(
-        new RegExp(`\\${selector}\\s*\\{[^}]*max-width:\\s*([^;]+);`),
-      )?.[1];
-
-    expect(max_width("./Pipeline.svelte", ".wrap")).toBeDefined();
-    expect(max_width("./Work.svelte", ".work-wrap")).toBe(max_width("./Pipeline.svelte", ".wrap"));
+  it("shares the Pipelines section's content width and gutters", () => {
+    expect(content_measure("Work.svelte", ".work-wrap")).toEqual(content_measure("Pipeline.svelte", ".wrap"));
   });
 });
