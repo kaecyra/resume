@@ -61,6 +61,8 @@ coverage/
 data/generated/
 # Fetched nightly by scripts/fetch-satellites.ts, read by the browser
 static/landing/satellites.json
+# Derived from build/ by scripts/generate-csp.ts on every build
+csp-map.conf
 
 # Claude
 tasks/
