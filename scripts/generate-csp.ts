@@ -18,9 +18,11 @@
 // may hold either form by the time add_header evaluates the policy. Emitting
 // both costs a line and removes the question.
 //
-// JSON-LD blocks are skipped: a script whose type is not a JavaScript MIME
-// type is a data block, never executed, and so never checked against
-// script-src.
+// Data blocks are skipped: a script whose type is neither `module` nor a
+// JavaScript MIME type essence is never executed, and so is never checked
+// against script-src. JSON-LD is the case this build has today; SvelteKit's
+// `data-sveltekit-fetched` application/json blocks are the case it grows the
+// moment a route's load() fetches.
 
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -39,7 +41,29 @@ const OUTPUT_PATH = "csp-map.conf";
 const SCRIPT_ELEMENT = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 const SRC_ATTRIBUTE = /(^|\s)src\s*=/i;
 const TYPE_ATTRIBUTE = /(^|\s)type\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
-const LD_JSON_TYPE = "application/ld+json";
+// The HTML spec's JavaScript MIME type essences, plus `module`. Anything else
+// in a type attribute - including a JavaScript type carrying a parameter, which
+// is not an essence match - makes the element a data block.
+const EXECUTABLE_SCRIPT_TYPES = new Set([
+  "",
+  "module",
+  "application/ecmascript",
+  "application/javascript",
+  "application/x-ecmascript",
+  "application/x-javascript",
+  "text/ecmascript",
+  "text/javascript",
+  "text/javascript1.0",
+  "text/javascript1.1",
+  "text/javascript1.2",
+  "text/javascript1.3",
+  "text/javascript1.4",
+  "text/javascript1.5",
+  "text/jscript",
+  "text/livescript",
+  "text/x-ecmascript",
+  "text/x-javascript",
+]);
 
 // Keys are rooted paths built from filenames on disk; hashes are base64. Both
 // are checked before they reach the config file so a surprising filename can
@@ -50,7 +74,8 @@ const SAFE_HASH = /^sha256-[A-Za-z0-9+/]+={0,2}$/;
 /**
  * Returns the body of every inline script the browser will execute, exactly
  * as it sits between the tags. Scripts with a `src` are skipped (the browser
- * ignores their body) and so are JSON-LD data blocks.
+ * ignores their body) and so are data blocks - any type that is neither
+ * `module` nor a JavaScript MIME type essence.
  */
 export function extract_inline_script_bodies(html: string): string[] {
   const bodies: string[] = [];
@@ -63,7 +88,7 @@ export function extract_inline_script_bodies(html: string): string[] {
 
     const type = TYPE_ATTRIBUTE.exec(attributes);
     const type_value = type ? (type[3] ?? type[4] ?? type[5] ?? "") : "";
-    if (type_value.trim().toLowerCase() === LD_JSON_TYPE) {
+    if (!EXECUTABLE_SCRIPT_TYPES.has(type_value.trim().toLowerCase())) {
       continue;
     }
 
