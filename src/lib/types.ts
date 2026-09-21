@@ -198,6 +198,13 @@ export interface LandingPhoto {
   src: string;
   alt: string;
   caption: string;
+  // The larger file the lightbox opens. Absent means `src` itself.
+  full_src?: string;
+  // The image file's pixel size. The strip sets one height for every
+  // photo, and these give each its own width, so a portrait photo stays
+  // portrait instead of being cropped to a shared ratio.
+  width: number;
+  height: number;
 }
 
 export interface LandingBook {

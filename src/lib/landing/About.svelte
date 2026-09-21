@@ -1,9 +1,39 @@
 <script lang="ts">
-  import type { LandingAbout } from "$lib/types.js";
+  import type { LandingAbout, LandingPhoto } from "$lib/types.js";
 
   import { HUD_PALETTE } from "./palette.js";
 
   let { about }: { about: LandingAbout } = $props();
+
+  // The lightbox. A native <dialog> opened with showModal() brings the
+  // darkened ::backdrop, Esc to close and focus containment with it, so
+  // none of that is hand-rolled here.
+  let lightbox: HTMLDialogElement | undefined = $state();
+  let shown_photo: LandingPhoto | null = $state(null);
+
+  function large_src(photo: LandingPhoto): string {
+    return photo.full_src ?? photo.src;
+  }
+
+  function open_photo(event: MouseEvent, photo: LandingPhoto) {
+    // A modified click keeps the link's own behaviour: a new tab, a
+    // download. Only a plain click becomes the lightbox.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    shown_photo = photo;
+    lightbox?.showModal();
+  }
+
+  // The dialog is sized to its content, so a click that lands on the
+  // <dialog> element itself, rather than on the image or caption inside
+  // it, is a click on the backdrop.
+  function close_on_backdrop(event: MouseEvent) {
+    if (event.target === lightbox) {
+      lightbox?.close();
+    }
+  }
 </script>
 
 <!-- The band that opens the section (#241). Same inverted treatment as
@@ -24,69 +54,100 @@
   aria-labelledby="about-heading"
   style="--hud-bg: {HUD_PALETTE.background}; --hud-text: {HUD_PALETTE.text}; --hud-secondary: {HUD_PALETTE.secondary};"
 >
-  <h2 id="about-heading" class="about-heading">{about.heading}</h2>
+  <div class="about-wrap">
+    <h2 id="about-heading" class="about-heading">{about.heading}</h2>
 
-  <div class="about-body">
-    <img class="about-portrait" src={about.portrait.src} alt={about.portrait.alt} width="240" height="240" />
+    <div class="about-body">
+      <img class="about-portrait" src={about.portrait.src} alt={about.portrait.alt} width="240" height="240" />
 
-    <div class="about-prose">
-      <p class="about-lead">{about.lead}</p>
-      {#each about.paragraphs as paragraph (paragraph)}
-        <p>{paragraph}</p>
-      {/each}
+      <div class="about-prose">
+        <p class="about-lead">{about.lead}</p>
+        {#each about.paragraphs as paragraph (paragraph)}
+          <p>{paragraph}</p>
+        {/each}
+      </div>
+    </div>
+
+    <!-- One strip: photos on the left, covers pushed to the right, every
+         image the same height. Each item's width comes from its own aspect
+         ratio against the shared --strip-h, which is what keeps the two
+         groups level without cropping anything to fit. Photos take their
+         ratio from their own width/height attributes, so a portrait photo
+         stays portrait; covers share one 2:3 ratio. -->
+    <div class="about-media">
+      {#if about.photos.length > 0}
+        <div class="about-group about-photos">
+          <h3 class="about-label">{about.photos_label}</h3>
+          <ul class="about-row">
+            {#each about.photos as photo (photo.id)}
+              <li class="about-item about-item-photo" style="--ratio: {photo.width / photo.height};">
+                <figure class="about-figure">
+                  <!-- A real link to the large image, so the photo still opens
+                       with JS off; with JS a plain click opens the lightbox. -->
+                  <a class="about-photo-link" href={large_src(photo)} onclick={(event) => open_photo(event, photo)}>
+                    <img
+                      class="about-frame"
+                      src={photo.src}
+                      alt={photo.alt}
+                      width={photo.width}
+                      height={photo.height}
+                      loading="lazy"
+                    />
+                  </a>
+                  <figcaption class="about-caption">{photo.caption}</figcaption>
+                </figure>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+
+      {#if about.books.length > 0}
+        <div class="about-group about-books">
+          <h3 class="about-label">{about.books_label}</h3>
+          <ul class="about-row">
+            {#each about.books as book (book.id)}
+              <li class="about-item about-item-book">
+                {#if book.url}
+                  <a class="about-book" href={book.url} target="_blank" rel="noopener noreferrer">
+                    <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
+                    <span class="about-book-text">
+                      <span class="about-book-title">{book.title}</span>
+                      <span class="about-book-author">{book.author}</span>
+                    </span>
+                  </a>
+                {:else}
+                  <div class="about-book">
+                    <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
+                    <span class="about-book-text">
+                      <span class="about-book-title">{book.title}</span>
+                      <span class="about-book-author">{book.author}</span>
+                    </span>
+                  </div>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
     </div>
   </div>
 
-  <!-- One strip: photos on the left, covers pushed to the right, every
-       image the same height. Each item's width comes from its own aspect
-       ratio against the shared --strip-h, which is what keeps the two
-       groups level without cropping a cover to fit. -->
-  <div class="about-media">
-    {#if about.photos.length > 0}
-      <div class="about-group about-photos">
-        <h3 class="about-label">{about.photos_label}</h3>
-        <ul class="about-row">
-          {#each about.photos as photo (photo.id)}
-            <li class="about-item about-item-photo">
-              <figure class="about-figure">
-                <img class="about-frame" src={photo.src} alt={photo.alt} loading="lazy" />
-                <figcaption class="about-caption">{photo.caption}</figcaption>
-              </figure>
-            </li>
-          {/each}
-        </ul>
-      </div>
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+  <dialog
+    bind:this={lightbox}
+    class="about-lightbox"
+    aria-label={shown_photo?.alt}
+    onclick={close_on_backdrop}
+    onclose={() => (shown_photo = null)}
+  >
+    {#if shown_photo}
+      <figure class="about-lightbox-figure">
+        <img class="about-lightbox-image" src={large_src(shown_photo)} alt={shown_photo.alt} />
+        <figcaption class="about-caption">{shown_photo.caption}</figcaption>
+      </figure>
     {/if}
-
-    {#if about.books.length > 0}
-      <div class="about-group about-books">
-        <h3 class="about-label">{about.books_label}</h3>
-        <ul class="about-row">
-          {#each about.books as book (book.id)}
-            <li class="about-item about-item-book">
-              {#if book.url}
-                <a class="about-book" href={book.url} target="_blank" rel="noopener noreferrer">
-                  <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
-                  <span class="about-book-text">
-                    <span class="about-book-title">{book.title}</span>
-                    <span class="about-book-author">{book.author}</span>
-                  </span>
-                </a>
-              {:else}
-                <div class="about-book">
-                  <img class="about-frame" src={book.cover} alt={book.cover_alt} loading="lazy" />
-                  <span class="about-book-text">
-                    <span class="about-book-title">{book.title}</span>
-                    <span class="about-book-author">{book.author}</span>
-                  </span>
-                </div>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
-  </div>
+  </dialog>
 </section>
 
 <style>
@@ -110,8 +171,16 @@
   }
 
   .about {
-    padding: 5rem 2.5rem 5.5rem;
+    padding-block: 5rem 5.5rem;
     background: var(--hud-bg);
+  }
+
+  /* Same measure as Pipeline.svelte's .wrap, the section above, so the two
+     share a left edge. The band stays full-bleed like the hero divider. */
+  .about-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 40px;
   }
 
   .about-heading {
@@ -165,10 +234,15 @@
   }
 
   .about-media {
-    --strip-h: clamp(7rem, 10vw, 11rem);
+    /* Capped at 8rem so the whole strip - one portrait photo, three
+       landscape ones, three covers and the gaps - fits inside
+       .about-wrap's 1100px of content. A fifth photo would not. */
+    --strip-h: clamp(7rem, 10vw, 8rem);
     margin-top: 4.5rem;
     display: flex;
-    align-items: flex-end;
+    /* Top, not bottom: the two groups' captions differ in height (a book
+       has title and author), so bottom-aligning pushed the photos down. */
+    align-items: flex-start;
     gap: 4rem;
   }
 
@@ -204,11 +278,17 @@
     gap: 2rem;
   }
 
+  /* Width set outright from the photo's own ratio, the same way covers
+     get theirs. Leaving it to the browser does not work: the figure is a
+     column flexbox, which stretches an auto-width image to the figure's
+     width, and that width came from the caption. */
   .about-item-photo {
-    width: calc(var(--strip-h) * 4 / 3);
+    flex: none;
+    width: calc(var(--strip-h) * var(--ratio));
   }
 
   .about-item-book {
+    flex: none;
     width: calc(var(--strip-h) * 2 / 3);
   }
 
@@ -233,6 +313,19 @@
     transition:
       transform 0.25s ease,
       box-shadow 0.25s ease;
+  }
+
+  .about-photo-link {
+    display: block;
+    cursor: zoom-in;
+  }
+
+  .about-photo-link:hover .about-frame,
+  .about-photo-link:focus-visible .about-frame {
+    transform: translateY(-4px);
+    box-shadow:
+      0 28px 48px -24px rgba(0, 0, 0, 0.95),
+      0 8px 18px -8px rgba(0, 0, 0, 0.75);
   }
 
   .about-caption {
@@ -276,6 +369,47 @@
     color: var(--hud-secondary);
   }
 
+  /* The lightbox: the image, centred and large, with its caption under it.
+     No frame, no controls - Esc or a click outside closes it. The browser
+     centres a modal dialog with margin: auto, but Tailwind's preflight
+     zeroes every element's margin, so the centring is restated here. */
+  .about-lightbox {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Black at high alpha, the same physical-shadow convention as the
+     frames above; ::backdrop does not reliably inherit custom
+     properties, so it takes no palette token. */
+  .about-lightbox::backdrop {
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  .about-lightbox-figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .about-lightbox-image {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 92vw;
+    max-height: 85vh;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .about-frame,
     .about-book-title {
@@ -283,51 +417,37 @@
     }
 
     a.about-book:hover .about-frame,
-    a.about-book:focus-visible .about-frame {
+    a.about-book:focus-visible .about-frame,
+    .about-photo-link:hover .about-frame,
+    .about-photo-link:focus-visible .about-frame {
       transform: none;
     }
   }
 
-  /* Below 1000px the strip no longer fits on one line: each group takes
-     the full width, three across, and heights come from aspect ratios
-     instead of --strip-h. */
-  @media (max-width: 1000px) {
+  /* Below 1100px the strip no longer fits on one line, so the groups
+     stack. Every image keeps the shared --strip-h height at every width -
+     sizing covers off the column width instead made them huge on a
+     mid-width screen - and a row that runs out of room wraps. */
+  @media (max-width: 1100px) {
     .about-media {
       flex-direction: column;
-      align-items: stretch;
       gap: 3rem;
     }
 
     .about-books {
       margin-left: 0;
-      align-items: stretch;
+      align-items: flex-start;
     }
 
     .about-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      flex-wrap: wrap;
       gap: 1.5rem;
-    }
-
-    .about-item-photo,
-    .about-item-book {
-      width: auto;
-    }
-
-    .about-item-photo .about-frame {
-      height: auto;
-      aspect-ratio: 4 / 3;
-    }
-
-    .about-item-book .about-frame {
-      height: auto;
-      aspect-ratio: 2 / 3;
     }
   }
 
   @media (max-width: 760px) {
     .about {
-      padding: 3.5rem 1.25rem 4rem;
+      padding-block: 3.5rem 4rem;
     }
 
     .about-band {
@@ -349,6 +469,13 @@
 
     .about-media {
       margin-top: 3rem;
+    }
+  }
+
+  /* Matches Pipeline.svelte's own narrow-screen gutter. */
+  @media (max-width: 700px) {
+    .about-wrap {
+      padding-inline: 20px;
     }
   }
 </style>

@@ -145,6 +145,9 @@ const LandingPhotoSchema = z.object({
   src: z.any().optional(),
   alt: z.any().optional(),
   caption: z.any().optional(),
+  full_src: z.any().optional(),
+  width: z.any().optional(),
+  height: z.any().optional(),
 });
 const _photo_schema_covers_type: SchemaCoversType<LandingPhoto, z.infer<typeof LandingPhotoSchema>> =
   true;
@@ -184,6 +187,10 @@ const _about_schema_covers_type: SchemaCoversType<LandingAbout, z.infer<typeof L
 // full URL would pass review and then render as a broken image.
 function is_site_path(value: unknown): boolean {
   return typeof value === "string" && value.startsWith("/");
+}
+
+function is_pixel_size(value: unknown): boolean {
+  return Number.isInteger(value) && (value as number) > 0;
 }
 
 function is_string_list(value: unknown): boolean {
@@ -226,6 +233,12 @@ function check_about(about: z.infer<typeof LandingAboutSchema>, ctx: z.Refinemen
       issue(`photo "${label}" is missing src, alt, or caption`);
     } else if (!is_site_path(photo.src)) {
       issue(`photo "${label}" src must be a site path starting with "/"`);
+    }
+    if (photo.full_src !== undefined && !is_site_path(photo.full_src)) {
+      issue(`photo "${label}" full_src must be a site path starting with "/"`);
+    }
+    if (!is_pixel_size(photo.width) || !is_pixel_size(photo.height)) {
+      issue(`photo "${label}" width and height must be positive whole numbers of pixels`);
     }
   }
 

@@ -14,8 +14,15 @@ const ABOUT: LandingAbout = {
   paragraphs: ["I run a homelab.", "I play golf."],
   photos_label: "Lately",
   photos: [
-    { id: "golf", src: "/landing/photos/golf.jpg", alt: "Golf trophy", caption: "Won it." },
-    { id: "car", src: "/landing/photos/car.jpg", alt: "A car", caption: "A car." },
+    {
+      id: "golf",
+      src: "/landing/photos/golf.jpg",
+      alt: "Golf trophy",
+      caption: "Won it.",
+      width: 600,
+      height: 800,
+    },
+    { id: "car", src: "/landing/photos/car.jpg", alt: "A car", caption: "A car.", width: 800, height: 600 },
   ],
   books_label: "Worth reading",
   books: [
@@ -81,6 +88,22 @@ describe("About", () => {
     expect(html).toMatch(/<figcaption[^>]*>A car\.<\/figcaption>/);
   });
 
+  it("gives each photo its own intrinsic size, so a portrait photo stays portrait", () => {
+    // The strip sets one height; the width/height attributes are what let
+    // the browser derive each photo's width from its own aspect ratio.
+    const html = html_for(ABOUT);
+
+    expect(html).toMatch(/<img[^>]*src="\/landing\/photos\/golf\.jpg"[^>]*width="600"[^>]*height="800"/);
+    expect(html).toMatch(/<img[^>]*src="\/landing\/photos\/car\.jpg"[^>]*width="800"[^>]*height="600"/);
+
+    // The slot's width is set from the ratio, not left to the browser: a
+    // column flexbox stretches an auto-width image to its container, which
+    // was only as wide as the caption, and the fixed height then cropped
+    // the photo to a sliver.
+    expect(html).toMatch(/class="about-item about-item-photo[^"]*"[^>]*style="--ratio: 0\.75;"/);
+    expect(html).toMatch(/style="--ratio: 1\.3333/);
+  });
+
   it("omits the photos group, label included, when there are no photos", () => {
     const html = html_for({ ...ABOUT, photos: [] });
 
@@ -130,7 +153,18 @@ describe("About.svelte source", () => {
     expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
+  it("caps its content at the same width as the Pipelines section above it", () => {
+    const pipeline = readFileSync(new URL("./Pipeline.svelte", import.meta.url), "utf8");
+    const max_width = (css: string, selector: string) =>
+      css.match(new RegExp(`\\${selector}\\s*\\{[^}]*max-width:\\s*([^;]+);`))?.[1];
+
+    expect(max_width(pipeline, ".wrap")).toBeDefined();
+    expect(max_width(source, ".about-wrap")).toBe(max_width(pipeline, ".wrap"));
+  });
+
+  // `border: 0` is allowed: it removes the browser's default frame on the
+  // lightbox <dialog>, which is the opposite of drawing one.
   it("draws no border or coloured left rail around its blocks", () => {
-    expect(source).not.toMatch(/border(-left)?\s*:/);
+    expect(source).not.toMatch(/border(-left|-top|-right|-bottom)?\s*:(?!\s*(0|none);)/);
   });
 });

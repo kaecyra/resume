@@ -411,7 +411,9 @@ const MOCK_ABOUT: LandingAbout = {
   lead: "I like building things.",
   paragraphs: ["I run a homelab."],
   photos_label: "Lately",
-  photos: [{ id: "golf", src: "/landing/photos/golf.jpg", alt: "Golf", caption: "Won it." }],
+  photos: [
+    { id: "golf", src: "/landing/photos/golf.jpg", alt: "Golf", caption: "Won it.", width: 800, height: 600 },
+  ],
   books_label: "Worth reading",
   books: [
     {
@@ -497,6 +499,38 @@ describe("validate_landing_data: about", () => {
     const photo = { ...MOCK_ABOUT.photos[0], caption: "" };
     expect(about_errors(make_about({ photos: [photo] }))).toContain(
       'photo "golf" is missing src, alt, or caption',
+    );
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["zero", 0],
+    ["fractional", 1.5],
+    ["a string", "800"],
+  ])("detects a photo whose width is %s", (_label, width) => {
+    const photo = { ...MOCK_ABOUT.photos[0], width: width as number };
+    expect(about_errors(make_about({ photos: [photo] }))).toContain(
+      'photo "golf" width and height must be positive whole numbers of pixels',
+    );
+  });
+
+  it("accepts a photo with a site-relative full_src and one without", () => {
+    const with_full = { ...MOCK_ABOUT.photos[0], full_src: "/landing/photos/golf-full.jpg" };
+    expect(about_errors(make_about({ photos: [with_full] }))).toEqual([]);
+    expect(about_errors(make_about())).toEqual([]);
+  });
+
+  it("detects a full_src that is not site-relative", () => {
+    const photo = { ...MOCK_ABOUT.photos[0], full_src: "https://example.com/golf.jpg" };
+    expect(about_errors(make_about({ photos: [photo] }))).toContain(
+      'photo "golf" full_src must be a site path starting with "/"',
+    );
+  });
+
+  it("detects a photo with no height", () => {
+    const { height: _height, ...photo } = MOCK_ABOUT.photos[0];
+    expect(about_errors(make_about({ photos: [photo as typeof MOCK_ABOUT.photos[0]] }))).toContain(
+      'photo "golf" width and height must be positive whole numbers of pixels',
     );
   });
 

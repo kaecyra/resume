@@ -47,7 +47,7 @@ describe("data/ integrity", () => {
 
     const paths = [
       about!.portrait.src,
-      ...about!.photos.map((photo) => photo.src),
+      ...about!.photos.flatMap((photo) => [photo.src, photo.full_src ?? photo.src]),
       ...about!.books.map((book) => book.cover),
     ];
     const missing = paths.filter((path) => !existsSync(resolve("static", `.${path}`)));
