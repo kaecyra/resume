@@ -379,6 +379,8 @@ The "Pipelines" section's mechanical-room readout shows a live temperature and h
 
 A background loop in `docker-entrypoint.sh` polls two HA sensor entities every 5 minutes and writes the reading to a static file nginx serves at `/api/basement/metrics`, timestamped with when the container last successfully talked to HA (not the sensor's own last-changed time - it only pushes a new value into HA when the reading moves, so a stable room can sit on the same HA-side timestamp for hours with nothing wrong); the landing page polls that endpoint every 30 seconds once loaded. A red LIVE badge shows only while that contact is under 30 minutes old; otherwise (including before the first poll ever completes, or with any of the four variables below unset) the readout shows "-" and a grey OFFLINE badge rather than a number that might be out of date.
 
+On the same cycle, the loop also reads the last 24 hours of both sensors from HA's history API and writes them to `/api/basement/history`. The page reads that every 5 minutes and draws a sparkline under each value, labelled with the day's high and low. HA only records a sensor's changes, so each series is treated as a value that holds until the next change, averaged into half-hour buckets and drawn as a smooth curve that never passes the real readings. The sparklines show only beside a LIVE reading; with no history yet, or with the history endpoint unreachable, they are simply absent.
+
 ### First-Time Setup
 
 1. In Home Assistant, go to your profile > Security and create a long-lived access token
