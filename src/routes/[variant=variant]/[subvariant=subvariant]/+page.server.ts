@@ -14,6 +14,7 @@ import {
   build_person_context,
   build_person_jsonld,
   build_profile_page_jsonld,
+  build_variant_canonical_url,
 } from "$lib/seo.js";
 import { get_theme_palette } from "$lib/theme-palettes.js";
 
@@ -55,12 +56,13 @@ export const load: PageServerLoad = async ({ params }) => {
     resume.online_qr_svg = await generate_qr_svg(og.url, palette.accent);
   }
 
-  // No canonical and no resume-suffixed title here: sub-variants are
+  // No canonical tag and no resume-suffixed title here: sub-variants are
   // noindex, nofollow (see +page.svelte), so nothing about them is an
-  // indexing decision. They carry the same schema shape as the public
-  // pages only so there is one JSON-LD code path, not two.
+  // indexing decision. The Person still points at the canonical resume,
+  // the same value every other route gives it - one person, one page, and
+  // never this one, which is explicitly withheld from the index.
   const person_jsonld = build_person_jsonld(
-    resume.profile, resume.title, og.url,
+    resume.profile, resume.title, build_variant_canonical_url(base_url),
     build_person_context(load_landing_data(), resume.skills),
   );
   const profile_page_jsonld = build_profile_page_jsonld(

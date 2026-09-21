@@ -16,7 +16,9 @@ vi.mock("$lib/landing.js", async (import_original) => {
   return { ...actual, load_landing_data: vi.fn(actual.load_landing_data) };
 });
 
+import { list_variants } from "$lib/data.js";
 import { load_landing_data } from "$lib/landing.js";
+import { CANONICAL_VARIANT } from "$lib/seo.js";
 
 import { GET } from "./+server.js";
 
@@ -85,8 +87,12 @@ describe("llms.txt route", () => {
   it("lists every real variant against the configured base URL", async () => {
     const text = await run_get();
 
-    expect(text).toContain("https://example.com/default");
-    expect(text).toContain("https://example.com/default.pdf");
-    expect(text).toContain("https://example.com/cto-a");
+    // Derived, not typed in: variants come and go, and this asserts that
+    // whatever exists is listed - see ENGINEERING.md rule 17.
+    expect(text).toContain(`https://example.com/${CANONICAL_VARIANT}`);
+    expect(text).toContain(`https://example.com/${CANONICAL_VARIANT}.pdf`);
+    for (const slug of list_variants()) {
+      expect(text).toContain(`https://example.com/${slug}`);
+    }
   });
 });

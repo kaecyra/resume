@@ -58,12 +58,12 @@ const PAGE_DATA = {
     url: "https://example.com/cto-a",
   },
   canonical_url: "https://example.com/default",
-  document_title: "Tim Gunter - Chief Technology Officer | Resume",
+  document_title: "Tim Gunter \u2014 Chief Technology Officer | Resume",
   jsonld: {
     profile_page: {
       "@context": "https://schema.org" as const,
       "@type": "ProfilePage" as const,
-      name: "Tim Gunter - Chief Technology Officer | Resume",
+      name: "Tim Gunter \u2014 Chief Technology Officer | Resume",
       description: "Ships things that work.",
       mainEntity: {
         "@context": "https://schema.org" as const,
@@ -126,7 +126,7 @@ describe("variant route page - head (#237)", () => {
   it("names the document a resume in the title while og:title stays the share-card form", () => {
     render(Page, { props: { data: PAGE_DATA } });
 
-    expect(document.title).toBe("Tim Gunter - Chief Technology Officer | Resume");
+    expect(document.title).toBe("Tim Gunter \u2014 Chief Technology Officer | Resume");
     expect(document.querySelector('meta[property="og:title"]')?.getAttribute("content")).toBe(
       "Tim Gunter - Chief Technology Officer",
     );

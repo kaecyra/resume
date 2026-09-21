@@ -69,7 +69,7 @@ export function split_hero_role(hero: LandingHero): { role: string; employer: st
 
 export function build_landing_title(hero: LandingHero): string {
   const { role } = split_hero_role(hero);
-  return `${hero.name} — ${role}${RESUME_TITLE_SUFFIX}`;
+  return `${hero.name}${TITLE_SEPARATOR}${role}${RESUME_TITLE_SUFFIX}`;
 }
 
 // The document title for a variant page, built from its parts rather than
@@ -265,6 +265,11 @@ export function build_og_metadata(
   };
 }
 
+// Summaries run through strip_markdown, which collapses whitespace: that is
+// what keeps a multi-line YAML summary from ending its own list item
+// mid-bullet. They are not truncated the way a meta description is -
+// nothing renders this in a fixed box, and a summary cut mid-word is worse
+// to quote than a long one.
 export interface LlmsTxtVariant {
   slug: string;
   title: string;
@@ -286,11 +291,7 @@ export interface LlmsTxtInput {
 export function build_llms_txt(input: LlmsTxtInput): string {
   const { hero, base_url, email, links, variants } = input;
   const url = (path: string) => (base_url ? `${base_url}/${path}` : `/${path}`);
-  // strip_markdown collapses whitespace, which is what keeps a multi-line
-  // YAML summary from ending its own list item mid-bullet. Not truncated
-  // the way a meta description is: nothing renders this in a fixed box, and
-  // a summary cut mid-word is worse to quote than a long one.
-  const blurb = strip_markdown;
+
 
   const canonical = variants.find((variant) => variant.slug === CANONICAL_VARIANT);
   const others = variants.filter((variant) => variant.slug !== CANONICAL_VARIANT);
@@ -306,7 +307,7 @@ export function build_llms_txt(input: LlmsTxtInput): string {
 
   if (canonical) {
     lines.push(
-      `- [${canonical.title}](${url(CANONICAL_VARIANT)}): the canonical resume. ${blurb(canonical.summary)}`,
+      `- [${canonical.title}](${url(CANONICAL_VARIANT)}): the canonical resume. ${strip_markdown(canonical.summary)}`,
       `- [PDF](${url(`${CANONICAL_VARIANT}.pdf`)}): the same resume as a download.`,
     );
   }
@@ -318,7 +319,7 @@ export function build_llms_txt(input: LlmsTxtInput): string {
       "",
     );
     for (const variant of others) {
-      lines.push(`- [${variant.title}](${url(variant.slug)}): ${blurb(variant.summary)}`);
+      lines.push(`- [${variant.title}](${url(variant.slug)}): ${strip_markdown(variant.summary)}`);
     }
   }
 
