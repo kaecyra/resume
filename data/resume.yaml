@@ -115,12 +115,22 @@ field_deployments:
       Built a multi-tenant AI agent framework that runs on hardware the operator owns. A local model triages every inbound message and answers what it can on-device; only the work that genuinely needs a frontier model leaves the machine, and which provider that is stays the operator's choice. Tenant credentials are encrypted at rest and injected at execution time, so the model never sees a secret. Integrations are MCP servers, which keeps the core from needing to know what sits behind any one of them.
 
 employment:
+  - id: first-american
+    title: "Principal Engineer"
+    company: "First American"
+    location: "Remote"
+    start_date: "2026-11"
+    end_date: null
+    description: null
+    summary: null
+    highlights: []
+
   - id: monks-vpe
     title: "Vice President of Engineering"
     company: ".Monks"
     location: "Remote"
     start_date: "2024-07"
-    end_date: null
+    end_date: "2026-11"
     description: |
       Monks (formerly TheoremOne and Formula.Monks) tackles ambitious, convoluted, 
       and scary software engineering challenges on behalf of large organizations that 
